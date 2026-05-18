@@ -12,17 +12,48 @@ jobs:
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
+
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+
           script: |
             cd /var/www/lifeforce-system
+
             git pull origin main
+
+            sudo mkdir -p storage/logs bootstrap/cache storage/framework/views storage/framework/cache storage/framework/sessions
+
+            sudo touch storage/logs/laravel.log
+
+            sudo chown -R ubuntu:www-data storage bootstrap/cache
+
+            sudo chmod -R 775 storage bootstrap/cache
+
+            sudo chmod 664 storage/logs/laravel.log
+
+            sudo find storage bootstrap/cache -type d -exec chmod g+s {} \;
+
             composer install --no-dev --optimize-autoloader
-            php artisan config:clear
-            php artisan cache:clear
-            php artisan route:clear
-            php artisan view:clear
+
+            if command -v npm >/dev/null 2>&1; then
+              npm install
+              npm run build
+            fi
+
+            php artisan migrate --force
+
+            php artisan optimize:clear
+
+            php artisan config:cache
+
+            php artisan route:cache
+
+            php artisan view:cache
+
+            php artisan queue:restart
+
+            sudo supervisorctl restart lifeforce-worker:*
+
             sudo systemctl reload nginx
-            #sudo supervisorctl restart lifeforce-worker:*
