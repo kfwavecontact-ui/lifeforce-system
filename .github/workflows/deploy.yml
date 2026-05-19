@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop
 
 jobs:
   deploy:
@@ -19,9 +20,15 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
 
           script: |
-            cd /var/www/lifeforce-system
 
-            git pull origin main
+
+if [ "${GITHUB_REF##*/}" = "develop" ]; then
+  cd /var/www/lifeforce-system-dev
+  git pull origin develop
+else
+  cd /var/www/lifeforce-system
+  git pull origin main
+fi
 
             sudo mkdir -p storage/logs bootstrap/cache storage/framework/views storage/framework/cache storage/framework/sessions
 
