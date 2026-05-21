@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -113,3 +114,10 @@ Route::get('/admin-test', function () {
 
     return '管理者だけが見られるページです';
 })->middleware(['auth']);
+
+Route::middleware(['auth'])->group(function () {
+
+    Route::get('/admin/users', [UserController::class, 'index'])
+        ->name('admin.users.index');
+
+});
