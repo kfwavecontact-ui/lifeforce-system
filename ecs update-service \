@@ -1,0 +1,103 @@
+{
+    "tasks": [
+        {
+            "attachments": [
+                {
+                    "id": "9ee5163e-2151-45d5-9c71-968e934e0ae1",
+                    "type": "ElasticNetworkInterface",
+                    "status": "DELETED",
+                    "details": [
+                        {
+                            "name": "subnetId",
+                            "value": "subnet-098d3cfc81f1c0863"
+                        },
+                        {
+                            "name": "networkInterfaceId",
+                            "value": "eni-062bb6c7dfd1dab3b"
+                        },
+                        {
+                            "name": "macAddress",
+                            "value": "0a:18:e7:6b:95:69"
+                        },
+                        {
+                            "name": "privateDnsName",
+                            "value": "ip-10-0-1-172.ap-northeast-1.compute.internal"
+                        },
+                        {
+                            "name": "privateIPv4Address",
+                            "value": "10.0.1.172"
+                        }
+                    ]
+                }
+            ],
+            "attributes": [
+                {
+                    "name": "ecs.cpu-architecture",
+                    "value": "x86_64"
+                }
+            ],
+            "availabilityZone": "ap-northeast-1c",
+            "capacityProviderName": "FARGATE",
+            "clusterArn": "arn:aws:ecs:ap-northeast-1:166818437537:cluster/lifeforce-cluster",
+            "connectivity": "CONNECTED",
+            "connectivityAt": "2026-05-20T13:50:02.994000+00:00",
+            "containers": [
+                {
+                    "containerArn": "arn:aws:ecs:ap-northeast-1:166818437537:container/lifeforce-cluster/22449a284f364c168598475c39eef2ce/1e748875-2c5b-40d2-b509-b957ebd8402a",
+                    "taskArn": "arn:aws:ecs:ap-northeast-1:166818437537:task/lifeforce-cluster/22449a284f364c168598475c39eef2ce",
+                    "name": "lifeforce-app",
+                    "image": "166818437537.dkr.ecr.ap-northeast-1.amazonaws.com/lifeforce-system:latest",
+                    "runtimeId": "22449a284f364c168598475c39eef2ce-2048907628",
+                    "lastStatus": "STOPPED",
+                    "networkInterfaces": [
+                        {
+                            "attachmentId": "9ee5163e-2151-45d5-9c71-968e934e0ae1",
+                            "privateIpv4Address": "10.0.1.172"
+                        }
+                    ],
+                    "healthStatus": "UNKNOWN",
+                    "cpu": "1024",
+                    "memory": "2048"
+                }
+            ],
+            "cpu": "1024",
+            "createdAt": "2026-05-20T13:49:58.458000+00:00",
+            "desiredStatus": "STOPPED",
+            "enableExecuteCommand": false,
+            "executionStoppedAt": "2026-05-20T13:51:16.913000+00:00",
+            "group": "service:lifeforce-task-service-e03esg26",
+            "healthStatus": "UNKNOWN",
+            "lastStatus": "STOPPED",
+            "launchType": "FARGATE",
+            "memory": "3072",
+            "overrides": {
+                "containerOverrides": [
+                    {
+                        "name": "lifeforce-app"
+                    }
+                ],
+                "inferenceAcceleratorOverrides": []
+            },
+            "platformVersion": "1.4.0",
+            "platformFamily": "Linux",
+            "pullStartedAt": "2026-05-20T13:50:09.185000+00:00",
+            "pullStoppedAt": "2026-05-20T13:50:09.197000+00:00",
+            "startedBy": "ecs-svc/6640955823802651647",
+            "stopCode": "TaskFailedToStart",
+            "stoppedAt": "2026-05-20T13:52:00.876000+00:00",
+            "stoppedReason": "CannotPullContainerError: pull image manifest has been retried 7 time(s): image Manifest does not contain descriptor matching platform 'linux/amd64'",
+            "stoppingAt": "2026-05-20T13:51:26.953000+00:00",
+            "tags": [],
+            "taskArn": "arn:aws:ecs:ap-northeast-1:166818437537:task/lifeforce-cluster/22449a284f364c168598475c39eef2ce",
+            "taskDefinitionArn": "arn:aws:ecs:ap-northeast-1:166818437537:task-definition/lifeforce-task:1",
+            "version": 5,
+            "ephemeralStorage": {
+                "sizeInGiB": 20
+            },
+            "fargateEphemeralStorage": {
+                "sizeInGiB": 20
+            }
+        }
+    ],
+    "failures": []
+}

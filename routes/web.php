@@ -74,3 +74,33 @@ Route::middleware(['auth'])->group(function () {
     });
 
 });
+
+
+Route::get('/ai-test', function () {
+    try {
+        $client = \OpenAI::client(env('OPENAI_API_KEY'));
+
+        $response = $client->chat()->create([
+            'model' => 'gpt-4o-mini',
+            'messages' => [
+                [
+                    'role' => 'user',
+                    'content' => '小学生向けの脳開発問題を1問作って'
+                ]
+            ],
+        ]);
+
+        return nl2br(e($response->choices[0]->message->content));
+
+    } catch (\Throwable $e) {
+        return response(
+            'AI接続エラー: ' . $e->getMessage(),
+            200
+        );
+    }
+});
+
+
+Route::get('/test-download', function () {
+    return 'ログイン済みユーザーだけが見られるDLページです';
+})->middleware(['auth']);
