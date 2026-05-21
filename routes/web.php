@@ -104,3 +104,12 @@ Route::get('/ai-test', function () {
 Route::get('/test-download', function () {
     return 'ログイン済みユーザーだけが見られるDLページです';
 })->middleware(['auth']);
+
+
+Route::get('/admin-test', function () {
+    if (!auth()->user()->isAdmin()) {
+        abort(403, '管理者のみアクセスできます');
+    }
+
+    return '管理者だけが見られるページです';
+})->middleware(['auth']);
