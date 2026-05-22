@@ -35,17 +35,28 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push Docker image
+      - name: Build and push Docker images
         run: |
           AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+
+          APP_IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/lifeforce-system:latest
+          NGINX_IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/lifeforce-nginx:latest
 
           docker buildx build \
             --platform linux/arm64 \
             --cache-from type=gha \
             --cache-to type=gha,mode=max \
-            -t $IMAGE_URI \
+            -t $APP_IMAGE_URI \
             --push .
+
+          docker buildx build \
+            --platform linux/arm64 \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            -f Dockerfile.nginx \
+            -t $NGINX_IMAGE_URI \
+            --push .
+
 
       - name: Force new ECS deployment
         run: |
