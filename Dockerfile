@@ -21,6 +21,11 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
 
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
+    && npm ci \
+    && npm run build
+
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
