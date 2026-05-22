@@ -34,8 +34,7 @@ jobs:
           AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
 
-          docker build -t $IMAGE_URI .
-          docker push $IMAGE_URI
+          docker buildx build --platform linux/arm64 -t $IMAGE_URI --push .
 
       - name: Force new ECS deployment
         run: |
