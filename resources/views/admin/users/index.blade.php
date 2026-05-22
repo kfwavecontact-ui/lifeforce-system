@@ -47,7 +47,7 @@
     @foreach($users as $user)
 
         @php
-            $contract = $user->courseContracts->first();
+            $contract = $user->courseContracts->sortByDesc('created_at')->first();
         @endphp
 
         <tr>
