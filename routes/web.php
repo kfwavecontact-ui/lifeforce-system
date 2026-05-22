@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\UserCourseContractController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -121,3 +122,13 @@ Route::middleware(['auth'])->group(function () {
         ->name('admin.users.index');
 
 });
+
+Route::get(
+    '/admin/user-course-contracts/create',
+    [UserCourseContractController::class, 'create']
+)->name('admin.user-course-contracts.create');
+
+Route::post(
+    '/admin/user-course-contracts',
+    [UserCourseContractController::class, 'store']
+)->name('admin.user-course-contracts.store');
