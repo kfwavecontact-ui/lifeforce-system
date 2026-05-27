@@ -1,0 +1,129 @@
+// LifeForce Academy DB Schema
+// 保存場所:
+// database/schema/lifeforce_schema.dbml
+
+Project lifeforce_system {
+  database_type: "PostgreSQL"
+  Note: 'LifeForce Academy Main System'
+}
+
+// =====================
+// 基盤テーブル
+// =====================
+
+Table users {
+  id bigint [pk]
+  name varchar
+  email varchar
+  password varchar
+  email_verified_at timestamp
+  is_active boolean
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table roles {
+  id bigint [pk]
+  name varchar
+  display_name varchar
+  sort_order integer
+  is_active boolean
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table permissions {
+  id bigint [pk]
+  name varchar
+  display_name varchar
+  module varchar
+  action varchar
+  description text
+  is_active boolean
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table user_roles {
+  id bigint [pk]
+  user_id bigint
+  role_id bigint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table role_permissions {
+  id bigint [pk]
+  role_id bigint
+  permission_id bigint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table areas {
+  id bigint [pk]
+  code varchar
+  name varchar
+  display_name varchar
+  sort_order integer
+  is_active boolean
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table schools {
+  id bigint [pk]
+  area_id bigint
+  code varchar
+  name varchar
+  short_name varchar
+  kana_name varchar
+  postal_code varchar
+  prefecture varchar
+  city varchar
+  address1 varchar
+  address2 varchar
+  phone_number varchar
+  email varchar
+  opened_at date
+  closed_at date
+  capacity integer
+  sort_order integer
+  is_active boolean
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table school_users {
+  id bigint [pk]
+  school_id bigint
+  user_id bigint
+  role_id bigint
+  is_primary boolean
+  started_at date
+  ended_at date
+  is_active boolean
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+// =====================
+// 外部キー
+// =====================
+
+Ref: user_roles.user_id > users.id
+Ref: user_roles.role_id > roles.id
+
+Ref: role_permissions.role_id > roles.id
+Ref: role_permissions.permission_id > permissions.id
+
+Ref: schools.area_id > areas.id
+
+Ref: school_users.school_id > schools.id
+Ref: school_users.user_id > users.id
+Ref: school_users.role_id > roles.id
+
+// 以降、students / parents / teachers / courses / events / shop などを追加
