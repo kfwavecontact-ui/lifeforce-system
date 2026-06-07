@@ -1,0 +1,126 @@
+<?php
+
+namespace Database\Seeders\C;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class LessonMakeupsTableSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        DB::table('lesson_makeups')->insert([
+            [
+                'id' => 1,
+                'student_id' => 1,
+                'attendance_id' => 1,
+                'original_lesson_session_id' => 1,
+                'makeup_lesson_session_id' => null,
+                'status' => 'pending',
+                'absence_reason' => '体調不良',
+                'memo' => '保護者より振替希望',
+                'makeup_deadline' => '2026-06-30',
+                'requested_by_user_id' => 1,
+                'approved_by_user_id' => null,
+                'requested_at' => '2026-06-01 10:00:00',
+                'scheduled_at' => null,
+                'completed_at' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 2,
+                'student_id' => 1,
+                'attendance_id' => 1,
+                'original_lesson_session_id' => 1,
+                'makeup_lesson_session_id' => null,
+                'status' => 'scheduled',
+                'absence_reason' => '学校行事',
+                'memo' => '運動会のため欠席',
+                'makeup_deadline' => '2026-06-30',
+                'requested_by_user_id' => 1,
+                'approved_by_user_id' => null,
+                'requested_at' => '2026-06-02 09:00:00',
+                'scheduled_at' => '2026-06-03 14:00:00',
+                'completed_at' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 3,
+                'student_id' => 1,
+                'attendance_id' => 1,
+                'original_lesson_session_id' => 1,
+                'makeup_lesson_session_id' => null,
+                'status' => 'completed',
+                'absence_reason' => '家庭都合',
+                'memo' => '振替受講完了',
+                'makeup_deadline' => '2026-06-30',
+                'requested_by_user_id' => 1,
+                'approved_by_user_id' => null,
+                'requested_at' => '2026-06-01 12:00:00',
+                'scheduled_at' => '2026-06-02 15:00:00',
+                'completed_at' => '2026-06-10 16:00:00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 4,
+                'student_id' => 1,
+                'attendance_id' => 1,
+                'original_lesson_session_id' => 1,
+                'makeup_lesson_session_id' => null,
+                'status' => 'cancelled',
+                'absence_reason' => '旅行',
+                'memo' => '振替不要',
+                'makeup_deadline' => '2026-06-30',
+                'requested_by_user_id' => 1,
+                'approved_by_user_id' => null,
+                'requested_at' => '2026-06-01 08:00:00',
+                'scheduled_at' => null,
+                'completed_at' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 5,
+                'student_id' => 1,
+                'attendance_id' => 1,
+                'original_lesson_session_id' => 1,
+                'makeup_lesson_session_id' => null,
+                'status' => 'expired',
+                'absence_reason' => '体調不良',
+                'memo' => '振替期限切れ',
+                'makeup_deadline' => '2026-05-31',
+                'requested_by_user_id' => 1,
+                'approved_by_user_id' => null,
+                'requested_at' => '2026-05-01 09:00:00',
+                'scheduled_at' => null,
+                'completed_at' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 6,
+                'student_id' => 1,
+                'attendance_id' => 1,
+                'original_lesson_session_id' => 1,
+                'makeup_lesson_session_id' => null,
+                'status' => 'pending',
+                'absence_reason' => '発熱',
+                'memo' => '振替日程調整中',
+                'makeup_deadline' => '2026-07-15',
+                'requested_by_user_id' => 1,
+                'approved_by_user_id' => null,
+                'requested_at' => '2026-06-05 10:00:00',
+                'scheduled_at' => null,
+                'completed_at' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+    }
+}

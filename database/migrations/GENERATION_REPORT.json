@@ -1,0 +1,16 @@
+{
+  "source": "/mnt/data/tables_only.txt",
+  "table_count": 118,
+  "file_count": 118,
+  "unsupported_tables": [],
+  "php_available": true,
+  "syntax_failed_count": 0,
+  "syntax_failed": [],
+  "notes": [
+    "Refは使用していません。",
+    "外部キー制約は未設定です。",
+    "created_at / updated_at は timestamps() にまとめています。",
+    "users のみ softDeletes() を追加しています。",
+    "integer のうち *_id 等のFK候補列は unsignedBigInteger にしています。"
+  ]
+}

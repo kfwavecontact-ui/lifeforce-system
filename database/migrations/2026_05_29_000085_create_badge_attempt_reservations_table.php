@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('badge_attempt_reservations', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('student_id');
+            $table->unsignedBigInteger('badge_id')->nullable();
+            $table->timestamp('reserved_at')->nullable();
+            $table->date('challenge_date')->nullable();
+            $table->string('status');
+            $table->unsignedBigInteger('approved_teacher_id');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('badge_attempt_reservations');
+    }
+};

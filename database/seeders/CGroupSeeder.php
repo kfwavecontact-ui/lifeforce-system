@@ -1,0 +1,91 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+class CGroupSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $this->call([
+            \Database\Seeders\C\UsersTableSeeder::class,
+            \Database\Seeders\C\AreasTableSeeder::class,
+            \Database\Seeders\C\UserRolesTableSeeder::class,
+            \Database\Seeders\C\SchoolsTableSeeder::class,
+            \Database\Seeders\C\ParentsTableSeeder::class,
+            \Database\Seeders\C\TeachersTableSeeder::class,
+            \Database\Seeders\C\LearningMaterialsTableSeeder::class,
+            \Database\Seeders\C\EventsTableSeeder::class,
+            \Database\Seeders\C\ShopProductsTableSeeder::class,
+            \Database\Seeders\C\ShopCartsTableSeeder::class,
+            \Database\Seeders\C\ShopOrdersTableSeeder::class,
+            \Database\Seeders\C\SchoolUsersTableSeeder::class,
+            \Database\Seeders\C\StudentsTableSeeder::class,
+            \Database\Seeders\C\ClassroomsTableSeeder::class,
+            \Database\Seeders\C\LearningMaterialVersionsTableSeeder::class,
+            \Database\Seeders\C\SchoolSettingsTableSeeder::class,
+            \Database\Seeders\C\HolidaysTableSeeder::class,
+            \Database\Seeders\C\BusinessDaysTableSeeder::class,
+            \Database\Seeders\C\StudentLearningContentSettingsTableSeeder::class,
+            \Database\Seeders\C\EventSchedulesTableSeeder::class,
+            \Database\Seeders\C\EventTargetsTableSeeder::class,
+            \Database\Seeders\C\EventPricesTableSeeder::class,
+            \Database\Seeders\C\EventRewardsTableSeeder::class,
+            \Database\Seeders\C\ShopProductImagesTableSeeder::class,
+            \Database\Seeders\C\ShopProductStocksTableSeeder::class,
+            \Database\Seeders\C\ShopCartItemsTableSeeder::class,
+            \Database\Seeders\C\ShopOrderItemsTableSeeder::class,
+            \Database\Seeders\C\ShopPaymentsTableSeeder::class,
+            \Database\Seeders\C\ShopPickupsTableSeeder::class,
+            \Database\Seeders\C\ParentStudentsTableSeeder::class,
+            \Database\Seeders\C\StudentCourseContractsTableSeeder::class,
+            \Database\Seeders\C\CalendarEventsTableSeeder::class,
+            \Database\Seeders\C\LessonSchedulesTableSeeder::class,
+            \Database\Seeders\C\LearningPlansTableSeeder::class,
+            \Database\Seeders\C\LearningRoutinesTableSeeder::class,
+            \Database\Seeders\C\InvoicesTableSeeder::class,
+            \Database\Seeders\C\StudentDiscountsTableSeeder::class,
+            \Database\Seeders\C\ContactsTableSeeder::class,
+            \Database\Seeders\C\StudentRoutinesTableSeeder::class,
+            \Database\Seeders\C\StudySessionsTableSeeder::class,
+            \Database\Seeders\C\PointTransactionsTableSeeder::class,
+            \Database\Seeders\C\StudentPointBalancesTableSeeder::class,
+            \Database\Seeders\C\RewardExchangeRequestsTableSeeder::class,
+            \Database\Seeders\C\BadgeAttemptReservationsTableSeeder::class,
+            \Database\Seeders\C\BadgeChallengeLogsTableSeeder::class,
+            \Database\Seeders\C\StudentBadgesTableSeeder::class,
+            \Database\Seeders\C\StudentTitlesTableSeeder::class,
+            \Database\Seeders\C\EventLocationsTableSeeder::class,
+            \Database\Seeders\C\EventApplicationsTableSeeder::class,
+            \Database\Seeders\C\EventStaffAssignmentsTableSeeder::class,
+            \Database\Seeders\C\LessonSessionsTableSeeder::class,
+            \Database\Seeders\C\LearningPlanMilestonesTableSeeder::class,
+            \Database\Seeders\C\LearningRoutineLogsTableSeeder::class,
+            \Database\Seeders\C\InvoiceItemsTableSeeder::class,
+            \Database\Seeders\C\PaymentsTableSeeder::class,
+            \Database\Seeders\C\ContactMessagesTableSeeder::class,
+            \Database\Seeders\C\StudentRoutineItemsTableSeeder::class,
+            \Database\Seeders\C\StudyResultsTableSeeder::class,
+            \Database\Seeders\C\EventPaymentsTableSeeder::class,
+            \Database\Seeders\C\EventParticipantsTableSeeder::class,
+            \Database\Seeders\C\EventWaitlistsTableSeeder::class,
+            \Database\Seeders\C\EventResultRecordsTableSeeder::class,
+            \Database\Seeders\C\StudentLessonReservationsTableSeeder::class,
+            \Database\Seeders\C\LessonNotesTableSeeder::class,
+            \Database\Seeders\C\LearningPlanTasksTableSeeder::class,
+            \Database\Seeders\C\ContactAttachmentsTableSeeder::class,
+            \Database\Seeders\C\DailyRoutineStatusesTableSeeder::class,
+            \Database\Seeders\C\EventRefundsTableSeeder::class,
+            \Database\Seeders\C\EventAttendanceRewardsTableSeeder::class,
+            \Database\Seeders\C\EventCheckinsTableSeeder::class,
+            \Database\Seeders\C\AttendancesTableSeeder::class,
+            \Database\Seeders\C\StudentLessonNotesTableSeeder::class,
+            \Database\Seeders\C\LearningPlanProgressLogsTableSeeder::class,
+            \Database\Seeders\C\LearningPlanTaskMaterialsTableSeeder::class,
+        ]);
+    }
+}
