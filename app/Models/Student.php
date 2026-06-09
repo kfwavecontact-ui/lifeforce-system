@@ -13,6 +13,15 @@ use App\Models\StudentTitle;
 use App\Models\Title;
 use App\Models\StudentLessonNote;
 use App\Models\StudentRoutine;
+use App\Models\School;
+use App\Models\Grade;
+use App\Models\EnrollmentStatus;
+use App\Models\StudentPointBalance;
+use App\Models\Attendance;
+use App\Models\PointTransaction;
+use App\Models\StudentClass;
+use App\Models\StudentTeacher;
+use App\Models\StudentCourseContract;
 
 class Student extends Model
 {
@@ -23,9 +32,14 @@ class Student extends Model
         'enrollment_status_id',
 
         'student_code',
+        'medical_notes',
+        'admission_source',
 
         'last_name',
         'first_name',
+        'last_name_kana',
+        'first_name_kana',
+        'profile_image_path',
 
         'gender',
         'birthday',
@@ -113,4 +127,51 @@ class Student extends Model
     {
         return $this->hasMany(StudentRoutine::class);
     }
+
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function grade()
+    {
+        return $this->belongsTo(Grade::class);
+    }
+
+    public function enrollmentStatus()
+    {
+        return $this->belongsTo(EnrollmentStatus::class);
+    }
+
+    public function pointBalance()
+    {
+        return $this->hasOne(StudentPointBalance::class);
+    }
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    public function pointTransactions()
+    {
+        return $this->hasMany(PointTransaction::class);
+    }
+
+    public function studentClasses()
+    {
+        return $this->hasMany(StudentClass::class);
+    }
+
+    public function studentTeachers()
+    {
+        return $this->hasMany(StudentTeacher::class);
+    }
+
+    public function courseContracts()
+    {
+        return $this->hasMany(StudentCourseContract::class);
+    }
+
 }

@@ -21,10 +21,29 @@ class StudentKarteController extends Controller
         $student->load([
             'user',
             'parents',
+
+            'school',
+            'grade',
+            'enrollmentStatus',
+
+            'pointBalance',
+            'pointTransactions',
+            'attendances',
+
+            'studentClasses.classroom',
+            'studentTeachers.teacher',
+
+            'courseContracts.course',
+            'courseContracts.coursePrice',
+
             'lessonReservations.lessonSession',
+
             'studentBadges.badge',
             'studentTitles.title',
+            'titles',
+
             'lessonNotes.user',
+
         ]);
 
         $today = now()->toDateString();
@@ -113,23 +132,24 @@ class StudentKarteController extends Controller
         $packageQuery = RoutinePackage::query()
             ->where('is_active', true);
 
-        if ($packageId = request('routine_package_id')) {
-            $id = preg_replace('/[^0-9]/', '', $packageId);
-
-            if ($id !== '') {
-                $packageQuery->where('id', (int) $id);
-            }
+        if ($packageId = trim((string) request('routine_package_id', ''))) {
+            $packageQuery->whereRaw("CAST(id AS TEXT) LIKE ?", ['%' . preg_replace('/[^0-9]/', '', $packageId) . '%']);
         }
 
-        if ($keyword = request('routine_package_keyword')) {
+        if ($keyword = trim((string) request('routine_package_keyword', ''))) {
             $packageQuery->where(function ($query) use ($keyword) {
                 $query->where('name', 'like', "%{$keyword}%")
-                    ->orWhere('description', 'like', "%{$keyword}%");
+                    ->orWhere('description', 'like', "%{$keyword}%")
+                    ->orWhere('tag', 'like', "%{$keyword}%");
             });
         }
 
         if (($grade = request('routine_package_grade')) && $grade !== 'all') {
-            $packageQuery->where('target_grade', $grade);
+            if ($grade === 'ALL') {
+                $packageQuery->where('target_grade', 'ALL');
+            } else {
+                $packageQuery->where('target_grade', 'like', '%' . $grade . '%');
+            }
         }
 
         if (($level = request('routine_package_level')) && $level !== 'all') {
@@ -138,10 +158,6 @@ class StudentKarteController extends Controller
 
         if (($category = request('routine_package_category')) && $category !== 'all') {
             $packageQuery->where('category', $category);
-        }
-
-        if (($tag = request('routine_package_tag')) && $tag !== 'all') {
-            $packageQuery->where('tag', $tag);
         }
 
         $routinePackages = $packageQuery
@@ -181,31 +197,67 @@ class StudentKarteController extends Controller
                 'package',
             ]);
 
-        if ($contentId = request('routine_item_content_id')) {
+        $addedRoutinePackageItemIds = StudentRoutineItem::query()
+            ->whereHas('routine', function ($query) use ($student) {
+                $query->where('student_id', $student->id);
+            })
+            ->whereNotNull('routine_package_item_id')
+            ->pluck('routine_package_item_id')
+            ->unique()
+            ->values();
+
+        if ($contentId = trim((string) request('routine_item_content_id', ''))) {
             $id = preg_replace('/[^0-9]/', '', $contentId);
 
             if ($id !== '') {
-                $itemQuery->where('routine_content_id', (int) $id);
+                $itemQuery->whereRaw("CAST(routine_content_id AS TEXT) LIKE ?", ['%' . $id . '%']);
             }
         }
 
-        if ($keyword = request('routine_item_keyword')) {
+        if ($keyword = trim((string) request('routine_item_keyword', ''))) {
             $itemQuery->where(function ($query) use ($keyword) {
                 $query->where('item_name', 'like', "%{$keyword}%")
-                    ->orWhere('memo', 'like', "%{$keyword}%");
+                    ->orWhere('memo', 'like', "%{$keyword}%")
+                    ->orWhere('tag', 'like', "%{$keyword}%");
             });
         }
 
         if (($grade = request('routine_item_grade')) && $grade !== 'all') {
-            $itemQuery->where('target_grade', $grade);
+            if ($grade === '未設定') {
+                $itemQuery->where(function ($query) {
+                    $query->whereNull('target_grade')->orWhere('target_grade', '');
+                });
+            } elseif ($grade === 'ALL') {
+                $itemQuery->where('target_grade', 'ALL');
+            } else {
+                $itemQuery->where('target_grade', 'like', '%' . $grade . '%');
+            }
         }
 
         if (($level = request('routine_item_level')) && $level !== 'all') {
-            $itemQuery->where('target_level', $level);
+            if ($level === '未設定') {
+                $itemQuery->where(function ($query) {
+                    $query->whereNull('target_level')->orWhere('target_level', '');
+                });
+            } else {
+                $itemQuery->where('target_level', $level);
+            }
         }
 
-        if (($tag = request('routine_item_tag')) && $tag !== 'all') {
-            $itemQuery->where('tag', $tag);
+        if (($completionType = request('routine_item_completion_type')) && $completionType !== 'all') {
+            if ($completionType === '未設定') {
+                $itemQuery->whereNull('completion_type_id');
+            } else {
+                $itemQuery->where('completion_type_id', (int) $completionType);
+            }
+        }
+
+        if (($addStatus = request('routine_item_add_status')) && $addStatus !== 'all') {
+            if ($addStatus === 'not_added') {
+                $itemQuery->whereNotIn('id', $addedRoutinePackageItemIds);
+            } elseif ($addStatus === 'added') {
+                $itemQuery->whereIn('id', $addedRoutinePackageItemIds);
+            }
         }
 
         $routinePackageItems = $itemQuery
@@ -214,23 +266,53 @@ class StudentKarteController extends Controller
             ->limit(5)
             ->get();
 
-        $itemGrades = RoutinePackageItem::query()
-            ->whereNotNull('target_grade')
-            ->distinct()
-            ->orderBy('target_grade')
-            ->pluck('target_grade');
+        $gradeOrder = ['ALL', 'PRE', 'K1', 'K2', 'K3', 'E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'J1', 'J2', 'J3', 'H1', 'H2', 'H3', '未設定'];
+        $itemGradeValues = RoutinePackageItem::query()
+            ->pluck('target_grade')
+            ->flatMap(function ($grade) {
+                if ($grade === null || $grade === '') {
+                    return ['未設定'];
+                }
 
-        $itemLevels = RoutinePackageItem::query()
-            ->whereNotNull('target_level')
-            ->distinct()
-            ->orderBy('target_level')
-            ->pluck('target_level');
+                if ($grade === 'ALL') {
+                    return ['ALL'];
+                }
 
-        $itemTags = RoutinePackageItem::query()
-            ->whereNotNull('tag')
-            ->distinct()
-            ->orderBy('tag')
-            ->pluck('tag');
+                return collect(explode(',', $grade))->map(fn($value) => trim($value))->filter();
+            })
+            ->unique()
+            ->values();
+
+        $itemGrades = collect($gradeOrder)
+            ->filter(fn($grade) => $itemGradeValues->contains($grade))
+            ->values();
+
+        $levelOrder = ['Lv1', 'Lv2', 'Lv3', 'Lv4', 'Lv5', 'Lv6', 'Lv7', 'Lv8', 'Lv9', 'Lv10', '初級', '中級', '上級', '標準', '未設定'];
+        $itemLevelValues = RoutinePackageItem::query()
+            ->pluck('target_level')
+            ->map(fn($level) => ($level === null || $level === '') ? '未設定' : $level)
+            ->unique()
+            ->values();
+
+        $itemLevels = collect($levelOrder)
+            ->filter(fn($level) => $itemLevelValues->contains($level))
+            ->values();
+
+        $itemCompletionTypes = \App\Models\RoutineCompletionType::query()
+            ->where('is_active', true)
+            ->whereIn('id', RoutinePackageItem::query()
+                ->whereNotNull('completion_type_id')
+                ->distinct()
+                ->pluck('completion_type_id')
+                ->filter()
+                ->values()
+            )
+            ->orderBy('sort_order')
+            ->get();
+
+        $hasUnsetItemCompletionType = RoutinePackageItem::query()
+            ->whereNull('completion_type_id')
+            ->exists();
 
         return view('admin.students.karte.index', [
             'student' => $student,
@@ -253,8 +335,19 @@ class StudentKarteController extends Controller
             'packageTags' => $packageTags,
             'itemGrades' => $itemGrades,
             'itemLevels' => $itemLevels,
-            'itemTags' => $itemTags,
+            'itemCompletionTypes' => $itemCompletionTypes,
+            'hasUnsetItemCompletionType' => $hasUnsetItemCompletionType,
             'today' => Carbon::parse($today),
+            'schools' => \App\Models\School::where('is_active', true)->orderBy('sort_order')->get(),
+            'grades' => \App\Models\Grade::orderBy('id')->get(),
+            'teachers' => \App\Models\Teacher::where('is_active', true)->orderBy('id')->get(),
+            'enrollmentStatuses' => \App\Models\EnrollmentStatus::orderBy('id')->get(),
+
+            'coursePrices' => \App\Models\CoursePrice::with('course')
+                ->where('is_active', true)
+                ->orderBy('course_id')
+                ->orderBy('sort_order')
+                ->get(),
         ]);
     }
 
@@ -322,7 +415,68 @@ class StudentKarteController extends Controller
             ->with('success', 'ルーティンパッケージを追加しました。');
     }
 
-    public function updateRoutineItem(Request $request, Student $student, StudentRoutineItem $item)
+    
+
+    public function applyRoutineItemPackage(Request $request, Student $student)
+    {
+        $validated = $request->validate([
+            'routine_package_item_id' => ['required','integer','exists:routine_package_items,id'],
+            'student_routine_id' => ['required','integer','exists:student_routines,id'],
+        ]);
+
+        $targetRoutine = \App\Models\StudentRoutine::query()
+            ->where('id', $validated['student_routine_id'])
+            ->where('student_id', $student->id)
+            ->firstOrFail();
+
+        $source = \App\Models\RoutinePackageItem::findOrFail($validated['routine_package_item_id']);
+
+        $nextOrderNo = ((int) \App\Models\StudentRoutineItem::query()
+            ->where('student_routine_id', $targetRoutine->id)
+            ->max('order_no')) + 1;
+
+        $createdItem = \App\Models\StudentRoutineItem::create([
+            'student_routine_id' => $targetRoutine->id,
+            'routine_package_item_id' => $source->id,
+            'routine_content_id' => $source->routine_content_id,
+            'item_name' => $source->item_name,
+            'target_grade' => $source->target_grade,
+            'target_level' => $source->target_level,
+            'tag' => $source->tag,
+            'completion_type_id' => $source->completion_type_id,
+            'target_value' => $source->target_value,
+            'estimated_minutes' => $source->estimated_minutes,
+            'order_no' => $nextOrderNo,
+            'is_required' => $source->is_required,
+            'is_active' => true,
+            'memo' => $source->memo,
+            'required_days' => $source->required_days,
+            'start_date' => now()->toDateString(),
+        ]);
+
+        $requiredDays = max(1, (int)($source->required_days ?? 1));
+
+        for ($day = 0; $day < $requiredDays; $day++) {
+            \Illuminate\Support\Facades\DB::table('student_routine_daily_statuses')->insert([
+                'student_id' => $student->id,
+                'student_routine_item_id' => $createdItem->id,
+                'target_date' => now()->addDays($day)->toDateString(),
+                'status' => 'pending',
+                'achieved_days' => 0,
+                'elapsed_days' => $day + 1,
+                'achievement_rate' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return redirect()->route('admin.students.karte.show', [
+            'student' => $student->id,
+            'tab' => 'routine',
+        ])->with('success', 'ルーティンアイテムを追加しました。');
+    }
+
+public function updateRoutineItem(Request $request, Student $student, StudentRoutineItem $item)
     {
         if ((int) $item->routine->student_id !== (int) $student->id) {
             abort(403);
@@ -485,12 +639,93 @@ class StudentKarteController extends Controller
     public function update(Request $request, Student $student)
     {
         $validated = $request->validate([
-            'gender' => ['nullable', 'string', 'max:20'],
+            'last_name' => ['nullable', 'string', 'max:255'],
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name_kana' => ['nullable', 'string', 'max:255'],
+            'first_name_kana' => ['nullable', 'string', 'max:255'],
             'birthday' => ['nullable', 'date'],
-            'school_name' => ['nullable', 'string', 'max:255'],
-            'commute_days' => ['nullable', 'string', 'max:255'],
-            'remarks' => ['nullable', 'string'],
+            'enrolled_at' => ['nullable', 'date'],
+            'grade_id' => ['nullable', 'integer', 'exists:grades,id'],
+            'school_id' => ['nullable', 'integer', 'exists:schools,id'],
+            'enrollment_status_id' => ['nullable', 'integer', 'exists:enrollment_statuses,id'],
+            'teacher_id' => ['nullable', 'integer', 'exists:teachers,id'],
+            'course_price_id' => ['nullable', 'integer', 'exists:course_prices,id'],
+            'profile_image' => ['nullable', 'image', 'max:2048'],
         ]);
+
+        unset($validated['profile_image']);
+
+        if ($request->hasFile('profile_image')) {
+            $path = $request->file('profile_image')->store(
+                'students/profile-images/' . $student->id,
+                's3'
+            );
+
+            $validated['profile_image_path'] = $path;
+        }
+
+        $teacherId = $validated['teacher_id'] ?? null;
+        unset($validated['teacher_id']);
+
+        $currentTeacher = \App\Models\StudentTeacher::query()
+            ->where('student_id', $student->id)
+            ->where('is_primary', true)
+            ->where('is_active', true)
+            ->latest('id')
+            ->first();
+
+        if ($teacherId) {
+            if (!$currentTeacher || (int) $currentTeacher->teacher_id !== (int) $teacherId) {
+                \App\Models\StudentTeacher::where('student_id', $student->id)
+                    ->where('is_primary', true)
+                    ->update(['is_active' => false]);
+
+                \App\Models\StudentTeacher::create([
+                    'student_id' => $student->id,
+                    'teacher_id' => $teacherId,
+                    'is_primary' => true,
+                    'is_active' => true,
+                ]);
+            }
+        } elseif ($request->has('teacher_id')) {
+            \App\Models\StudentTeacher::where('student_id', $student->id)
+                ->where('is_primary', true)
+                ->update(['is_active' => false]);
+        }
+
+        $coursePriceId = $validated['course_price_id'] ?? null;
+        unset($validated['course_price_id']);
+
+        if ($coursePriceId) {
+            $currentContract = \App\Models\StudentCourseContract::query()
+                ->where('student_id', $student->id)
+                ->where('is_active', true)
+                ->latest('id')
+                ->first();
+
+            if (!$currentContract || (int) $currentContract->course_price_id !== (int) $coursePriceId) {
+                $coursePrice = \App\Models\CoursePrice::findOrFail($coursePriceId);
+
+                \App\Models\StudentCourseContract::where('student_id', $student->id)
+                    ->where('is_active', true)
+                    ->update([
+                        'is_active' => false,
+                        'ended_at' => now()->toDateString(),
+                    ]);
+
+                \App\Models\StudentCourseContract::create([
+                    'student_id' => $student->id,
+                    'course_id' => $coursePrice->course_id,
+                    'course_price_id' => $coursePrice->id,
+                    'contract_status' => 'active',
+                    'started_at' => now()->toDateString(),
+                    'ended_at' => null,
+                    'monthly_fee' => $coursePrice->monthly_fee,
+                    'note' => null,
+                    'is_active' => true,
+                ]);
+            }
+        }
 
         $student->update($validated);
 

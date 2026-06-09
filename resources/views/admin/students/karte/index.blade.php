@@ -4,15 +4,11 @@
     $tab = request('tab', 'basic');
 @endphp
 
+@section('breadcrumb')
+    ホーム ＞ 会員管理 ＞ 生徒一覧 ＞ <span class="breadcrumb-current">生徒カルテ</span>
+@endsection
+
 @section('content')
-
-<div class="breadcrumb">
-    ホーム ＞ 会員管理 ＞ 生徒一覧 ＞ 生徒カルテ
-</div>
-
-<div class="page-title">
-    生徒カルテ
-</div>
 
 @include('admin.students.karte.partials.common.student_header')
 @include('admin.students.karte.partials.common.alerts')

@@ -621,13 +621,13 @@
 
     .routine-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
         gap: 14px;
     }
 
     .routine-search-row {
         display: grid;
-        grid-template-columns: 1.1fr 1.3fr 0.9fr 0.9fr 0.9fr 0.9fr 70px 70px;
+        grid-template-columns: 1.1fr 1.3fr 0.9fr 0.9fr 0.9fr 70px 70px;
         gap: 8px;
         padding: 12px;
         align-items: center;
@@ -676,6 +676,157 @@
 
     .routine-mini-table {
         min-width: 760px;
+    }
+
+
+
+
+    .routine-item-plus-add {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        margin-right: 4px;
+        border-radius: 999px;
+        background: #16a34a;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 22px;
+        text-decoration: none;
+        vertical-align: middle;
+    }
+
+    .routine-item-plus-add:hover {
+        background: #15803d;
+        color: #fff;
+        text-decoration: none;
+    }
+
+    .routine-inline-add-form {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .routine-plus-add-btn {
+        width: 22px;
+        height: 22px;
+        border: 0;
+        border-radius: 999px;
+        background: #16a34a;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 22px;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .routine-plus-add-btn:hover {
+        background: #15803d;
+    }
+
+    .routine-package-id-text {
+        font-size: 12px;
+        font-weight: 800;
+        color: #334155;
+    }
+
+    .routine-package-items-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        align-items: center;
+    }
+
+    .routine-package-item-tag {
+        display: inline-block;
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        color: #0f172a;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.35;
+        white-space: nowrap;
+    }
+
+    .routine-package-items-preview {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: flex-start;
+    }
+
+    .routine-package-item-line {
+        display: flex;
+        gap: 6px;
+        align-items: baseline;
+        font-size: 13px;
+        line-height: 1.45;
+        max-width: 100%;
+    }
+
+    .routine-package-item-code {
+        color: #2563eb;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .routine-grade-chip {
+        display: inline-block;
+        padding: 2px 6px;
+        margin: 1px 2px;
+        border-radius: 999px;
+        background: #eef6ff;
+        border: 1px solid #bfdbfe;
+        color: #1d4ed8;
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+
+
+    .routine-package-name-wrap {
+        display: inline;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    .routine-package-name-text {
+        display: inline;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    .routine-description-icon-inline {
+        margin-left: 6px;
+        vertical-align: middle;
+    }
+
+    .routine-description-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 24px;
+        border-radius: 6px;
+        background: #f8fafc;
+        border: 1px solid #dbe5f2;
+        cursor: help;
+    }
+
+    .routine-package-item-name {
+        color: #0f172a;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 230px;
     }
 
     .muted-text {
@@ -3196,6 +3347,208 @@
         line-height: 1;
     }
 
+
+    .routine-tag {
+        display: inline-block;
+        margin-right: 6px;
+        font-size: 12px;
+        color: #2563eb;
+        white-space: nowrap;
+    }
+
+
+    /* Package add tables: shared stable columns, full card width */
+    .routine-package-add-table,
+    .routine-item-package-table {
+        width: 100% !important;
+        min-width: 100% !important;
+        table-layout: fixed !important;
+    }
+
+    .routine-package-add-table th,
+    .routine-package-add-table td,
+    .routine-item-package-table th,
+    .routine-item-package-table td {
+        box-sizing: border-box !important;
+    }
+
+    /* Same width: ルーティンID and ルーティンアイテムID */
+    .routine-package-add-table th:nth-child(1),
+    .routine-package-add-table td:nth-child(1),
+    .routine-item-package-table th:nth-child(1),
+    .routine-item-package-table td:nth-child(1) {
+        width: 9.5% !important;
+        min-width: 128px !important;
+        max-width: 180px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Same width: ルーティン and ルーティンアイテム */
+    .routine-package-add-table th:nth-child(2),
+    .routine-package-add-table td:nth-child(2),
+    .routine-item-package-table th:nth-child(2),
+    .routine-item-package-table td:nth-child(2) {
+        width: 19% !important;
+        min-width: 250px !important;
+        max-width: 360px !important;
+        white-space: normal !important;
+    }
+
+    /* Upper table columns */
+    .routine-package-add-table th:nth-child(3),
+    .routine-package-add-table td:nth-child(3) {
+        width: 7% !important;
+        min-width: 88px !important;
+        white-space: nowrap !important;
+    }
+
+    .routine-package-add-table th:nth-child(4),
+    .routine-package-add-table td:nth-child(4) {
+        width: 28% !important;
+        min-width: 340px !important;
+    }
+
+    .routine-package-add-table th:nth-child(5),
+    .routine-package-add-table td:nth-child(5),
+    .routine-package-add-table th:nth-child(6),
+    .routine-package-add-table td:nth-child(6),
+    .routine-package-add-table th:nth-child(7),
+    .routine-package-add-table td:nth-child(7),
+    .routine-package-add-table th:nth-child(8),
+    .routine-package-add-table td:nth-child(8) {
+        width: 9.125% !important;
+        min-width: 92px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Lower table: add destination stays wide */
+    .routine-item-package-table th:nth-child(3),
+    .routine-item-package-table td:nth-child(3) {
+        width: 22% !important;
+        min-width: 300px !important;
+        max-width: 420px !important;
+    }
+
+    .routine-item-package-table td:nth-child(3) .routine-select {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Lower table: compact but safe numeric columns */
+    .routine-item-package-table th:nth-child(4),
+    .routine-item-package-table td:nth-child(4),
+    .routine-item-package-table th:nth-child(5),
+    .routine-item-package-table td:nth-child(5) {
+        width: 5.2% !important;
+        min-width: 64px !important;
+        white-space: nowrap !important;
+    }
+
+    .routine-item-package-table th:nth-child(6),
+    .routine-item-package-table td:nth-child(6) {
+        width: 6.4% !important;
+        min-width: 82px !important;
+        white-space: nowrap !important;
+    }
+
+    .routine-item-package-table th:nth-child(7),
+    .routine-item-package-table td:nth-child(7) {
+        width: 8.5% !important;
+        min-width: 112px !important;
+        white-space: nowrap !important;
+    }
+
+    .routine-item-package-table th:nth-child(8),
+    .routine-item-package-table td:nth-child(8) {
+        width: 7.5% !important;
+        min-width: 100px !important;
+        white-space: nowrap !important;
+    }
+
+    .routine-item-package-table th:nth-child(9),
+    .routine-item-package-table td:nth-child(9) {
+        width: 6.2% !important;
+        min-width: 82px !important;
+        white-space: nowrap !important;
+    }
+
+    .routine-item-package-table th:nth-child(10),
+    .routine-item-package-table td:nth-child(10) {
+        width: auto !important;
+        min-width: 110px !important;
+        white-space: nowrap !important;
+    }
+
+
+    /* Match routine item package plus button with upper routine plus button */
+    .routine-item-package-table .routine-plus-add-btn {
+        width: 22px !important;
+        height: 22px !important;
+        border: 0 !important;
+        outline: none !important;
+        box-shadow: none !important;
+        border-radius: 999px !important;
+        background: #16a34a !important;
+        color: #ffffff !important;
+        font-size: 15px !important;
+        font-weight: 900 !important;
+        line-height: 22px !important;
+        cursor: pointer !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-decoration: none !important;
+        vertical-align: middle !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+    }
+
+    .routine-item-package-table .routine-plus-add-btn:hover {
+        background: #15803d !important;
+        color: #ffffff !important;
+        text-decoration: none !important;
+    }
+
+
+    /* Routine item package search filters: keep all controls on one row */
+    .routine-item-search-row {
+        display: grid !important;
+        grid-template-columns:
+            minmax(190px, 1.05fr)
+            minmax(230px, 1.25fr)
+            minmax(90px, 0.55fr)
+            minmax(90px, 0.55fr)
+            minmax(90px, 0.55fr)
+            minmax(130px, 0.75fr)
+            70px
+            70px !important;
+        gap: 8px !important;
+        align-items: center !important;
+    }
+
+    .routine-item-search-row .routine-input,
+    .routine-item-search-row .routine-select,
+    .routine-item-search-row .routine-primary-btn,
+    .routine-item-search-row .routine-clear-btn {
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+        white-space: nowrap !important;
+    }
+
+    .routine-item-search-row select[name="routine_item_add_status"] {
+        min-width: 130px !important;
+    }
+
+    .routine-item-search-row select[name="routine_item_grade"],
+    .routine-item-search-row select[name="routine_item_level"],
+    .routine-item-search-row select[name="routine_item_completion_type"] {
+        min-width: 90px !important;
+    }
+
 </style>
 
 <div class="routine-wrap">
@@ -4074,7 +4427,7 @@
                         </div>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center py-4">終了したルーティンアイテムはありません。</td>
+                            <td colspan="10" class="text-center py-4">終了したルーティンアイテムはありません。</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -4093,41 +4446,64 @@
     <div class="routine-grid">
         <div class="routine-card">
             <div class="routine-card-header">
-                <div>➕ ルーティンパッケージを追加</div>
+                <div>➕ ルーティンの追加</div>
             </div>
 
             <form method="GET" action="">
                 <input type="hidden" name="tab" value="routine">
 
+                @php
+                    $gradeOrder = ['ALL','PRE','K1','K2','K3','E1','E2','E3','E4','E5','E6','J1','J2','J3','H1','H2','H3','未設定'];
+                    $packageGradeValues = collect($packageGrades ?? [])
+                        ->flatMap(function ($grade) {
+                            if ($grade === null || $grade === '') {
+                                return ['未設定'];
+                            }
+                            if ($grade === 'ALL') {
+                                return ['ALL'];
+                            }
+                            return array_values(array_filter(array_map('trim', explode(',', $grade))));
+                        })
+                        ->unique()
+                        ->values();
+
+                    $packageGradeOptions = collect($gradeOrder)
+                        ->filter(fn($grade) => $packageGradeValues->contains($grade))
+                        ->values();
+
+                    $levelOrder = ['初級','中級','上級','未設定'];
+                    $packageLevelValues = collect($packageLevels ?? [])
+                        ->map(fn($level) => ($level === null || $level === '') ? '未設定' : $level)
+                        ->unique()
+                        ->values();
+
+                    $packageLevelOptions = collect($levelOrder)
+                        ->filter(fn($level) => $packageLevelValues->contains($level))
+                        ->values();
+                @endphp
+
                 <div class="routine-search-row">
                     <input class="routine-input" name="routine_package_id" value="{{ request('routine_package_id') }}" placeholder="例）PKG-0001">
-                    <input class="routine-input" name="routine_package_keyword" value="{{ request('routine_package_keyword') }}" placeholder="キーワードを入力">
+                    <input class="routine-input" name="routine_package_keyword" value="{{ request('routine_package_keyword') }}" placeholder="ルーティン・説明・タグ">
 
                     <select class="routine-select" name="routine_package_grade">
-                        <option value="all">すべて</option>
-                        @foreach(($packageGrades ?? collect()) as $grade)
+                        <option value="all">対象学年</option>
+                        @foreach($packageGradeOptions as $grade)
                             <option value="{{ $grade }}" @selected(request('routine_package_grade') === $grade)>{{ $grade }}</option>
                         @endforeach
                     </select>
 
                     <select class="routine-select" name="routine_package_level">
-                        <option value="all">すべて</option>
-                        @foreach(($packageLevels ?? collect()) as $level)
+                        <option value="all">対象レベル</option>
+                        @foreach($packageLevelOptions as $level)
                             <option value="{{ $level }}" @selected(request('routine_package_level') === $level)>{{ $level }}</option>
                         @endforeach
                     </select>
 
                     <select class="routine-select" name="routine_package_category">
-                        <option value="all">すべて</option>
+                        <option value="all">分類</option>
                         @foreach(($packageCategories ?? collect()) as $category)
                             <option value="{{ $category }}" @selected(request('routine_package_category') === $category)>{{ $category }}</option>
-                        @endforeach
-                    </select>
-
-                    <select class="routine-select" name="routine_package_tag">
-                        <option value="all">タグ</option>
-                        @foreach(($packageTags ?? collect()) as $tag)
-                            <option value="{{ $tag }}" @selected(request('routine_package_tag') === $tag)>{{ $tag }}</option>
                         @endforeach
                     </select>
 
@@ -4137,35 +4513,159 @@
             </form>
 
             <div class="routine-table-wrap">
-                <table class="routine-table routine-mini-table">
+                <table class="routine-table routine-mini-table routine-package-add-table">
                     <thead>
                         <tr>
-                            <th>パッケージID</th>
-                            <th>パッケージ名</th>
+                            <th style="width:70px;">ルーティンID</th>
+                            <th style="min-width:260px;">ルーティン</th>
+                            <th style="width:90px;">目安時間</th>
+                            <th style="min-width:390px;">一緒に追加するルーティンアイテム</th>
                             <th>対象学年</th>
-                            <th>対象レベル</th>
-                            <th>分類</th>
-                            <th>タグ</th>
-                            <th>詳細</th>
-                            <th>追加</th>
+                            <th style="width:58px;">対象レベル</th>
+                            <th style="width:72px;">分類</th>
+                            <th style="width:92px;">タグ</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($routinePackages as $package)
+                            @php
+                                $gradeLabels = [
+                                    'PRE' => '年少より下',
+                                    'K1' => '年少',
+                                    'K2' => '年中',
+                                    'K3' => '年長',
+                                    'E1' => '小1',
+                                    'E2' => '小2',
+                                    'E3' => '小3',
+                                    'E4' => '小4',
+                                    'E5' => '小5',
+                                    'E6' => '小6',
+                                    'J1' => '中1',
+                                    'J2' => '中2',
+                                    'J3' => '中3',
+                                    'H1' => '高1',
+                                    'H2' => '高2',
+                                    'H3' => '高3',
+                                ];
+                                $rawGrade = $package->target_grade ?? '';
+                                $gradeCodes = $rawGrade && $rawGrade !== 'ALL'
+                                    ? array_values(array_filter(array_map('trim', explode(',', $rawGrade))))
+                                    : [];
+                                $gradeText = $rawGrade === 'ALL' ? 'ALL' : ($gradeCodes ? implode('・', $gradeCodes) : '-');
+                                $gradeTooltip = $rawGrade === 'ALL'
+                                    ? '全学年対象'
+                                    : collect($gradeCodes)->map(fn($code) => $code . '：' . ($gradeLabels[$code] ?? $code))->implode('<br>');
+                                $packageTags = $package->tag
+                                    ? array_values(array_filter(preg_split('/[、,\s]+/u', $package->tag)))
+                                    : [];
+                                $descriptionText = $package->description ?? '';
+                            @endphp
                             <tr>
-                                <td class="text-center">PKG-{{ str_pad($package->id, 4, '0', STR_PAD_LEFT) }}</td>
-                                <td>{{ $package->name }}</td>
-                                <td class="text-center">{{ $package->target_grade ?? '-' }}</td>
-                                <td class="text-center">{{ $package->target_level ?? '-' }}</td>
-                                <td class="text-center">{{ $package->category ?? '-' }}</td>
-                                <td class="text-center">{{ $package->tag ?? '-' }}</td>
-                                <td class="text-center"><a href="#" class="routine-btn">詳細</a></td>
-                                <td class="text-center">
-                                    <form method="POST" action="{{ route('admin.students.karte.routines.apply-package', $student) }}">
+                                <td class="text-center" style="white-space:nowrap; width:70px;">
+                                    <form method="POST" action="{{ route('admin.students.karte.routines.apply-package', $student) }}" class="routine-inline-add-form">
                                         @csrf
                                         <input type="hidden" name="routine_package_id" value="{{ $package->id }}">
-                                        <button type="submit" class="routine-add-btn">追加</button>
+                                        <button type="submit" class="routine-plus-add-btn" title="このルーティンを追加">＋</button>
+                                        <span class="routine-package-id-text">PKG-{{ str_pad($package->id, 4, '0', STR_PAD_LEFT) }}</span>
                                     </form>
+                                </td>
+                                <td class="text-left" style="white-space:normal; line-height:1.45; max-width:260px; text-align:left;">
+                                    <div class="routine-package-name-wrap">
+                                        @if($descriptionText)
+                                            <span class="routine-hover">
+                                                <span class="routine-description-icon routine-description-icon-inline">📝</span>
+                                                <span class="routine-tooltip">
+                                                    <span class="routine-tooltip-title">説明</span><br>
+                                                    {{ $descriptionText }}
+                                                </span>
+                                            </span>
+                                        @endif
+
+                                        <span class="routine-hover">
+                                            <span class="routine-title routine-package-name-text">{{ $package->name }}</span>
+                                            <span class="routine-tooltip">
+                                                <span class="routine-tooltip-title">ルーティン</span><br>
+                                                {{ $package->name }}
+                                            </span>
+                                        </span>
+                                    </div>
+                                </td>
+                                @php
+                                    $packageItemRows = ($routinePackageItems ?? collect())
+                                        ->where('routine_package_id', $package->id)
+                                        ->values();
+                                    $visiblePackageItems = $packageItemRows->take(2);
+                                    $hiddenPackageItemCount = max(0, $packageItemRows->count() - $visiblePackageItems->count());
+
+                                    $dailyMinutes = $packageItemRows->sum(fn($packageItem) => (int)($packageItem->estimated_minutes ?? 0));
+                                    $totalMinutes = $packageItemRows->sum(function ($packageItem) {
+                                        $itemMinutes = (int)($packageItem->estimated_minutes ?? 0);
+                                        $itemDays = max(1, (int)($packageItem->required_days ?? 1));
+                                        return $itemMinutes * $itemDays;
+                                    });
+                                    $totalHours = round($totalMinutes / 60, 1);
+                                @endphp
+
+                                <td class="text-center">
+                                    <span class="routine-hover">
+                                        {{ $dailyMinutes }}分/日
+                                        <span class="routine-tooltip">
+                                            <span class="routine-tooltip-title">学習目安時間</span><br>
+                                            1日学習目安時間 {{ $dailyMinutes }}分<br>
+                                            総学習目安時間 {{ $totalMinutes }}分（{{ $totalHours }}時間）<br><br>
+                                            内訳<br>
+                                            ーーーーーー<br>
+                                            @foreach($packageItemRows as $packageItem)
+                                                @php
+                                                    $itemMinutes = (int)($packageItem->estimated_minutes ?? 0);
+                                                    $itemDays = max(1, (int)($packageItem->required_days ?? 1));
+                                                    $itemTotalMinutes = $itemMinutes * $itemDays;
+                                                @endphp
+                                                @php
+                                                    $itemTotalHours = intval($itemTotalMinutes / 60);
+                                                @endphp
+                                                ・{{ $packageItem->item_name }}<br>
+                                                {{ $itemMinutes }}分/日 × {{ $itemDays }}日 ＝ {{ $itemTotalMinutes }}分（{{ $itemTotalHours }}時間）<br><br>
+                                            @endforeach
+                                        </span>
+                                    </span>
+                                </td>
+<td class="text-left" style="white-space:normal; line-height:1.45; max-width:430px; text-align:left;">
+                                    @if($packageItemRows->isEmpty())
+                                        <span class="muted-text">-</span>
+                                    @else
+                                        <div class="routine-package-items-tags">
+                                            @foreach($packageItemRows as $packageItem)
+                                                <span class="routine-package-item-tag">{{ $packageItem->item_name }}</span>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <span class="routine-hover">
+                                        @if($rawGrade === 'ALL')
+                                            <span class="routine-grade-chip">ALL</span>
+                                        @elseif($gradeCodes)
+                                            @foreach($gradeCodes as $gradeCode)
+                                                <span class="routine-grade-chip">{{ $gradeCode }}</span>
+                                            @endforeach
+                                        @else
+                                            -
+                                        @endif
+                                        <span class="routine-tooltip">
+                                            <span class="routine-tooltip-title">対象学年</span><br>
+                                            {!! $gradeTooltip ?: '-' !!}
+                                        </span>
+                                    </span>
+                                </td>
+                                <td class="text-center">{{ $package->target_level ?? '-' }}</td>
+                                <td class="text-center">{{ $package->category ?? '-' }}</td>
+                                <td class="text-center" style="white-space:nowrap;">
+                                    @forelse($packageTags as $tag)
+                                        <span class="routine-tag" style="display:inline-block; margin-right:6px;">#{{ $tag }}</span>
+                                    @empty
+                                        -
+                                    @endforelse
                                 </td>
                             </tr>
                         @empty
@@ -4180,35 +4680,44 @@
 
         <div class="routine-card">
             <div class="routine-card-header">
-                <div>➕ ルーティンアイテムパッケージを追加</div>
+                <div>➕ ルーティンアイテムを追加</div>
             </div>
 
             <form method="GET" action="">
                 <input type="hidden" name="tab" value="routine">
 
-                <div class="routine-search-row-small">
+                <div class="routine-search-row-small routine-item-search-row">
                     <input class="routine-input" name="routine_item_content_id" value="{{ request('routine_item_content_id') }}" placeholder="例）CONT-0001">
-                    <input class="routine-input" name="routine_item_keyword" value="{{ request('routine_item_keyword') }}" placeholder="キーワードを入力">
+                    <input class="routine-input" name="routine_item_keyword" value="{{ request('routine_item_keyword') }}" placeholder="ルーティンアイテム・説明・タグ">
 
                     <select class="routine-select" name="routine_item_grade">
-                        <option value="all">すべて</option>
+                        <option value="all">対象学年</option>
                         @foreach(($itemGrades ?? collect()) as $grade)
                             <option value="{{ $grade }}" @selected(request('routine_item_grade') === $grade)>{{ $grade }}</option>
                         @endforeach
                     </select>
 
                     <select class="routine-select" name="routine_item_level">
-                        <option value="all">すべて</option>
+                        <option value="all">対象レベル</option>
                         @foreach(($itemLevels ?? collect()) as $level)
                             <option value="{{ $level }}" @selected(request('routine_item_level') === $level)>{{ $level }}</option>
                         @endforeach
                     </select>
 
-                    <select class="routine-select" name="routine_item_tag">
-                        <option value="all">タグ</option>
-                        @foreach(($itemTags ?? collect()) as $tag)
-                            <option value="{{ $tag }}" @selected(request('routine_item_tag') === $tag)>{{ $tag }}</option>
+                    <select class="routine-select" name="routine_item_completion_type">
+                        <option value="all">達成条件</option>
+                        @foreach(($itemCompletionTypes ?? collect()) as $completionType)
+                            <option value="{{ $completionType->id }}" @selected((string) request('routine_item_completion_type') === (string) $completionType->id)>{{ $completionType->name }}</option>
                         @endforeach
+                        @if($hasUnsetItemCompletionType ?? false)
+                            <option value="未設定" @selected(request('routine_item_completion_type') === '未設定')>未設定</option>
+                        @endif
+                    </select>
+
+                    <select class="routine-select" name="routine_item_add_status">
+                        <option value="all" @selected(request('routine_item_add_status', 'all') === 'all')>追加状態</option>
+                        <option value="not_added" @selected(request('routine_item_add_status') === 'not_added')>未追加のみ</option>
+                        <option value="added" @selected(request('routine_item_add_status') === 'added')>追加済のみ</option>
                     </select>
 
                     <button class="routine-primary-btn" type="submit">検索</button>
@@ -4217,35 +4726,156 @@
             </form>
 
             <div class="routine-table-wrap">
-                <table class="routine-table routine-mini-table">
+                <table class="routine-table routine-mini-table routine-item-package-table">
                     <thead>
                         <tr>
-                            <th>コンテンツID</th>
-                            <th>ルーティン項目名</th>
+                            <th>ルーティンアイテムID</th>
+                            <th>ルーティンアイテム</th>
+                            <th>追加先ルーティン</th>
+                            <th>1日</th>
+                            <th>日数</th>
+                            <th>総時間</th>
+                            <th>達成条件</th>
                             <th>対象学年</th>
                             <th>対象レベル</th>
                             <th>タグ</th>
-                            <th>詳細</th>
-                            <th>追加</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($routinePackageItems as $item)
+                            @php
+                                $gradeLabels = [
+                                    'PRE' => '年少より下',
+                                    'K1' => '年少',
+                                    'K2' => '年中',
+                                    'K3' => '年長',
+                                    'E1' => '小1',
+                                    'E2' => '小2',
+                                    'E3' => '小3',
+                                    'E4' => '小4',
+                                    'E5' => '小5',
+                                    'E6' => '小6',
+                                    'J1' => '中1',
+                                    'J2' => '中2',
+                                    'J3' => '中3',
+                                    'H1' => '高1',
+                                    'H2' => '高2',
+                                    'H3' => '高3',
+                                ];
+
+                                $rawItemGrade = $item->target_grade ?? '';
+                                $itemGradeCodes = $rawItemGrade && $rawItemGrade !== 'ALL'
+                                    ? array_values(array_filter(array_map('trim', explode(',', $rawItemGrade))))
+                                    : [];
+                                $itemGradeTooltip = $rawItemGrade === 'ALL'
+                                    ? '全学年対象'
+                                    : collect($itemGradeCodes)->map(fn($code) => $code . '：' . ($gradeLabels[$code] ?? $code))->implode('<br>');
+
+                                $itemTags = $item->tag
+                                    ? array_values(array_filter(preg_split('/[、,\s]+/u', $item->tag)))
+                                    : [];
+
+                                $itemMinutes = (int)($item->estimated_minutes ?? 0);
+                                $itemDays = max(1, (int)($item->required_days ?? 1));
+                                $itemTotalMinutes = $itemMinutes * $itemDays;
+                                $itemTotalHours = intval($itemTotalMinutes / 60);
+
+                                $targetValue = $item->target_value !== null
+                                    ? rtrim(rtrim(number_format((float)$item->target_value, 2), '0'), '.')
+                                    : null;
+                                $completionName = $item->completionType?->name ?? '-';
+                                $completionUnit = $item->completionType?->unit ?? '';
+                                $conditionText = $completionName === '先生承認'
+                                    ? '先生承認'
+                                    : ($targetValue !== null ? $completionName . ' ' . $targetValue . $completionUnit : $completionName);
+
+                                $itemDescription = $item->memo
+                                    ?: ($item->routineContent?->description ?? '');
+                            @endphp
+
                             <tr>
-                                <td class="text-center">CONT-{{ str_pad($item->routine_content_id, 4, '0', STR_PAD_LEFT) }}</td>
-                                <td>
-                                    <div class="routine-title">{{ $item->item_name }}</div>
-                                    <div class="routine-sub">{{ $item->package?->name ?? '-' }}</div>
+                                <td class="text-center" style="white-space:nowrap;">
+                                    <form id="routine-item-apply-form-{{ $item->id }}"
+                                          method="POST"
+                                          action="{{ route('admin.students.karte.routines.apply-item', $student) }}"
+                                          onsubmit="if(!document.getElementById('routine-item-target-{{ $item->id }}').value){ alert('追加先ルーティンを選択してください。'); return false; }">
+                                        @csrf
+                                        <input type="hidden" name="routine_package_item_id" value="{{ $item->id }}">
+                                        <input type="hidden" id="routine-item-target-{{ $item->id }}" name="student_routine_id" value="">
+                                        <button type="submit" class="routine-plus-add-btn" title="このルーティンアイテムを追加">＋</button>
+                                        <span class="routine-package-id-text">CONT-{{ str_pad($item->routine_content_id, 4, '0', STR_PAD_LEFT) }}</span>
+                                    </form>
                                 </td>
-                                <td class="text-center">{{ $item->target_grade ?? '-' }}</td>
+
+                                <td class="text-left" style="white-space:normal; line-height:1.45; text-align:left;">
+                                    @if($itemDescription)
+                                        <span class="routine-hover">
+                                            <span class="routine-description-icon routine-description-icon-inline">📝</span>
+                                            <span class="routine-tooltip">
+                                                <span class="routine-tooltip-title">説明</span><br>
+                                                {{ $itemDescription }}
+                                            </span>
+                                        </span>
+                                    @endif
+                                    <span class="routine-title routine-package-name-text">{{ $item->item_name }}</span>
+                                </td>
+
+                                <td class="text-center">
+                                    <select class="routine-select"
+                                            style="width:100%; min-width:0;"
+                                            onchange="document.getElementById('routine-item-target-{{ $item->id }}').value = this.value;">
+                                        <option value="">選択</option>
+                                        @foreach(($activeRoutines ?? collect()) as $routine)
+                                            <option value="{{ $routine->id }}">{{ $routine->name ?? ('RT-' . $routine->id) }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+
+                                <td class="text-center" style="white-space:nowrap;">{{ $itemMinutes }}分</td>
+                                <td class="text-center" style="white-space:nowrap;">{{ $itemDays }}日</td>
+                                <td class="text-center" style="white-space:nowrap;">
+                                    <span class="routine-hover">
+                                        {{ $itemTotalMinutes }}分
+                                        <span class="routine-tooltip">
+                                            <span class="routine-tooltip-title">総目安時間</span><br>
+                                            {{ $itemMinutes }}分/日 × {{ $itemDays }}日 ＝ {{ $itemTotalMinutes }}分（{{ $itemTotalHours }}時間）
+                                        </span>
+                                    </span>
+                                </td>
+
+                                <td class="text-center">{{ $conditionText }}</td>
+
+                                <td class="text-center">
+                                    <span class="routine-hover">
+                                        @if($rawItemGrade === 'ALL')
+                                            <span class="routine-grade-chip">ALL</span>
+                                        @elseif($itemGradeCodes)
+                                            @foreach($itemGradeCodes as $gradeCode)
+                                                <span class="routine-grade-chip">{{ $gradeCode }}</span>
+                                            @endforeach
+                                        @else
+                                            -
+                                        @endif
+                                        <span class="routine-tooltip">
+                                            <span class="routine-tooltip-title">対象学年</span><br>
+                                            {!! $itemGradeTooltip ?: '-' !!}
+                                        </span>
+                                    </span>
+                                </td>
+
                                 <td class="text-center">{{ $item->target_level ?? '-' }}</td>
-                                <td class="text-center">{{ $item->tag ?? '-' }}</td>
-                                <td class="text-center"><a href="#" class="routine-btn">詳細</a></td>
-                                <td class="text-center"><a href="#" class="routine-add-btn">追加</a></td>
+
+                                <td class="text-center" style="white-space:nowrap;">
+                                    @forelse($itemTags as $tag)
+                                        <span class="routine-tag" style="display:inline-block; margin-right:6px;">#{{ $tag }}</span>
+                                    @empty
+                                        -
+                                    @endforelse
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4">条件に一致するルーティンアイテムはありません。</td>
+                                <td colspan="10" class="text-center py-4">条件に一致するルーティンアイテムはありません。</td>
                             </tr>
                         @endforelse
                     </tbody>

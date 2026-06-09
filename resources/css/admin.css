@@ -51,23 +51,31 @@ body{
 }
 
 .header{
-    height:70px;
-    background:white;
+    height:64px;
+    background:#ffffff;
     border-bottom:1px solid #e5e7eb;
     display:flex;
     align-items:center;
     justify-content:space-between;
-    padding:0 30px;
+    padding:0 28px;
 }
+
+.header-breadcrumb{
+    font-size:15px;
+    font-weight:700;
+    color:#475569;
+}
+
 
 .page{
     padding:30px;
 }
 
-.breadcrumb{
+
+.header-user{
     font-size:13px;
-    color:#64748b;
-    margin-bottom:15px;
+    font-weight:700;
+    color:#0f172a;
 }
 
 .page-title{
@@ -82,3 +90,41 @@ body{
     padding:20px;
     box-shadow:0 2px 8px rgba(0,0,0,.05);
 }
+
+.karte-tabs {
+    display: flex;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.karte-tab {
+    flex: 1;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    font-size: 15px;
+    font-weight: 800;
+    text-decoration: none;
+    border-right: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+.karte-tab:last-child {
+    border-right: none;
+}
+
+.karte-tab:hover {
+    background: #f8fafc;
+    color: #2563eb;
+}
+
+.karte-tab.active {
+    background: #2563eb;
+    color: #ffffff;
+}
+

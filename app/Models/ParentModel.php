@@ -16,6 +16,8 @@ class ParentModel extends Model
         'phone_number',
         'postal_code',
         'address',
+        'is_emergency_contact',
+        'emergency_priority',
         'occupation',
         'is_active',
     ];

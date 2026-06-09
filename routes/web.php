@@ -18,6 +18,9 @@ Route::put('/students/{student}/karte', [StudentKarteController::class, 'update'
 
 Route::post('/students/{student}/karte/routines/apply-package', [StudentKarteController::class, 'applyRoutinePackage'])
     ->name('admin.students.karte.routines.apply-package');
+Route::post('/students/{student}/karte/routines/apply-item', [StudentKarteController::class, 'applyRoutineItemPackage'])
+    ->name('admin.students.karte.routines.apply-item');
+
 
 Route::post('/students/{student}/karte/routines/items/{item}/daily-status', [StudentKarteController::class, 'updateRoutineDailyStatus'])
     ->name('admin.students.karte.routines.items.daily-status');
