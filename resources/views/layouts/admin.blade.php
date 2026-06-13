@@ -3,87 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title ?? '生きる力アカデミー管理基盤' }}</title>
-    <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    <title>{{ $title ?? 'LifeForce Core' }}</title>
 
-    
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/sidebar.css') }}">
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
 </head>
-<body>
+<body data-sidebar-key="{{ $sidebarPageKey ?? '' }}">
 
 <div class="layout">
 
-    <aside class="sidebar">
-
-        <div class="logo">
-            生きる力アカデミー
-        </div>
-
-        <div class="menu-title">ダッシュボード</div>
-        <div class="menu-item">ホーム</div>
-
-        <div class="menu-title">会員管理</div>
-        <div class="menu-item">生徒一覧</div>
-        <div class="menu-item">保護者一覧</div>
-        <div class="menu-item">講師一覧</div>
-
-        <div class="menu-title">授業管理</div>
-        <div class="menu-item">授業一覧</div>
-        <div class="menu-item">出席管理</div>
-
-        <div class="menu-title">学習管理</div>
-        <div class="menu-item">学習計画</div>
-        <div class="menu-item">ルーティン管理</div>
-        <div class="menu-item">バッジ管理</div>
-
-        <div class="menu-title">請求管理</div>
-        <div class="menu-item">請求一覧</div>
-        <div class="menu-item">入金管理</div>
-
-        <div class="menu-title">システム管理</div>
-        <div class="menu-item">権限管理</div>
-        <div class="menu-item">マスタ管理</div>
-
-    </aside>
+    @include('admin.partials.sidebar')
 
     <main class="main">
 
-        <header class="header">
-            <div class="header-breadcrumb">
-                @yield('breadcrumb')
-            </div>
-
-            <div class="header-user-area">
-
-                <div class="header-notification">
-                    🔔
-                    <span>12</span>
-                </div>
-
-                <div class="header-user-avatar">
-                    田
-                </div>
-
-                <div class="header-user-info">
-                    <div class="header-user-name">田中 太郎</div>
-                    <div class="header-user-role">教室長</div>
-                </div>
-
-                <div class="header-user-arrow">
-                    ▾
-                </div>
-
-            </div>
-        </header>
+        @include('admin.partials.header')
 
         <div class="page">
-
             @yield('content')
-
         </div>
 
     </main>
 
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const toggles = document.querySelectorAll('.sidebar-toggle');
+    const searchInput = document.getElementById('sidebarSearchInput');
+    const searchPanel = document.getElementById('sidebarSearchPanel');
+    const searchResults = document.getElementById('sidebarSearchResults');
+    const recentArea = document.getElementById('sidebarRecentArea');
+    const pinnedArea = document.getElementById('sidebarPinnedArea');
+
+    toggles.forEach(function (toggle) {
+        toggle.addEventListener('click', function () {
+            const submenu = toggle.nextElementSibling;
+
+            if (!submenu || !submenu.classList.contains('sidebar-submenu')) {
+                return;
+            }
+
+            document.querySelectorAll('.sidebar-toggle').forEach(function (otherToggle) {
+                if (otherToggle !== toggle) {
+                    otherToggle.classList.remove('open');
+                }
+            });
+
+            document.querySelectorAll('.sidebar-submenu').forEach(function (otherSubmenu) {
+                if (otherSubmenu !== submenu) {
+                    otherSubmenu.classList.remove('open');
+                }
+            });
+
+            toggle.classList.toggle('open');
+            submenu.classList.toggle('open');
+        });
+    });
+
+    function openParentSubmenu(element) {
+        const submenu = element.closest('.sidebar-submenu');
+
+        if (!submenu) {
+            return;
+        }
+
+        document.querySelectorAll('.sidebar-toggle').forEach(function (toggle) {
+            toggle.classList.remove('open');
+        });
+
+        document.querySelectorAll('.sidebar-submenu').forEach(function (item) {
+            item.classList.remove('open');
+        });
+
+        submenu.classList.add('open');
+
+        const toggle = submenu.previousElementSibling;
+        if (toggle && toggle.classList.contains('sidebar-toggle')) {
+            toggle.classList.add('open');
+        }
+    }
+
+    function highlightLastSegment(fullName) {
+        const parts = fullName.split('＞').map(function (part) {
+            return part.trim();
+        });
+
+        if (parts.length <= 1) {
+            return '<span class="sidebar-search-strong">' + fullName + '</span>';
+        }
+
+        const last = parts.pop();
+        const prefix = parts.join(' ＞ ');
+
+        return '<span class="sidebar-search-muted">' + prefix + ' ＞ </span><span class="sidebar-search-strong">' + last + '</span>';
+    }
+
+    if (searchInput && searchPanel && searchResults) {
+        const items = [];
+
+        document.querySelectorAll('.sidebar-item, .sidebar-subitem').forEach(function (element) {
+            const searchName = element.getAttribute('data-search-name');
+            const label = searchName || element.innerText.replace(/\s+/g, ' ').trim();
+
+            if (!label) {
+                return;
+            }
+
+            items.push({
+                label: label,
+                element: element
+            });
+        });
+
+        searchInput.addEventListener('focus', function () {
+            searchPanel.classList.add('open');
+
+            if (!searchInput.value.trim()) {
+                searchResults.classList.remove('open');
+                if (recentArea) recentArea.style.display = 'block';
+                if (pinnedArea) pinnedArea.style.display = 'block';
+            }
+        });
+
+        searchInput.addEventListener('input', function () {
+            const keyword = searchInput.value.trim();
+
+            searchResults.innerHTML = '';
+
+            if (!keyword) {
+                searchResults.classList.remove('open');
+                if (recentArea) recentArea.style.display = 'block';
+                if (pinnedArea) pinnedArea.style.display = 'block';
+                return;
+            }
+
+            if (recentArea) recentArea.style.display = 'none';
+            if (pinnedArea) pinnedArea.style.display = 'none';
+
+            const matchedItems = items.filter(function (item) {
+                return item.label.includes(keyword);
+            }).slice(0, 12);
+
+            if (matchedItems.length === 0) {
+                searchResults.innerHTML = '<div class="sidebar-search-empty">該当する画面がありません</div>';
+                searchResults.classList.add('open');
+                return;
+            }
+
+            matchedItems.forEach(function (item) {
+                const result = document.createElement('a');
+                result.href = '#';
+                result.className = 'sidebar-search-result';
+                result.innerHTML = highlightLastSegment(item.label);
+
+                result.addEventListener('click', function (event) {
+                    event.preventDefault();
+
+                    searchInput.value = '';
+                    searchPanel.classList.remove('open');
+
+                    document.querySelectorAll('.sidebar-item, .sidebar-subitem').forEach(function (menuItem) {
+                        menuItem.classList.remove('active');
+                    });
+
+                    openParentSubmenu(item.element);
+
+                    item.element.classList.add('active');
+
+                    setTimeout(function () {
+                        item.element.classList.remove('active');
+                    }, 1200);
+                });
+
+                searchResults.appendChild(result);
+            });
+
+            searchResults.classList.add('open');
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.sidebar-search')) {
+                searchPanel.classList.remove('open');
+            }
+        });
+    }
+});
+</script>
+<script src="{{ asset('js/admin/sidebar.js') }}"></script>
 </body>
 </html>

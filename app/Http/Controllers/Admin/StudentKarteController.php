@@ -645,87 +645,89 @@ public function updateRoutineItem(Request $request, Student $student, StudentRou
             'first_name_kana' => ['nullable', 'string', 'max:255'],
             'birthday' => ['nullable', 'date'],
             'enrolled_at' => ['nullable', 'date'],
-            'grade_id' => ['nullable', 'integer', 'exists:grades,id'],
-            'school_id' => ['nullable', 'integer', 'exists:schools,id'],
-            'enrollment_status_id' => ['nullable', 'integer', 'exists:enrollment_statuses,id'],
-            'teacher_id' => ['nullable', 'integer', 'exists:teachers,id'],
-            'course_price_id' => ['nullable', 'integer', 'exists:course_prices,id'],
             'profile_image' => ['nullable', 'image', 'max:2048'],
+            'grade_id' => ['nullable', 'integer'],
+            'school_id' => ['nullable', 'integer'],
+            'teacher_id' => ['nullable', 'integer'],
+            'enrollment_status_id' => ['nullable', 'integer', 'exists:enrollment_statuses,id'],
+            'course_price_id' => ['nullable', 'integer', 'exists:course_prices,id'],
+
         ]);
 
         unset($validated['profile_image']);
 
         if ($request->hasFile('profile_image')) {
-            $path = $request->file('profile_image')->store(
-                'students/profile-images/' . $student->id,
+            $extension = $request->file('profile_image')->getClientOriginalExtension();
+
+            $path = $request->file('profile_image')->storeAs(
+                'students/' . $student->id,
+                'profile-image.' . $extension,
                 's3'
             );
 
-            $validated['profile_image_path'] = $path;
+            $validated['image_path'] = $path;
+        }
+
+        $teacherId = $validated['teacher_id'] ?? null;
+
+        unset($validated['teacher_id']);
+
+        if ($teacherId) {
+            \App\Models\StudentTeacher::where('student_id', $student->id)
+                ->where('is_primary', true)
+                ->update(['is_active' => false]);
+
+            \App\Models\StudentTeacher::create([
+                'student_id' => $student->id,
+                'teacher_id' => $teacherId,
+                'is_primary' => true,
+                'is_active' => true,
+            ]);
         }
 
         $teacherId = $validated['teacher_id'] ?? null;
         unset($validated['teacher_id']);
 
-        $currentTeacher = \App\Models\StudentTeacher::query()
-            ->where('student_id', $student->id)
-            ->where('is_primary', true)
-            ->where('is_active', true)
-            ->latest('id')
-            ->first();
-
         if ($teacherId) {
-            if (!$currentTeacher || (int) $currentTeacher->teacher_id !== (int) $teacherId) {
-                \App\Models\StudentTeacher::where('student_id', $student->id)
-                    ->where('is_primary', true)
-                    ->update(['is_active' => false]);
-
-                \App\Models\StudentTeacher::create([
-                    'student_id' => $student->id,
-                    'teacher_id' => $teacherId,
-                    'is_primary' => true,
-                    'is_active' => true,
-                ]);
-            }
-        } elseif ($request->has('teacher_id')) {
             \App\Models\StudentTeacher::where('student_id', $student->id)
                 ->where('is_primary', true)
                 ->update(['is_active' => false]);
+
+            \App\Models\StudentTeacher::create([
+                'student_id' => $student->id,
+                'teacher_id' => $teacherId,
+                'is_primary' => true,
+                'is_active' => true,
+            ]);
         }
 
         $coursePriceId = $validated['course_price_id'] ?? null;
+        
         unset($validated['course_price_id']);
 
         if ($coursePriceId) {
-            $currentContract = \App\Models\StudentCourseContract::query()
-                ->where('student_id', $student->id)
+            $coursePrice = \App\Models\CoursePrice::findOrFail($coursePriceId);
+
+            \App\Models\StudentCourseContract::where('student_id', $student->id)
                 ->where('is_active', true)
-                ->latest('id')
-                ->first();
-
-            if (!$currentContract || (int) $currentContract->course_price_id !== (int) $coursePriceId) {
-                $coursePrice = \App\Models\CoursePrice::findOrFail($coursePriceId);
-
-                \App\Models\StudentCourseContract::where('student_id', $student->id)
-                    ->where('is_active', true)
-                    ->update([
-                        'is_active' => false,
-                        'ended_at' => now()->toDateString(),
-                    ]);
-
-                \App\Models\StudentCourseContract::create([
-                    'student_id' => $student->id,
-                    'course_id' => $coursePrice->course_id,
-                    'course_price_id' => $coursePrice->id,
-                    'contract_status' => 'active',
-                    'started_at' => now()->toDateString(),
-                    'ended_at' => null,
-                    'monthly_fee' => $coursePrice->monthly_fee,
-                    'note' => null,
-                    'is_active' => true,
+                ->update([
+                    'is_active' => false,
+                    'ended_at' => now()->toDateString(),
                 ]);
-            }
+
+            \App\Models\StudentCourseContract::create([
+                'student_id' => $student->id,
+                'course_id' => $coursePrice->course_id,
+                'course_price_id' => $coursePrice->id,
+                'contract_status' => 'active',
+                'started_at' => now()->toDateString(),
+                'ended_at' => null,
+                'monthly_fee' => $coursePrice->monthly_fee,
+                'note' => null,
+                'is_active' => true,
+            ]);
         }
+
 
         $student->update($validated);
 

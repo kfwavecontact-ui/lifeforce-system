@@ -39,8 +39,7 @@ class Student extends Model
         'first_name',
         'last_name_kana',
         'first_name_kana',
-        'profile_image_path',
-
+        'image_path',
         'gender',
         'birthday',
         'school_name',

@@ -2,6 +2,7 @@
 
 @php
     use Illuminate\Support\Facades\Storage;
+    use Carbon\Carbon;
 
     $studentName = trim(($student->last_name ?? '') . ' ' . ($student->first_name ?? ''));
     $studentName = $studentName !== '' ? $studentName : '未設定';
@@ -12,19 +13,37 @@
     $studentCode = $student->student_code ?? '未設定';
 
     $enrolledAt = $student->enrolled_at ?? null;
-    $enrolledDate = $enrolledAt ? \Carbon\Carbon::parse($enrolledAt)->format('Y/m/d') : '未設定';
+    $enrolledDate = $enrolledAt ? Carbon::parse($enrolledAt)->format('Y/m/d') : '未設定';
 
     $enrollmentPeriod = '未設定';
     if ($enrolledAt) {
-        $diff = \Carbon\Carbon::parse($enrolledAt)->diff(now());
+        $diff = Carbon::parse($enrolledAt)->diff(now());
         $enrollmentPeriod = ($diff->y > 0 ? $diff->y . '年' : '') . $diff->m . 'ヶ月';
     }
 
     $birthDateRaw = $student->birthday ?? null;
-    $birthDate = $birthDateRaw ? \Carbon\Carbon::parse($birthDateRaw)->format('Y/m/d') : '未設定';
+    $birthDate = $birthDateRaw ? Carbon::parse($birthDateRaw)->format('Y/m/d') : '未設定';
 
     $grade = optional($student->grade)->name ?? '未設定';
     $schoolName = optional($student->school)->name ?? $student->school_name ?? '未設定';
+
+    $activeContract = \App\Models\StudentCourseContract::query()
+        ->with(['course', 'coursePrice'])
+        ->where('student_id', $student->id)
+        ->where('is_active', true)
+        ->latest('id')
+        ->first();
+
+    $courseName = '未設定';
+    if ($activeContract) {
+        $course = optional($activeContract->course)->name;
+        $attendanceType = optional($activeContract->coursePrice)->attendance_type;
+
+        $courseName = $course ?: '未設定';
+        if ($course && $attendanceType) {
+            $courseName .= '（' . $attendanceType . '）';
+        }
+    }
 
     $teacher = $student->studentTeachers
         ->where('is_active', true)
@@ -36,74 +55,116 @@
         ? optional($teacher->teacher)->last_name . ' ' . optional($teacher->teacher)->first_name
         : '未設定';
 
-    $statusLabel = optional($student->enrollmentStatus)->status ?? '在籍中';
-
+    $statusLabel = optional($student->enrollmentStatus)->status ?? optional($student->enrollmentStatus)->name ?? '在籍';
     $statusClass = match ($statusLabel) {
         '体験中' => 'status-trial',
-        '在籍'   => 'status-enrolled',
-        '休会'   => 'status-suspended',
-        '退会'   => 'status-withdrawn',
-        '卒業'   => 'status-graduated',
+        '在籍', '在籍中' => 'status-enrolled',
+        '休会' => 'status-suspended',
+        '退会' => 'status-withdrawn',
+        '卒業' => 'status-graduated',
         default => 'status-enrolled',
     };
 
-    $activeContract = $student->courseContracts
-        ->where('is_active', true)
-        ->sortByDesc('id')
-        ->first();
+    $threeMonthsAgo = now()->subMonths(3)->startOfDay();
+    $recentAttendances = $student->attendances->filter(function ($attendance) use ($threeMonthsAgo) {
+        $rawDate = $attendance->attendance_date
+            ?? $attendance->attended_at
+            ?? $attendance->lesson_date
+            ?? $attendance->created_at
+            ?? null;
 
-    $courseName = '未設定';
-    if ($activeContract) {
-        $course = optional($activeContract->course)->name;
-        $attendanceType = optional($activeContract->coursePrice)->attendance_type;
-
-        $courseName = $course ?: '未設定';
-
-        if ($course && $attendanceType) {
-            $courseName .= '（' . $attendanceType . '）';
+        if (!$rawDate) {
+            return true;
         }
-    }
 
-    $attendanceCount = $student->attendances->where('attendance_status', 'attended')->count();
-    $absenceCount = $student->attendances->where('attendance_status', 'absent')->count();
+        try {
+            return Carbon::parse($rawDate)->gte($threeMonthsAgo);
+        } catch (\Throwable $e) {
+            return true;
+        }
+    });
+
+    $attendanceCount = $recentAttendances->filter(function ($attendance) {
+        $status = $attendance->attendance_status ?? $attendance->status ?? null;
+        return in_array($status, ['attended', 'present', '出席'], true);
+    })->count();
+
+    $absenceCount = $recentAttendances->filter(function ($attendance) {
+        $status = $attendance->attendance_status ?? $attendance->status ?? null;
+        return in_array($status, ['absent', 'absence', '欠席'], true);
+    })->count();
+
     $totalAttendanceTarget = $attendanceCount + $absenceCount;
     $attendanceRate = $totalAttendanceTarget > 0 ? round(($attendanceCount / $totalAttendanceTarget) * 100, 1) : 0;
+    $attendanceRateWidth = max(0, min(100, (float) $attendanceRate));
 
-    $currentPoints = optional($student->pointBalance)->current_points ?? 0;
+    $currentPoints = optional($student->pointBalance)->current_points
+        ?? optional($student->pointBalance)->balance
+        ?? 0;
 
     $monthlyPointDiff = $student->pointTransactions
-        ->filter(fn($transaction) => $transaction->occurred_at && \Carbon\Carbon::parse($transaction->occurred_at)->isCurrentMonth())
+        ->filter(function ($transaction) {
+            $occurredAt = $transaction->occurred_at ?? $transaction->created_at ?? null;
+            return $occurredAt && Carbon::parse($occurredAt)->isCurrentMonth();
+        })
         ->sum('points');
 
-    $badgeCount = $student->studentBadges->count();
+    $monthlyPointSign = $monthlyPointDiff > 0 ? '+' : '';
 
+    $badgeCount = $student->studentBadges->count();
     $monthlyBadgeDiff = $student->studentBadges
-        ->filter(fn($badge) => $badge->acquired_at && \Carbon\Carbon::parse($badge->acquired_at)->isCurrentMonth())
+        ->filter(function ($badge) {
+            $acquiredAt = $badge->acquired_at ?? $badge->created_at ?? null;
+            return $acquiredAt && Carbon::parse($acquiredAt)->isCurrentMonth();
+        })
         ->count();
 
     $equippedTitle = $student->titles->first(fn($title) => optional($title->pivot)->is_equipped);
-    $currentTitle = $equippedTitle->name ?? '未設定';
+    $currentTitle = optional($equippedTitle)->name;
+
+    if (!$currentTitle && $student->relationLoaded('studentTitles')) {
+        $equippedStudentTitle = $student->studentTitles
+            ->filter(fn($studentTitle) => (bool) ($studentTitle->is_equipped ?? false))
+            ->sortByDesc('id')
+            ->first();
+
+        $currentTitle = optional(optional($equippedStudentTitle)->title)->name;
+    }
+
+    $currentTitle = $currentTitle ?: '未設定';
+
+    $currentTitleImagePath = optional($equippedTitle)->image_path;
+
+    if (!$currentTitleImagePath && isset($equippedStudentTitle)) {
+        $currentTitleImagePath = optional(optional($equippedStudentTitle)->title)->image_path;
+    }
 @endphp
 
 <div class="karte-header-layout">
 
     <div class="karte-student-card">
-        <button type="button"
-                class="karte-edit-button"
-                onclick="document.getElementById('studentInfoModal').classList.add('is-open')">
-            ✏ 編集
+        <button type="button" class="karte-edit-button" onclick="document.getElementById('studentInfoModal').classList.add('is-open')">
+            ✏️ 編集
         </button>
 
         <div class="karte-student-profile">
             <div class="karte-student-photo-wrap">
-                @if($student->profile_image_path)
+
+                @if($student->image_path)
+
                     <img
-                        src="{{ Storage::disk('s3')->temporaryUrl($student->profile_image_path, now()->addMinutes(30)) }}"
+                        src="{{ Storage::disk('s3')->temporaryUrl($student->image_path, now()->addMinutes(30)) }}"
                         alt="{{ $student->last_name }}{{ $student->first_name }}"
                         class="karte-student-photo">
+
                 @else
-                    <span class="karte-student-photo-placeholder">👦</span>
+
+                    <span class="karte-student-photo-placeholder">
+                        👦
+                    </span>
+
                 @endif
+
             </div>
 
             <div class="karte-student-main">
@@ -146,6 +207,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 
     <div class="karte-summary-wrapper">
@@ -160,7 +222,7 @@
                 <div class="karte-summary-number">{{ $attendanceRate }}<span>%</span></div>
 
                 <div class="karte-progress">
-                    <div class="karte-progress-bar" style="width: {{ $attendanceRate }}%;"></div>
+                    <div class="karte-progress-bar" style="width: {{ $attendanceRateWidth }}%;"></div>
                 </div>
 
                 <div class="karte-summary-small">
@@ -176,7 +238,7 @@
                 </div>
 
                 <div class="karte-summary-number">{{ number_format($currentPoints) }}<span> pt</span></div>
-                <div class="karte-summary-gain">今月 +{{ number_format($monthlyPointDiff) }}pt</div>
+                <div class="karte-summary-gain">今月 {{ $monthlyPointDiff >= 0 ? '+' : '' }}{{ number_format($monthlyPointDiff) }}pt</div>
             </div>
 
             <div class="karte-summary-card">
@@ -190,13 +252,24 @@
                 <a href="#" class="karte-summary-button">バッジ一覧</a>
             </div>
 
-            <div class="karte-summary-card">
+            <div class="karte-summary-card karte-title-summary-card">
                 <div class="karte-summary-head">
                     <div class="karte-summary-icon red">👑</div>
                     <div class="karte-summary-label">現在の称号</div>
                 </div>
 
-                <div class="karte-current-title">{{ $currentTitle }}</div>
+                @if($currentTitleImagePath)
+                    <div class="karte-current-title-image-wrap">
+                        <img
+                            src="{{ Storage::disk('s3')->temporaryUrl($currentTitleImagePath, now()->addMinutes(30)) }}"
+                            alt="現在の称号"
+                            class="karte-current-title-image">
+                    </div>
+                @else
+                    <div class="karte-current-title-empty">
+                        未設定
+                    </div>
+                @endif
                 <a href="#" class="karte-summary-button">称号一覧</a>
             </div>
 
@@ -258,8 +331,7 @@
                     <label>学年</label>
                     <select name="grade_id">
                         @foreach($grades as $gradeItem)
-                            <option value="{{ $gradeItem->id }}"
-                                @selected(old('grade_id', $student->grade_id) == $gradeItem->id)>
+                            <option value="{{ $gradeItem->id }}" @selected($student->grade_id == $gradeItem->id)>
                                 {{ $gradeItem->name }}
                             </option>
                         @endforeach
@@ -270,8 +342,7 @@
                     <label>所属教室</label>
                     <select name="school_id">
                         @foreach($schools as $school)
-                            <option value="{{ $school->id }}"
-                                @selected(old('school_id', $student->school_id) == $school->id)>
+                            <option value="{{ $school->id }}" @selected($student->school_id == $school->id)>
                                 {{ $school->name }}
                             </option>
                         @endforeach
@@ -281,9 +352,11 @@
                 <div class="form-group">
                     <label>コース</label>
                     <select name="course_price_id">
+                        <option value="">未設定</option>
+
                         @foreach($coursePrices as $coursePrice)
                             <option value="{{ $coursePrice->id }}"
-                                @selected(old('course_price_id', optional($activeContract)->course_price_id) == $coursePrice->id)>
+                                @selected(optional($activeContract)->course_price_id == $coursePrice->id)>
                                 {{ optional($coursePrice->course)->name }}（{{ $coursePrice->attendance_type }}）
                             </option>
                         @endforeach
@@ -296,7 +369,7 @@
                         <option value="">未設定</option>
                         @foreach($teachers as $teacherItem)
                             <option value="{{ $teacherItem->id }}"
-                                @selected(old('teacher_id', optional(optional($teacher)->teacher)->id) == $teacherItem->id)>
+                                @selected(optional(optional($student->studentTeachers->where('is_active', true)->where('is_primary', true)->sortByDesc('id')->first())->teacher)->id == $teacherItem->id)>
                                 {{ $teacherItem->last_name }} {{ $teacherItem->first_name }}
                             </option>
                         @endforeach
@@ -308,12 +381,13 @@
                     <select name="enrollment_status_id">
                         @foreach($enrollmentStatuses as $status)
                             <option value="{{ $status->id }}"
-                                @selected(old('enrollment_status_id', $student->enrollment_status_id) == $status->id)>
-                                {{ $status->status }}
+                                @selected($student->enrollment_status_id == $status->id)>
+                                {{ $status->status ?? $status->name }}
                             </option>
                         @endforeach
                     </select>
                 </div>
+
 
                 <div class="form-group">
                     <label>入会日</label>
@@ -336,6 +410,7 @@
         </form>
     </div>
 </div>
+
 
 <style>
 .karte-header-layout {
@@ -400,7 +475,6 @@
     align-items: center;
     gap: 14px;
     margin-bottom: 18px;
-    padding-right: 92px;
 }
 
 .karte-student-name {
@@ -432,6 +506,27 @@
     white-space: nowrap;
 }
 
+.karte-status-badge.status-trial{
+    background:#dbeafe;
+    color:#1d4ed8;
+}
+
+.karte-status-badge.status-enrolled{
+    background:#dcfce7;
+    color:#15803d;
+}
+
+.karte-status-badge.status-suspended{
+    background:#fef3c7;
+    color:#b45309;
+}
+
+.karte-status-badge.status-withdrawn,
+.karte-status-badge.status-graduated{
+    background:#fee2e2;
+    color:#dc2626;
+}
+
 .karte-student-info-grid {
     display: grid;
     grid-template-columns: 80px 170px 80px 1fr;
@@ -439,6 +534,12 @@
     column-gap: 14px;
     font-size: 14px;
     width: 100%;
+}
+
+.karte-card-header{
+    display:flex;
+    justify-content:flex-end;
+    margin-bottom:16px;
 }
 
 .karte-edit-button{
@@ -462,7 +563,6 @@
     text-decoration:none;
     font-size:14px;
     font-weight:700;
-    cursor:pointer;
 }
 
 .karte-edit-button:hover{
@@ -470,31 +570,14 @@
     border-color:#94a3b8;
 }
 
-.karte-status-badge.status-trial{
-    background:#dbeafe;
-    color:#1d4ed8;
+.karte-title-summary-card .karte-summary-head {
+    margin-bottom: 12px;
 }
 
-.karte-status-badge.status-enrolled{
-    background:#dcfce7;
-    color:#15803d;
+.karte-title-summary-card .karte-current-title-image-wrap {
+    height: 92px;
+    margin-bottom: 10px;
 }
-
-.karte-status-badge.status-suspended{
-    background:#fef3c7;
-    color:#b45309;
-}
-
-.karte-status-badge.status-withdrawn{
-    background:#fee2e2;
-    color:#dc2626;
-}
-
-.karte-status-badge.status-graduated{
-    background:#fee2e2;
-    color:#dc2626;
-}
-
 
 .karte-modal {
     display: none;
@@ -561,6 +644,39 @@
     gap: 10px;
 }
 
+.karte-current-title-image-wrap {
+    width: 100%;
+    height: 98px;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+
+    padding: 0 12px;
+    box-sizing: border-box;
+}
+
+.karte-current-title-image {
+    width: 100%;
+    max-width: 130px;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    transform: translateY(-8px);
+}
+
+.karte-current-title-empty {
+    width: 100%;
+    height: 86px;
+    margin-bottom: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 15px;
+    font-weight: 800;
+}
+
 .modal-btn-cancel,
 .modal-btn-save {
     height: 38px;
@@ -624,6 +740,7 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
+    justify-content: flex-start;
 }
 
 .karte-summary-card:last-child {
@@ -714,6 +831,7 @@
     font-weight: 900;
     color: #059669;
     white-space: nowrap;
+    margin-top: 0;
 }
 
 .karte-summary-button {
@@ -758,7 +876,6 @@
     .karte-student-title-row {
         justify-content: center;
         flex-wrap: wrap;
-        padding-right: 0;
     }
 
     .karte-student-info-grid,
