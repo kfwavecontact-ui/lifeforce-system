@@ -14,6 +14,10 @@ class CoursePrice extends Model
         'is_active',
     ];
 
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
     public function course()
     {
         return $this->belongsTo(Course::class);

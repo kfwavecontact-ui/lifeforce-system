@@ -15,6 +15,11 @@ class Course extends Model
         'is_active',
     ];
 
+    protected $casts = [
+        'is_recommended' => 'boolean',
+        'is_active' => 'boolean',
+    ];
+
     public function coursePrices()
     {
         return $this->hasMany(CoursePrice::class);

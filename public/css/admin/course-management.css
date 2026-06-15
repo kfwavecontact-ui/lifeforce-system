@@ -1,0 +1,104 @@
+.course-page{
+    padding:24px;
+    height:calc(100vh - 68px);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+}
+
+.course-management-page .master-main{
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+}
+
+.course-management-page .master-table-card{
+    flex:1;
+    min-height:0;
+    overflow:auto;
+}
+
+.course-management-page .master-toolbar{
+    justify-content:flex-start;
+    gap:16px;
+}
+
+.course-table th,
+.course-table td{
+    white-space:nowrap;
+}
+
+.course-table td:nth-child(4){
+    min-width:320px;
+}
+
+.course-table td:nth-child(6),
+.course-table td:nth-child(7),
+.course-table td:nth-child(10){
+    text-align:right;
+}
+
+.course-recommended{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:42px;
+    height:26px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:800;
+    background:#fef3c7;
+    color:#d97706;
+}
+
+.course-recommended.off{
+    background:transparent;
+    color:transparent;
+}
+
+.course-price{
+    font-weight:800;
+    color:#0f172a;
+}
+
+.course-table th:nth-child(6),
+.course-table td:nth-child(6){
+    text-align:right;
+}
+
+.course-table td:nth-child(5){
+    min-width:280px;
+}
+
+.master-form select{
+    width:100%;
+    height:44px;
+    padding:0 12px;
+    border:1px solid #dbe2ea;
+    border-radius:10px;
+    background:#fff;
+    font-size:14px;
+    color:#0f172a;
+    appearance:none;
+    -webkit-appearance:none;
+    -moz-appearance:none;
+}
+
+.master-form select{
+    width:100%;
+    height:44px;
+    padding:0 40px 0 12px;
+    border:1px solid #dbe2ea;
+    border-radius:10px;
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 20 20'%3E%3Cpath fill='%2364748b' d='M5 7l5 5 5-5'/%3E%3C/svg%3E")
+        no-repeat right 12px center,
+        #fff;
+    font-size:14px;
+    color:#0f172a;
+    appearance:none;
+    -webkit-appearance:none;
+    -moz-appearance:none;
+}

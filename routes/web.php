@@ -2,6 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\StudentKarteController;
+use App\Http\Controllers\Admin\System\MasterController;
+use App\Http\Controllers\Admin\System\NotificationMasterController;
+use App\Http\Controllers\Admin\System\CourseManagementController;
+use App\Http\Controllers\Admin\System\ChallengeManagementController;
+
+
 
 Route::get('/', function () {
     return redirect()->route('admin.students.karte.show', ['student' => 1]);
@@ -59,3 +65,82 @@ Route::get('/admin/students/{student}/karte', [StudentKarteController::class, 's
 Route::post('/admin/students/{student}/karte/routines/apply-package', [StudentKarteController::class, 'applyRoutinePackage']);
 Route::put('/admin/students/{student}/karte/routines/items/{item}', [StudentKarteController::class, 'updateRoutineItem']);
 Route::delete('/admin/students/{student}/karte/routines/items/{item}', [StudentKarteController::class, 'deleteRoutineItem']);
+
+Route::prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+
+        Route::get('/system/master', [MasterController::class, 'index'])
+            ->name('system.master');
+
+        Route::get('/system/master/list', [MasterController::class, 'list'])
+            ->name('system.master.list');
+
+        Route::post('/system/master', [MasterController::class, 'store'])
+            ->name('system.master.store');
+
+        Route::put('/system/master/{id}', [MasterController::class, 'update'])
+            ->name('system.master.update');
+
+        Route::post('/system/master/reorder', [MasterController::class, 'reorder'])
+            ->name('system.master.reorder');
+
+        Route::get('/system/notification-masters', [MasterController::class, 'notificationMasters'])
+            ->name('system.notification-masters');
+
+        Route::get('/system/role-notification-settings', [MasterController::class, 'roleNotificationSettings'])
+            ->name('system.role-notification-settings');
+        
+        Route::get('/system/notification-histories', [MasterController::class, 'notificationHistories'])
+            ->name('system.notification-histories');
+
+        Route::put('/system/role-notification-settings', [MasterController::class, 'updateRoleNotificationSettings'])
+            ->name('system.role-notification-settings.update');
+
+        Route::get('/system/courses', [CourseManagementController::class, 'index'])
+            ->name('system.courses');
+
+        Route::get('/system/courses/list', [CourseManagementController::class, 'list'])
+            ->name('system.courses.list');
+
+        Route::post('/system/courses', [CourseManagementController::class, 'store'])
+            ->name('system.courses.store');
+
+        Route::put('/system/courses/{coursePrice}', [CourseManagementController::class, 'update'])
+            ->name('system.courses.update');
+
+        Route::post('/system/courses/reorder', [CourseManagementController::class, 'reorder'])
+            ->name('system.courses.reorder');
+        
+        Route::get('/system/challenges', [ChallengeManagementController::class, 'index'])
+            ->name('system.challenges');
+
+        Route::get('/system/challenges/list', [ChallengeManagementController::class, 'list'])
+            ->name('system.challenges.list');
+        
+        Route::post('/system/challenges', [ChallengeManagementController::class, 'store'])
+            ->name('system.challenges.store');
+
+        Route::put('/system/challenges/{challenge}', [ChallengeManagementController::class, 'update'])
+            ->name('system.challenges.update');
+
+        Route::post('/system/challenges/reorder', [ChallengeManagementController::class, 'reorder'])
+            ->name('system.challenges.reorder');
+
+        Route::post('/system/challenges/{challenge}/duplicate',[ChallengeManagementController::class, 'duplicate'])
+            ->name('system.challenges.duplicate');
+
+        Route::post('/system/challenges/{challenge}/deactivate',[ChallengeManagementController::class, 'deactivate'])
+            ->name('system.challenges.deactivate');
+        
+        Route::delete('/system/challenges/{challenge}',[ChallengeManagementController::class, 'destroy'])
+            ->name('system.challenges.destroy');
+
+
+
+    });
+
+Route::get('/login', function () {
+    return redirect('/admin/login');
+})->name('login');
+

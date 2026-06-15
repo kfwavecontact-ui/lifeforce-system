@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title ?? 'LifeForce Core' }}</title>
+    <title>@yield('title', $title ?? 'LifeForce Core')</title>
 
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/sidebar.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/header.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/master.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/challenge-management.css') }}">
+
+
 
     <link
         rel="stylesheet"
@@ -195,5 +200,10 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 <script src="{{ asset('js/admin/sidebar.js') }}"></script>
+<script src="{{ asset('js/admin/header.js') }}"></script>
+<script src="{{ asset('js/admin/master.js') }}"></script>
+<script src="{{ asset('js/admin/challenge-management.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
 </body>
 </html>

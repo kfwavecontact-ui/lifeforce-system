@@ -21,6 +21,9 @@
                     <span class="sidebar-search-muted">Core ＞ ダッシュボード ＞ </span><span class="sidebar-search-strong">今日の教室</span>
                 </a>
                 <a href="#" class="sidebar-search-row">
+                    <span class="sidebar-search-muted">Core ＞ 教室 ＞ </span><span class="sidebar-search-strong">教室一覧</span>
+                </a>
+                <a href="#" class="sidebar-search-row">
                     <span class="sidebar-search-muted">人 ＞ 生徒 ＞ </span><span class="sidebar-search-strong">生徒一覧</span>
                 </a>
                 <a href="#" class="sidebar-search-row">
@@ -81,6 +84,10 @@
             </a>
         </div>
 
+        <a href="#" class="sidebar-item" data-search-name="Core ＞ 教室" data-info="教室一覧を表示し、教室カルテへ移動します">
+            <i class="fas fa-school"></i><span>教室</span>
+        </a>
+
         <a href="#" class="sidebar-item" data-search-name="Core ＞ スケジュール ＞ スケジュール" data-info="教室・講師・生徒の予定を管理します">
             <i class="fas fa-calendar-alt"></i><span>スケジュール</span>
         </a>
@@ -90,11 +97,11 @@
     <div class="sidebar-group">
         <div class="sidebar-group-title">人</div>
 
-        <a href="#" class="sidebar-item" data-search-name="人 ＞ 生徒" data-info="生徒一覧を表示し、カルテへ移動します">
+        <a href="#" class="sidebar-item" data-search-name="人 ＞ 生徒" data-info="生徒一覧を表示し、生徒カルテへ移動します">
             <i class="fas fa-user-graduate"></i><span>生徒</span>
         </a>
 
-        <a href="#" class="sidebar-item" data-search-name="人 ＞ 講師" data-info="講師一覧を表示します">
+        <a href="#" class="sidebar-item" data-search-name="人 ＞ 講師" data-info="講師一覧を表示し、講師カルテへ移動します">
             <i class="fas fa-chalkboard-teacher"></i><span>講師</span>
         </a>
 
@@ -334,13 +341,46 @@
         </button>
 
         <div class="sidebar-submenu">
-            <a href="#" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ 組織管理" data-info="本部・エリア・教室を管理します"><span>組織管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
-            <a href="#" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ コース管理" data-info="コースと料金を管理します"><span>コース管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
-            <a href="#" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ チャレンジ管理" data-info="チャレンジ試験を管理します"><span>チャレンジ管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
+            <a href="{{ route('admin.system.courses') }}"
+                class="sidebar-subitem"
+                data-search-name="システム ＞ 設定 ＞ コース管理"
+                data-info="コースと料金を管理します">
+                <span>コース管理</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+
+            <a href="{{ route('admin.system.challenges') }}" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ チャレンジ管理" data-info="チャレンジ試験を管理します"><span>チャレンジ管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
             <a href="#" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ バッジ管理" data-info="バッジ情報を管理します"><span>バッジ管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
             <a href="#" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ 称号管理" data-info="称号情報を管理します"><span>称号管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
             <a href="#" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ 権限管理" data-info="ロール権限を管理します"><span>権限管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
-            <a href="#" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ マスタ管理" data-info="各種マスタを管理します"><span>マスタ管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
+            <a href="{{ route('admin.system.master') }}" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ マスタ管理" data-info="各種マスタを管理します"><span>マスタ管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
+        </div>
+
+        <button class="sidebar-item sidebar-toggle" type="button">
+            <span class="sidebar-toggle-label"><i class="fas fa-bell"></i><span>通知管理</span></span>
+            <i class="fas fa-chevron-down sidebar-arrow"></i>
+        </button>
+
+        <div class="sidebar-submenu">
+            <a href="{{ route('admin.system.notification-masters') }}"
+                class="sidebar-subitem"
+                data-search-name="システム ＞ 通知管理 ＞ 通知マスタ"
+                data-info="通知の種類を管理します">
+                    <span>通知マスタ</span><i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+            <a href="{{ route('admin.system.role-notification-settings') }}"
+                class="sidebar-subitem"
+                data-search-name="システム ＞ 通知管理 ＞ ロール別通知設定"
+                data-info="ロールごとの通知表示を管理します">
+                <span>ロール別通知設定</span><i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+            <a href="{{ route('admin.system.notification-histories') }}"
+                class="sidebar-subitem"
+                data-search-name="システム ＞ 通知管理 ＞ 通知履歴"
+                data-info="通知送信履歴を確認します">
+                    <span>通知履歴</span>
+                    <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
         </div>
     </div>
 
