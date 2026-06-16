@@ -81,6 +81,8 @@
                 <div class="master-category">
                     <div class="master-category-title">わくわく</div>
                     <button class="master-menu" data-master="badge_categories">バッジカテゴリ</button>
+                    <button class="master-menu" data-master="badge_series">バッジシリーズ</button>
+                    <button class="master-menu" data-master="badge_requirement_types">バッジ獲得条件</button>
                     <button class="master-menu" data-master="reward_categories">景品カテゴリ</button>
                     <button class="master-menu" data-master="shop_categories">商品カテゴリ</button>
                 </div>

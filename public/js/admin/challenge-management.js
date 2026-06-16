@@ -152,7 +152,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td class="master-drag-handle">⋮⋮</td>
                     <td>${row.id}</td>
                     <td>${row.name ?? ''}</td>
-                    <td>${row.icon_path ? `<img src="${row.icon_path}" class="challenge-icon">` : '-'}</td>
+                    <td>
+                        ${
+                            row.icon_path
+                                ? `<img src="${row.icon_path}" class="challenge-icon">`
+                                : '<span class="challenge-no-image">なし</span>'
+                        }
+                    </td>
+
                     <td>${row.category_name ?? ''}</td>
                     <td><span class="challenge-difficulty">${difficulty}</span></td>
                     <td>${formatRequirement(row)}</td>

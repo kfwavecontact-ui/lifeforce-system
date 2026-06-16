@@ -19,6 +19,11 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     >
 </head>
+
+@if(request()->routeIs('admin.system.badges*'))
+    <link rel="stylesheet" href="{{ asset('css/admin/badge-management.css') }}">
+@endif
+
 <body data-sidebar-key="{{ $sidebarPageKey ?? '' }}">
 
 <div class="layout">
@@ -203,8 +208,15 @@ document.addEventListener('DOMContentLoaded', function () {
 <script src="{{ asset('js/admin/sidebar.js') }}"></script>
 <script src="{{ asset('js/admin/header.js') }}"></script>
 <script src="{{ asset('js/admin/master.js') }}"></script>
-<script src="{{ asset('js/admin/challenge-management.js') }}"></script>
+@if(request()->routeIs('admin.system.challenges*'))
+    <script src="{{ asset('js/admin/challenge-management.js') }}"></script>
+@endif
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+@if(request()->routeIs('admin.system.badges*'))
+    <script src="{{ asset('js/admin/badge-management.js') }}"></script>
+@endif
+
 
 </body>
 </html>

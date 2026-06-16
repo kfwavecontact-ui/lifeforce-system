@@ -36,6 +36,8 @@ class MasterController extends Controller
         'event_rewards' => ['title' => 'イベント報酬', 'description' => 'イベント参加時の報酬を管理します。'],
 
         'badge_categories' => ['title' => 'バッジカテゴリ', 'description' => 'バッジカテゴリを管理します。'],
+        'badge_requirement_types' => ['title' => 'バッジ獲得条件', 'description' => 'バッジ獲得条件の種類を管理します。'],
+        'badge_series' => ['title' => 'バッジシリーズ', 'description' => 'バッジのシリーズを管理します。'],
         'reward_categories' => ['title' => '景品カテゴリ', 'description' => 'ポイント交換景品のカテゴリを管理します。'],
         'shop_categories' => ['title' => '商品カテゴリ', 'description' => 'ショップ商品のカテゴリを管理します。'],
     ];

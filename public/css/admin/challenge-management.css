@@ -251,3 +251,16 @@
 .challenge-table td:nth-child(6){
     min-width:120px;
 }
+
+.challenge-no-image{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:52px;
+    height:52px;
+    border-radius:10px;
+    background:#f8fafc;
+    border:1px dashed #cbd5e1;
+    color:#94a3b8;
+    font-size:12px;
+}

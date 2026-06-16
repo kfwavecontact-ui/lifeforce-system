@@ -1,0 +1,558 @@
+.badge-management-page .master-toolbar{
+    align-items:flex-start;
+}
+
+.badge-management-page .master-search{
+    min-width:420px;
+}
+
+.badge-management-page .master-filter-group{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+}
+
+.badge-management-page .master-filter-group select,
+.badge-management-page .badge-filter-search input[type="text"]{
+    width:180px;
+    height:42px;
+    padding:0 12px;
+    border:1px solid #dbe2ea;
+    border-radius:10px;
+    background:#fff;
+    font-size:14px;
+}
+
+.badge-filter-search{
+    position:relative;
+}
+
+.badge-management-page .master-table-card{
+    overflow-x:auto;
+}
+
+
+
+.badge-table{
+    min-width:1180px;
+}
+
+.badge-table th,
+.badge-table td{
+    vertical-align:middle;
+}
+
+.badge-table th:nth-child(1),
+.badge-table td:nth-child(1){
+    width:44px;
+    text-align:center;
+}
+
+.badge-table th:nth-child(2),
+.badge-table td:nth-child(2){
+    width:54px;
+    text-align:center;
+}
+
+.badge-table th:nth-child(3),
+.badge-table td:nth-child(3){
+    width:64px;
+}
+
+.badge-table th:nth-child(4),
+.badge-table td:nth-child(4){
+    min-width:180px;
+}
+
+.badge-table th:nth-child(5),
+.badge-table td:nth-child(5){
+    width:78px;
+    text-align:center;
+}
+
+.badge-table th:nth-child(6),
+.badge-table td:nth-child(6){
+    min-width:120px;
+}
+
+.badge-table th:nth-child(7),
+.badge-table td:nth-child(7){
+    min-width:130px;
+}
+
+.badge-table th:nth-child(8),
+.badge-table td:nth-child(8){
+    width:76px;
+    text-align:center;
+}
+
+.badge-table th:nth-child(9),
+.badge-table td:nth-child(9){
+    min-width:150px;
+}
+
+.badge-table th:nth-child(10),
+.badge-table td:nth-child(10){
+    width:90px;
+    text-align:right;
+}
+
+.badge-table th:nth-child(11),
+.badge-table td:nth-child(11){
+    width:80px;
+    text-align:center;
+}
+
+.badge-table th:nth-child(12),
+.badge-table td:nth-child(12){
+    width:190px;
+}
+
+.badge-drag-handle{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:30px;
+    height:30px;
+    border-radius:8px;
+    color:#64748b;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    cursor:grab;
+    user-select:none;
+}
+
+.badge-drag-handle:active{
+    cursor:grabbing;
+}
+
+.badge-table-image{
+    width:52px;
+    height:52px;
+    object-fit:contain;
+    border-radius:10px;
+    background:#f8fafc;
+    border:1px solid #e5edf5;
+    padding:4px;
+}
+
+.badge-no-image{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:52px;
+    height:52px;
+    border-radius:10px;
+    background:#f8fafc;
+    border:1px dashed #cbd5e1;
+    color:#94a3b8;
+    font-size:12px;
+}
+
+.badge-code{
+    margin-top:4px;
+    color:#94a3b8;
+    font-size:12px;
+}
+
+.badge-image-preview-wrapper{
+    margin-top:10px;
+    min-height:64px;
+}
+
+.badge-image-preview{
+    width:72px;
+    height:72px;
+    object-fit:contain;
+    border-radius:12px;
+    background:#f8fafc;
+    border:1px solid #e5edf5;
+    padding:6px;
+}
+
+.master-table-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    margin-bottom:12px;
+}
+
+.badge-management-page .master-action-buttons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+}
+
+.badge-table .master-action-buttons{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-wrap:nowrap;
+}
+
+.badge-table .master-link-button,
+.badge-table .master-danger-link-button{
+    min-width:54px;
+    height:32px;
+    padding:0 10px;
+    white-space:nowrap;
+}
+
+.badge-table .master-action-buttons{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:nowrap;
+}
+
+.badge-table .master-link-button,
+.badge-table .master-danger-link-button{
+    appearance:none;
+    height:34px;
+    min-width:56px;
+    padding:0 12px;
+    border:1px solid #dbe2ea;
+    border-radius:10px;
+    background:#fff;
+    color:#0f2440;
+    font-size:13px;
+    font-weight:700;
+    line-height:32px;
+    white-space:nowrap;
+    cursor:pointer;
+}
+
+.badge-table .master-link-button:hover,
+.badge-table .master-danger-link-button:hover{
+    background:#f8fafc;
+}
+
+.badge-filter-search .reward-search-list{
+    position:absolute;
+    top:46px;
+    left:0;
+    z-index:1000;
+    width:220px;
+    max-height:260px;
+    overflow-y:auto;
+    display:none;
+    background:#fff;
+    border:1px solid #dbe2ea;
+    border-radius:10px;
+    box-shadow:0 12px 28px rgba(15,36,64,.16);
+    padding:6px;
+}
+
+.badge-filter-search .reward-search-list.is-open{
+    display:block;
+}
+
+.badge-filter-search .reward-search-list button{
+    width:100%;
+    padding:9px 10px;
+    border:0;
+    border-radius:8px;
+    background:#fff;
+    text-align:left;
+    cursor:pointer;
+    font-size:13px;
+}
+
+.badge-filter-search .reward-search-list button:hover{
+    background:#f1f5f9;
+}
+
+
+.master-modal .reward-search-list{
+    position:absolute;
+    z-index:2000;
+    width:100%;
+    max-height:220px;
+    overflow-y:auto;
+    display:none;
+    margin-top:6px;
+    background:#fff;
+    border:1px solid #dbe2ea;
+    border-radius:10px;
+    box-shadow:0 12px 28px rgba(15,36,64,.16);
+    padding:6px;
+
+}
+
+.master-modal .reward-search-list.is-open{
+    display:block;
+}
+
+.master-modal .reward-search-list button{
+    width:100%;
+    padding:9px 10px;
+    border:0;
+    border-radius:8px;
+    background:#fff;
+    text-align:left;
+    cursor:pointer;
+    font-size:13px;
+}
+
+.master-modal .reward-search-list button:hover{
+    background:#f1f5f9;
+}
+
+.master-form label{
+    position:relative;
+}
+
+.master-form label{
+    position:relative;
+}
+
+.master-modal .reward-search-list{
+    position:absolute;
+    top:72px;
+    left:0;
+    z-index:2000;
+    width:100%;
+    max-height:220px;
+    overflow-y:auto;
+    display:none;
+    background:#fff;
+    border:1px solid #dbe2ea;
+    border-radius:10px;
+    box-shadow:0 12px 28px rgba(15,36,64,.16);
+    padding:6px;
+}
+
+.badge-management-page .master-toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:10px;
+}
+
+.badge-management-page .master-filter-group{
+    margin-left:0;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:nowrap;
+}
+
+.badge-management-page .master-search{
+    min-width:360px;
+}
+
+.badge-management-page .master-table-actions{
+    justify-content:flex-start;
+}
+
+.badge-table .master-status.is-active{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:46px;
+    height:26px;
+    padding:0 10px;
+    border-radius:999px;
+    background:#dcfce7;
+    color:#16a34a;
+    font-weight:700;
+    font-size:12px;
+}
+
+.badge-table .master-status.is-inactive{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:46px;
+    height:26px;
+    padding:0 10px;
+    border-radius:999px;
+    background:#fee2e2;
+    color:#dc2626;
+    font-weight:700;
+    font-size:12px;
+}
+
+.badge-limited-status{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:46px;
+    height:26px;
+    padding:0 10px;
+    border-radius:999px;
+    font-weight:700;
+    font-size:12px;
+}
+
+.badge-limited-status.is-normal{
+    background:#dcfce7;
+    color:#16a34a;
+}
+
+.badge-limited-status.is-limited{
+    background:#dbeafe;
+    color:#2563eb;
+}
+
+.badge-management-page .master-toolbar{
+    justify-content:flex-start;
+    gap:12px;
+}
+
+.badge-management-page .master-filter-group{
+    flex:0 0 auto;
+    margin-left:0;
+    gap:12px;
+}
+
+.badge-limited-column{
+    min-width:90px;
+    white-space:nowrap;
+}
+
+.badge-table th:nth-child(5),
+.badge-table td:nth-child(5){
+    width:90px;
+}
+
+.badge-table th:nth-child(9),
+.badge-table td:nth-child(9){
+    width:64px;
+    min-width:64px;
+    text-align:center;
+}
+
+.badge-table th:nth-child(10),
+.badge-table td:nth-child(10){
+    min-width:260px;
+    max-width:320px;
+    white-space:normal;
+    line-height:1.6;
+}
+
+.badge-table th:nth-child(12),
+.badge-table td:nth-child(12){
+    width:76px;
+    min-width:76px;
+    text-align:center;
+}
+
+.badge-table th:nth-child(10),
+.badge-table td:nth-child(10){
+    text-align:left;
+    vertical-align:middle;
+}
+
+.badge-management-page .master-table-actions{
+    margin-bottom:0;
+    padding-bottom:0;
+}
+
+.badge-requirement{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    justify-content:flex-start;
+}
+
+.badge-requirement-label{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:86px;
+    height:24px;
+    padding:0 8px;
+    border-radius:999px;
+    background:#eef2ff;
+    color:#3154b8;
+    font-size:12px;
+    font-weight:700;
+    white-space:nowrap;
+}
+
+.badge-requirement-value{
+    color:#334155;
+}
+
+.badge-requirement-empty{
+    color:#94a3b8;
+}
+
+
+.badge-requirements-editor{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.badge-requirements-editor-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    font-weight:700;
+    color:#0f2440;
+}
+
+.badge-requirement-row{
+    display:grid;
+    grid-template-columns:180px 1fr auto;
+    gap:10px;
+    align-items:center;
+    margin-bottom:8px;
+}
+
+.badge-requirement-row select,
+.badge-requirement-row input{
+    height:42px;
+    padding:0 12px;
+    border:1px solid #dbe2ea;
+    border-radius:10px;
+    background:#fff;
+    font-size:14px;
+}
+
+.master-form-help{
+    margin:4px 0 0;
+    color:#64748b;
+    font-size:12px;
+}
+
+.badge-table th:nth-child(10),
+.badge-table td:nth-child(10){
+    width:280px;
+    min-width:280px;
+    max-width:280px;
+    text-align:left !important;
+    vertical-align:middle;
+}
+
+.badge-requirement-list{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+}
+
+.badge-requirement-tag{
+    display:inline-block;
+    width:fit-content;
+
+    padding:3px 8px;
+
+    background:#fff7ed;
+    border:1px solid #fed7aa;
+
+    color:#ea580c;
+
+    border-radius:999px;
+
+    font-size:11px;
+    font-weight:700;
+    line-height:1.2;
+}
+
+.badge-requirement-empty{
+    color:#94a3b8;
+}

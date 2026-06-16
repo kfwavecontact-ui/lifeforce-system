@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\System\MasterController;
 use App\Http\Controllers\Admin\System\NotificationMasterController;
 use App\Http\Controllers\Admin\System\CourseManagementController;
 use App\Http\Controllers\Admin\System\ChallengeManagementController;
+use App\Http\Controllers\Admin\System\BadgeManagementController;
 
 
 
@@ -111,6 +112,36 @@ Route::prefix('admin')
 
         Route::post('/system/courses/reorder', [CourseManagementController::class, 'reorder'])
             ->name('system.courses.reorder');
+
+        Route::get('/system/badges/list', [BadgeManagementController::class, 'list'])
+            ->name('system.badges.list');
+
+        Route::post('/system/badges', [BadgeManagementController::class, 'store'])
+            ->name('system.badges.store');
+
+        Route::post('/system/badges/reorder', [BadgeManagementController::class, 'reorder'])
+            ->name('system.badges.reorder');
+
+        Route::post('/system/badges/{badge}/duplicate', [BadgeManagementController::class, 'duplicate'])
+            ->name('system.badges.duplicate');
+
+        Route::post('/system/badges/{badge}/deactivate', [BadgeManagementController::class, 'deactivate'])
+            ->name('system.badges.deactivate');
+
+        Route::delete('/system/badges/{badge}', [BadgeManagementController::class, 'destroy'])
+            ->name('system.badges.destroy');
+
+        Route::post('/system/badges/bulk-deactivate', [BadgeManagementController::class, 'bulkDeactivate'])
+            ->name('system.badges.bulk-deactivate');
+
+        Route::post('/system/badges/bulk-destroy', [BadgeManagementController::class, 'bulkDestroy'])
+            ->name('system.badges.bulk-destroy');
+
+        Route::put('/system/badges/{badge}', [BadgeManagementController::class, 'update'])
+            ->name('system.badges.update');
+
+        Route::get('/system/badges', [BadgeManagementController::class, 'index'])
+            ->name('system.badges');
         
         Route::get('/system/challenges/list', [ChallengeManagementController::class, 'list'])
             ->name('system.challenges.list');
@@ -141,6 +172,8 @@ Route::prefix('admin')
 
         Route::get('/system/challenges', [ChallengeManagementController::class, 'index'])
             ->name('system.challenges');
+
+
     });
 
 Route::get('/login', function () {
