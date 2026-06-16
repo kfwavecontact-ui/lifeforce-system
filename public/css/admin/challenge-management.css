@@ -39,8 +39,8 @@
 }
 
 .challenge-icon{
-    width:70px;
-    height:70px;
+    width:48px;
+    height:48px;
     border-radius:10px;
     object-fit:cover;
     border:1px solid #e5e7eb;
@@ -230,4 +230,24 @@
     object-fit:cover;
     border:1px solid #e5e7eb;
     background:#f8fafc;
+}
+
+/* チャレンジ名列 */
+.challenge-table th:nth-child(4),
+.challenge-table td:nth-child(4){
+    min-width:180px;
+}
+
+/* 画像列 */
+.challenge-table th:nth-child(5),
+.challenge-table td:nth-child(5){
+    width:72px;
+    min-width:72px;
+    text-align:center;
+}
+
+/* カテゴリ列 */
+.challenge-table th:nth-child(6),
+.challenge-table td:nth-child(6){
+    min-width:120px;
 }

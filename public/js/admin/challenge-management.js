@@ -151,9 +151,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td class="master-drag-handle">⋮⋮</td>
                     <td>${row.id}</td>
+                    <td>${row.name ?? ''}</td>
                     <td>${row.icon_path ? `<img src="${row.icon_path}" class="challenge-icon">` : '-'}</td>
                     <td>${row.category_name ?? ''}</td>
-                    <td>${row.name ?? ''}</td>
                     <td><span class="challenge-difficulty">${difficulty}</span></td>
                     <td>${formatRequirement(row)}</td>
                     <td>${row.badge_name ?? '-'}</td>

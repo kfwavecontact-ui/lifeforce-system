@@ -142,11 +142,11 @@
                                 id="challengeCheckAll">
                         </th>
 
-                        <th>↕</th><th>↕</th>
+                        <th>↕</th>
                         <th>ID</th>
+                        <th>チャレンジ名</th>
                         <th>画像</th>
                         <th>カテゴリ</th>
-                        <th>チャレンジ名</th>
                         <th>難易度</th>
                         <th>合格条件</th>
                         <th>バッジ報酬</th>
