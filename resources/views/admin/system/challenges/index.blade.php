@@ -11,6 +11,9 @@
      data-duplicate-url-base="{{ url('/admin/system/challenges') }}"
      data-deactivate-url-base="{{ url('/admin/system/challenges') }}"
      data-delete-url-base="{{ url('/admin/system/challenges') }}"
+     data-bulk-deactivate-url="{{ route('admin.system.challenges.bulk-deactivate') }}"
+     data-bulk-delete-url="{{ route('admin.system.challenges.bulk-destroy') }}"
+
      data-csrf-token="{{ csrf_token() }}">
 
     <div class="master-page-header">
@@ -133,7 +136,13 @@
             <table class="master-table challenge-table">
                 <thead>
                     <tr>
-                        <th>↕</th>
+                        <th>
+                            <input
+                                type="checkbox"
+                                id="challengeCheckAll">
+                        </th>
+
+                        <th>↕</th><th>↕</th>
                         <th>ID</th>
                         <th>画像</th>
                         <th>カテゴリ</th>
@@ -144,6 +153,18 @@
                         <th>称号報酬</th>
                         <th>Pt報酬</th>
                         <th>有効</th>
+                        <button
+                            type="button"
+                            class="master-secondary-button"
+                            id="challengeBulkDeactivateButton">
+                            選択を無効化
+                        </button>
+                        <button
+                            type="button"
+                            class="master-secondary-button"
+                            id="challengeBulkDeleteButton">
+                            選択を削除
+                        </button>
                         <th>操作</th>
                     </tr>
                 </thead>

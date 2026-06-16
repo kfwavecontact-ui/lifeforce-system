@@ -134,10 +134,16 @@ class ChallengeManagementController extends Controller
             'max_score.integer' => '満点・問題数は数値で入力してください。',
             'passing_score.integer' => '合格点は数値で入力してください。',
             'icon_file.image' => 'アイコン画像は画像ファイルを選択してください。',
-            'icon_file.mimes' => 'アイコン画像はPNG形式で選択してください。',
-            'icon_file.max' => 'アイコン画像は2MB以内で選択してください。',
-            'icon_file.uploaded' => 'アイコン画像のアップロードに失敗しました。画像サイズを小さくしてください。',
+            'icon_file.mimes' => 'アイコン画像は JPG・JPEG・PNG・WEBP を選択してください。',
             'icon_file.max' => 'アイコン画像は5MB以内で選択してください。',
+            'icon_file.uploaded' => 'アイコン画像のアップロードに失敗しました。画像サイズを小さくしてください。',
+            'code.unique' => 'このコードはすでに使用されています。',
+            'code.required' => 'コードを入力してください。',
+            'name.required' => 'チャレンジ名を入力してください。',
+            'difficulty.required' => '難易度を選択してください。',
+            'challenge_category_id.required' => 'カテゴリを選択してください。',
+            'challenge_type.required' => '合格判定タイプを選択してください。',
+
         ]);
 
         DB::transaction(function () use ($validated) {
@@ -207,10 +213,17 @@ class ChallengeManagementController extends Controller
             'max_score.integer' => '満点・問題数は数値で入力してください。',
             'passing_score.integer' => '合格点は数値で入力してください。',
             'icon_file.image' => 'アイコン画像は画像ファイルを選択してください。',
-            'icon_file.mimes' => 'アイコン画像はPNG形式で選択してください。',
-            'icon_file.max' => 'アイコン画像は2MB以内で選択してください。',
-            'icon_file.uploaded' => 'アイコン画像のアップロードに失敗しました。画像サイズを小さくしてください。',
+            'icon_file.mimes' => 'アイコン画像は JPG・JPEG・PNG・WEBP を選択してください。',
             'icon_file.max' => 'アイコン画像は5MB以内で選択してください。',
+            'icon_file.uploaded' => 'アイコン画像のアップロードに失敗しました。画像サイズを小さくしてください。',
+            'code.unique' => 'このコードはすでに使用されています。',
+            'code.required' => 'コードを入力してください。',
+            'name.required' => 'チャレンジ名を入力してください。',
+            'difficulty.required' => '難易度を選択してください。',
+            'challenge_category_id.required' => 'カテゴリを選択してください。',
+            'challenge_type.required' => '合格判定タイプを選択してください。',
+
+
         ]);
 
         DB::transaction(function () use ($validated, $challenge) {
@@ -280,7 +293,20 @@ class ChallengeManagementController extends Controller
             $newChallenge->code = $challenge->code . '_copy_' . now()->format('His');
             $newChallenge->name = $challenge->name . '（コピー）';
             $newChallenge->sort_order = (Challenge::max('sort_order') ?? 0) + 1;
+            $newChallenge->icon_path = null;
             $newChallenge->save();
+
+            if ($challenge->icon_path) {
+                $newIconPath = 'challenges/' . $newChallenge->id . '/challenges.png';
+
+                if (Storage::disk('s3')->exists($challenge->icon_path)) {
+                    Storage::disk('s3')->copy($challenge->icon_path, $newIconPath);
+
+                    $newChallenge->update([
+                        'icon_path' => $newIconPath,
+                    ]);
+                }
+            }
 
             foreach ($challenge->rewards as $reward) {
                 $newReward = $reward->replicate();
@@ -289,7 +315,9 @@ class ChallengeManagementController extends Controller
             }
         });
 
-        return response()->json(['message' => '複製しました。']);
+        return response()->json([
+            'message' => '複製しました。',
+        ]);
     }
 
     public function deactivate(Challenge $challenge)
@@ -303,8 +331,70 @@ class ChallengeManagementController extends Controller
 
     public function destroy(Challenge $challenge)
     {
+        if ($challenge->reservations()->exists() || $challenge->logs()->exists()) {
+            return response()->json([
+                'message' => '予約または履歴に紐づいているため削除できません。',
+            ], 422);
+        }
+
+        Storage::disk('s3')->deleteDirectory(
+            'challenges/' . $challenge->id
+        );
+
         $challenge->delete();
 
-        return response()->json(['message' => '削除しました。']);
+        return response()->json([
+            'message' => '削除しました。',
+        ]);
+    }
+
+    public function bulkDeactivate(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['required', 'integer', 'exists:challenges,id'],
+        ]);
+
+        Challenge::whereIn('id', $validated['ids'])->update([
+            'is_active' => false,
+        ]);
+
+        return response()->json([
+            'message' => '一括無効化しました。',
+        ]);
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['required', 'integer', 'exists:challenges,id'],
+        ]);
+
+        $challenges = Challenge::with(['reservations', 'logs'])
+            ->whereIn('id', $validated['ids'])
+            ->get();
+
+        foreach ($challenges as $challenge) {
+            if ($challenge->reservations->isNotEmpty() || $challenge->logs->isNotEmpty()) {
+                return response()->json([
+                    'message' => '予約または履歴に紐づいているチャレンジがあるため削除できません。',
+                ], 422);
+            }
+        }
+
+        DB::transaction(function () use ($challenges) {
+            foreach ($challenges as $challenge) {
+                Storage::disk('s3')->deleteDirectory(
+                    'challenges/' . $challenge->id
+                );
+
+                $challenge->delete();
+            }
+        });
+
+        return response()->json([
+            'message' => '一括削除しました。',
+        ]);
     }
 }

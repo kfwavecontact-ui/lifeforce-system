@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const page = document.querySelector('.challenge-management-page');
     if (!page) return;
 
-    const csrfToken = page.dataset.csrfToken;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || page.dataset.csrfToken;
     const listUrl = page.dataset.listUrl;
     const storeUrl = page.dataset.storeUrl;
     const updateUrlBase = page.dataset.updateUrlBase;
@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const duplicateUrlBase = page.dataset.duplicateUrlBase;
     const deactivateUrlBase = page.dataset.deactivateUrlBase;
     const deleteUrlBase = page.dataset.deleteUrlBase;
+    const bulkDeactivateUrl = page.dataset.bulkDeactivateUrl;
+    const bulkDeleteUrl = page.dataset.bulkDeleteUrl;
+    const bulkDeleteButton = document.getElementById('challengeBulkDeleteButton');
 
     const tbody = document.getElementById('challengeTableBody');
 
@@ -30,6 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalClose = document.getElementById('challengeModalClose');
     const modalCancel = document.getElementById('challengeModalCancel');
     const modalSave = document.getElementById('challengeModalSave');
+    const checkAll = document.getElementById('challengeCheckAll');
+    const bulkDeactivateButton = document.getElementById('challengeBulkDeactivateButton');
 
     let rows = [];
     let editingId = null;
@@ -37,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function request(url, options = {}) {
         const response = await fetch(url, {
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
@@ -66,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const response = await fetch(url, {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'Accept': 'application/json',
                 'X-CSRF-TOKEN': csrfToken,
@@ -127,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderTable() {
         if (!rows.length) {
-            tbody.innerHTML = '<tr><td colspan="12">データがありません</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="13">データがありません</td></tr>';
             return;
         }
 
@@ -136,6 +143,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return `
                 <tr data-id="${row.id}">
+                    <td>
+                        <input
+                            type="checkbox"
+                            class="challenge-row-check"
+                            value="${row.id}">
+                    </td>
                     <td class="master-drag-handle">⋮⋮</td>
                     <td>${row.id}</td>
                     <td>${row.icon_path ? `<img src="${row.icon_path}" class="challenge-icon">` : '-'}</td>
@@ -284,6 +297,59 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function getSelectedChallengeIds() {
+        return Array.from(document.querySelectorAll('.challenge-row-check:checked'))
+            .map(checkbox => Number(checkbox.value));
+    }
+
+    async function bulkDeactivateChallenges() {
+        const ids = getSelectedChallengeIds();
+
+        if (!ids.length) {
+            alert('無効化するチャレンジを選択してください。');
+            return;
+        }
+
+        if (!confirm('選択したチャレンジを一括無効化しますか？')) {
+            return;
+        }
+
+        await request(bulkDeactivateUrl, {
+            method: 'POST',
+            body: JSON.stringify({ ids }),
+        });
+
+        if (checkAll) {
+            checkAll.checked = false;
+        }
+
+        await loadChallenges();
+    }
+
+    async function bulkDeleteChallenges() {
+        const ids = getSelectedChallengeIds();
+
+        if (!ids.length) {
+            alert('削除するチャレンジを選択してください。');
+            return;
+        }
+
+        if (!confirm('選択したチャレンジを完全に削除しますか？')) {
+            return;
+        }
+
+        await request(bulkDeleteUrl, {
+            method: 'POST',
+            body: JSON.stringify({ ids }),
+        });
+
+        if (checkAll) {
+            checkAll.checked = false;
+        }
+
+        await loadChallenges();
+    }
+
     function closeModal() {
         modal.classList.remove('show');
     }
@@ -413,6 +479,14 @@ document.addEventListener('DOMContentLoaded', () => {
     modalClose.addEventListener('click', closeModal);
     modalCancel.addEventListener('click', closeModal);
     modalSave.addEventListener('click', saveChallenge);
+    checkAll?.addEventListener('change', () => {
+        document.querySelectorAll('.challenge-row-check').forEach(checkbox => {
+            checkbox.checked = checkAll.checked;
+        });
+    });
+
+    bulkDeactivateButton?.addEventListener('click', bulkDeactivateChallenges);
+    bulkDeleteButton?.addEventListener('click', bulkDeleteChallenges);
 
     searchInput.addEventListener('input', loadChallenges);
     difficultyFilter.addEventListener('change', loadChallenges);

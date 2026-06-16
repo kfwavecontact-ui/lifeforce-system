@@ -112,17 +112,11 @@ Route::prefix('admin')
         Route::post('/system/courses/reorder', [CourseManagementController::class, 'reorder'])
             ->name('system.courses.reorder');
         
-        Route::get('/system/challenges', [ChallengeManagementController::class, 'index'])
-            ->name('system.challenges');
-
         Route::get('/system/challenges/list', [ChallengeManagementController::class, 'list'])
             ->name('system.challenges.list');
         
         Route::post('/system/challenges', [ChallengeManagementController::class, 'store'])
             ->name('system.challenges.store');
-
-        Route::put('/system/challenges/{challenge}', [ChallengeManagementController::class, 'update'])
-            ->name('system.challenges.update');
 
         Route::post('/system/challenges/reorder', [ChallengeManagementController::class, 'reorder'])
             ->name('system.challenges.reorder');
@@ -136,8 +130,17 @@ Route::prefix('admin')
         Route::delete('/system/challenges/{challenge}',[ChallengeManagementController::class, 'destroy'])
             ->name('system.challenges.destroy');
 
+        Route::post('/system/challenges/bulk-deactivate',[ChallengeManagementController::class, 'bulkDeactivate'])
+            ->name('system.challenges.bulk-deactivate');
 
+        Route::post('/system/challenges/bulk-destroy',[ChallengeManagementController::class, 'bulkDestroy'])
+            ->name('system.challenges.bulk-destroy');
 
+        Route::put('/system/challenges/{challenge}', [ChallengeManagementController::class, 'update'])
+            ->name('system.challenges.update');            
+
+        Route::get('/system/challenges', [ChallengeManagementController::class, 'index'])
+            ->name('system.challenges');
     });
 
 Route::get('/login', function () {
