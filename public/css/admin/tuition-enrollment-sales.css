@@ -1,0 +1,414 @@
+.tuition-sales-page{display:flex;flex-direction:column;gap:20px}
+.tuition-search-area{padding:0}
+.tuition-search-row{display:flex;align-items:flex-end;gap:10px;margin-bottom:10px}
+.tuition-search-row:last-child{margin-bottom:0}
+.tuition-search-row label{display:flex;flex-direction:column;gap:4px;width:145px;font-size:11px;font-weight:700;color:#475569}
+.tuition-search-row input,.tuition-search-row select{width:100%;height:34px;padding:0 10px;border:1px solid #dbe2ea;border-radius:8px;font-size:12px;background:#fff;box-sizing:border-box}
+.tuition-search-school{width:220px!important}
+.tuition-search-keyword{width:360px!important}
+.tuition-search-actions{display:flex;align-items:flex-end;gap:8px;margin-left:auto;flex-shrink:0}
+.tuition-search-button,.tuition-clear-button,.tuition-export-button,.tuition-column-setting-button{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 16px;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
+.tuition-search-button{border:none;background:#2563eb;color:#fff;cursor:pointer}
+.tuition-clear-button{border:1px solid #dbe2ea;background:#fff;color:#334155}
+.tuition-export-button{border:1px solid #16a34a;background:#dcfce7;color:#15803d}
+.tuition-column-setting-button{gap:6px;border:none;background:#f1f5f9;color:#334155;cursor:pointer}
+.tuition-table-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden}
+.tuition-table-scroll{overflow:auto;max-height:700px}
+.tuition-sales-table{width:100%;min-width:2100px;border-collapse:collapse}
+.tuition-sales-table th{position:sticky;top:0;z-index:20;background:#f8fafc;padding:12px;font-size:12px;font-weight:700;border-bottom:1px solid #e5e7eb;white-space:nowrap}
+.tuition-sales-table td{padding:12px;border-bottom:1px solid #f1f5f9;font-size:13px;vertical-align:middle;white-space:nowrap}
+.tuition-sales-table tbody tr:hover{background:#f8fafc}
+.tuition-check-column{width:44px;min-width:44px;text-align:center}
+.tuition-sales-table th:nth-child(1),.tuition-sales-table td:nth-child(1){position:sticky;left:0;z-index:25;background:#fff}
+.tuition-sales-table th:nth-child(1){z-index:35;background:#f8fafc}
+.tuition-sales-table th:nth-child(2),.tuition-sales-table td:nth-child(2){position:sticky;left:44px;z-index:24;background:#fff;box-shadow:4px 0 8px rgba(15,23,42,.05)}
+.tuition-sales-table th:nth-child(2){z-index:34;background:#f8fafc}
+.tuition-filter-header{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.tuition-filter-button{display:inline-flex;align-items:center;gap:3px;border:none;background:none;cursor:pointer;color:#64748b;font-size:11px}
+.tuition-filter-button:hover,.tuition-filter-button.is-filtered{color:#2563eb;font-weight:700}
+.tuition-filter-count{align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:999px;background:#2563eb;color:#fff;font-size:10px;font-weight:700;margin-left:2px}
+.tuition-sort-link{display:inline-flex;align-items:center;gap:4px;color:inherit;text-decoration:none;font-weight:700}
+.tuition-sort-link:hover{color:#2563eb}
+.tuition-sort-link span{font-size:11px;opacity:.8}
+.tuition-amount-cell{text-align:right;font-weight:600}
+.tuition-discount-amount{color:#dc2626}
+.tuition-final-amount{font-size:14px;color:#1e293b}
+.tuition-discount-cell{color:#64748b}
+.tuition-status-badge{display:inline-flex;align-items:center;justify-content:center;min-width:64px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.tuition-status-badge.paid{background:#dcfce7;color:#15803d}
+.tuition-status-badge.unpaid{background:#ffedd5;color:#ea580c}
+.tuition-status-badge.cancelled{background:#e5e7eb;color:#475569}
+.tuition-detail-button{border:none;border-radius:8px;padding:6px 10px;background:#eef2ff;color:#2563eb;font-size:12px;font-weight:700;cursor:pointer}
+.tuition-detail-button:hover{background:#dbeafe}
+.tuition-pagination{padding:16px;display:flex;justify-content:flex-end}
+.tuition-chart-card{padding:20px;background:#fff;border:1px solid #e5e7eb;border-radius:16px}
+.tuition-chart-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+.tuition-chart-header h3{margin:0;font-size:18px}
+.tuition-chart-header p{margin:4px 0 0;color:#64748b;font-size:13px}
+.tuition-chart-actions,.tuition-chart-periods{display:flex;align-items:center;gap:8px}
+.tuition-chart-periods a{padding:7px 14px;border:1px solid #dbe2ea;border-radius:999px;background:#fff;color:#475569;text-decoration:none;font-size:13px}
+.tuition-chart-periods a:hover{background:#f8fafc}
+.tuition-chart-periods a.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.tuition-chart-collapse-button{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid #dbe2ea;border-radius:999px;background:#fff;color:#475569;cursor:pointer}
+.tuition-chart-collapse-button:hover{background:#f8fafc;color:#2563eb}
+.tuition-chart-wrapper,.tuition-composition-body{overflow:hidden;transition:height .25s ease}
+.tuition-chart-wrapper{position:relative;height:500px}
+.tuition-chart-wrapper.is-collapsed,.tuition-composition-body.is-collapsed{height:0!important}
+.tuition-composition-body{height:360px}
+.tuition-composition-chart-wrapper{position:relative;height:360px}
+#tuitionSalesChart,#tuitionCompositionChart{width:100%!important;height:100%!important}
+.tuition-filter-panel{position:absolute;z-index:9999;width:260px;max-height:360px;background:#fff;border:1px solid #dbe2ea;border-radius:12px;box-shadow:0 12px 30px rgba(15,23,42,.18);padding:10px;box-sizing:border-box}
+.tuition-filter-panel-title{font-size:12px;font-weight:700;color:#334155;margin-bottom:8px}
+.tuition-filter-search{width:100%;height:34px;border:1px solid #dbe2ea;border-radius:8px;padding:0 10px;font-size:13px;margin-bottom:8px;box-sizing:border-box}
+.tuition-filter-panel-actions{display:flex;justify-content:space-between;gap:8px;margin-bottom:8px}
+.tuition-filter-panel-actions button,.tuition-filter-panel-footer button{border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;background:#f1f5f9;color:#334155}
+.tuition-filter-options{max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:6px}
+.tuition-filter-options label{display:flex;align-items:center;gap:8px;font-size:13px;color:#334155}
+.tuition-filter-option-name{flex:1}
+.tuition-filter-option-count{min-width:28px;text-align:right;font-size:11px;color:#94a3b8}
+.tuition-filter-panel-footer{display:flex;justify-content:flex-end;margin-top:10px;padding-top:8px;border-top:1px solid #f1f5f9}
+.tuition-filter-panel-footer button{background:#2563eb;color:#fff}
+.tuition-detail-modal,.tuition-column-modal{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;background:rgba(15,23,42,.45)}
+.tuition-detail-modal.is-open,.tuition-column-modal.is-open{display:flex}
+.tuition-detail-content{width:min(920px,calc(100vw - 40px));max-height:calc(100vh - 60px);overflow:auto;background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(15,23,42,.25)}
+.tuition-detail-header,.tuition-column-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #e5e7eb}
+.tuition-detail-header h3,.tuition-column-header h3{margin:0;font-size:18px}
+#tuitionDetailClose,#tuitionColumnClose{border:none;background:#f1f5f9;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:18px}
+#tuitionDetailBody{padding:20px}
+.tuition-detail-section{margin-bottom:22px}
+.tuition-detail-section h4{margin:0 0 10px;font-size:14px;color:#334155}
+.tuition-detail-grid{display:grid;grid-template-columns:repeat(2,1fr);border:1px solid #e5e7eb;border-radius:12px;overflow:hidden}
+.tuition-detail-row{display:grid;grid-template-columns:140px 1fr;border-bottom:1px solid #f1f5f9;min-height:42px}
+.tuition-detail-row span{background:#f8fafc;padding:10px 12px;font-size:12px;color:#64748b;font-weight:700}
+.tuition-detail-row strong{padding:10px 12px;font-size:13px;color:#1e293b;font-weight:600;word-break:break-all}
+.tuition-column-content{width:360px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(15,23,42,.25)}
+.tuition-column-list{padding:18px;display:flex;flex-direction:column;gap:12px}
+.tuition-column-list label{display:flex;align-items:center;gap:10px;font-size:14px;color:#334155;cursor:pointer}
+
+
+.composition-stat-card i{
+    grid-row:1 / 3;
+    width:48px;
+    height:48px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#3b82f6;
+    font-size:28px;
+}
+
+.composition-stat-card span{
+    color:#64748b;
+    font-size:13px;
+    font-weight:700;
+}
+
+.composition-stat-card strong{
+    color:#0f172a;
+    font-size:22px;
+    font-weight:800;
+}
+
+.tuition-edit-button,
+.tuition-save-button,
+.tuition-cancel-button{
+    border:none;
+    border-radius:8px;
+    padding:6px 10px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.tuition-edit-button{
+    background:#f1f5f9;
+    color:#334155;
+}
+
+.tuition-save-button{
+    background:#2563eb;
+    color:#fff;
+}
+
+.tuition-cancel-button{
+    background:#fee2e2;
+    color:#dc2626;
+}
+
+.tuition-edit-input{
+    width:120px;
+    height:30px;
+    border:1px solid #93c5fd;
+    border-radius:8px;
+    padding:0 8px;
+    font-size:12px;
+    background:#fff;
+}
+
+tr.is-editing{
+    background:#eff6ff !important;
+}
+
+.tuition-create-card{
+    padding:20px;
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    border-radius:16px;
+}
+
+.tuition-create-header{
+    margin-bottom:16px;
+}
+
+.tuition-create-header h3{
+    margin:0;
+    font-size:18px;
+    font-weight:800;
+    color:#1e293b;
+}
+
+.tuition-create-header p{
+    margin:4px 0 0;
+    color:#64748b;
+    font-size:13px;
+}
+
+.tuition-create-grid{
+    display:grid;
+    grid-template-columns:1.5fr 1fr 1fr 1fr 1fr 1fr;
+    gap:12px;
+    align-items:end;
+}
+
+.tuition-create-grid label{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    font-size:12px;
+    font-weight:700;
+    color:#475569;
+}
+
+.tuition-create-grid input,
+.tuition-create-grid select{
+    height:36px;
+    padding:0 10px;
+    border:1px solid #dbe2ea;
+    border-radius:8px;
+    background:#fff;
+    font-size:13px;
+}
+
+.tuition-create-memo{
+    grid-column:span 5;
+}
+
+.tuition-create-actions{
+    display:flex;
+    justify-content:flex-end;
+}
+
+.tuition-create-actions button{
+    height:38px;
+    padding:0 20px;
+    border:none;
+    border-radius:10px;
+    background:#2563eb;
+    color:#ffffff;
+    font-size:13px;
+    font-weight:800;
+    cursor:pointer;
+}
+
+/* ===== 生徒Lookup ===== */
+
+.tuition-student-lookup{
+    position:relative;
+}
+
+.tuition-student-lookup-results{
+    position:absolute;
+    top:100%;
+    left:0;
+    right:0;
+    margin-top:6px;
+    background:#fff;
+    border:1px solid #dbe2ea;
+    border-radius:10px;
+    box-shadow:0 8px 24px rgba(15,23,42,.12);
+    max-height:320px;
+    overflow-y:auto;
+    display:none;
+    z-index:1000;
+}
+
+.tuition-student-lookup-results.is-open{
+    display:block;
+}
+
+.tuition-student-lookup-item{
+    width:100%;
+    border:none;
+    background:#fff;
+    text-align:left;
+    padding:10px 14px;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    transition:.15s;
+}
+
+.tuition-student-lookup-item:hover{
+    background:#eff6ff;
+}
+
+.tuition-student-lookup-item strong{
+    font-size:13px;
+    color:#0f172a;
+    font-weight:700;
+}
+
+.tuition-student-lookup-item span{
+    font-size:11px;
+    color:#64748b;
+}
+
+.tuition-student-lookup-empty{
+    padding:14px;
+    text-align:center;
+    color:#94a3b8;
+    font-size:12px;
+}
+
+.tuition-create-grid-compact{
+    display:grid;
+    grid-template-columns:1.35fr .9fr .9fr .9fr .9fr .9fr;
+    gap:14px;
+    align-items:end;
+}
+
+.tuition-create-grid-compact .tuition-create-note{
+    grid-column:span 2;
+}
+
+.tuition-create-grid-compact .tuition-create-actions{
+    grid-column:6 / 7;
+    grid-row:2 / 3;
+    align-self:end;
+    justify-self:end;
+}
+
+.tuition-create-actions button{
+    height:38px;
+    min-width:86px;
+}
+
+.tuition-create-row{
+    display:grid;
+    gap:14px;
+    align-items:end;
+}
+
+.tuition-create-row-main{
+    grid-template-columns:1.45fr 1fr 1fr 1fr 1fr 1fr;
+}
+
+.tuition-create-row-sub{
+    margin-top:12px;
+    grid-template-columns:1fr 1fr 1.85fr 1.85fr 90px;
+}
+
+.tuition-create-row label{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    font-size:12px;
+    font-weight:700;
+    color:#475569;
+}
+
+.tuition-create-row input,
+.tuition-create-row select{
+    height:36px;
+    padding:0 10px;
+    border:1px solid #dbe2ea;
+    border-radius:8px;
+    background:#fff;
+    font-size:13px;
+}
+
+.tuition-create-row-sub .tuition-create-actions{
+    display:flex;
+    justify-content:flex-end;
+    align-items:end;
+}
+
+.tuition-create-row-sub .tuition-create-actions button{
+    width:90px;
+    height:38px;
+}
+
+/* ===========================
+   ページネーション
+=========================== */
+
+.tuition-pagination{
+    padding:12px 16px;
+    display:flex;
+    justify-content:flex-end;
+}
+
+.tuition-pagination nav{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:14px;
+}
+
+.tuition-pagination nav > div:first-child{
+    display:none;
+}
+
+.tuition-pagination nav > div:last-child{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.tuition-pagination p{
+    margin:0;
+    font-size:12px;
+    color:#64748b;
+}
+
+.tuition-pagination a,
+.tuition-pagination span{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:24px;
+    height:24px;
+    padding:0 6px;
+    border-radius:6px;
+    font-size:12px;
+    line-height:1;
+    text-decoration:none;
+}
+
+.tuition-pagination a{
+    color:#2563eb;
+}
+
+.tuition-pagination span[aria-current="page"],
+.tuition-pagination span[aria-current="true"]{
+    background:#2563eb;
+    color:#fff;
+    font-weight:700;
+}
+
+.tuition-pagination svg{
+    width:12px !important;
+    height:12px !important;
+}

@@ -556,3 +556,10 @@
 .badge-requirement-empty{
     color:#94a3b8;
 }
+
+.badge-table th:nth-child(11),
+.badge-table td:nth-child(11),
+.badge-table th:nth-child(12),
+.badge-table td:nth-child(12){
+    text-align:right;
+}

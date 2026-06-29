@@ -141,6 +141,7 @@
                         <th class="badge-limited-column">一般/限定</th>
                         <th>獲得条件</th>
                         <th>Pt報酬</th>
+                        <th>獲得者数</th>
                         <th>有効</th>
                         <th>操作</th>
                     </tr>

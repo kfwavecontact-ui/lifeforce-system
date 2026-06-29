@@ -1,0 +1,993 @@
+/* ==========================================================
+   Shop Sales Page
+========================================================== */
+
+.shop-sales-page {
+    padding: 0;
+}
+
+/* ==========================================================
+   新規ショップ売上登録
+========================================================== */
+
+.shop-sales-page .shop-sale-create-card {
+    width: 100%;
+    max-width: none;
+    margin: 0 0 22px;
+    padding: 16px 18px;
+    background: #ffffff;
+    border: 1px solid #dbe2ea;
+    border-radius: 14px;
+    box-shadow: none;
+}
+
+.shop-sales-page .shop-sale-create-header {
+    margin-bottom: 12px;
+}
+
+.shop-sales-page .shop-sale-create-header h3 {
+    margin: 0 0 6px;
+    font-size: 17px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.shop-sales-page .shop-sale-create-header p {
+    margin: 0;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.shop-sales-page .shop-sale-form-row {
+    display: grid;
+    gap: 12px;
+    align-items: end;
+}
+
+.shop-sales-page .shop-sale-form-row-main {
+    grid-template-columns: 1.35fr 0.95fr 0.95fr 0.95fr 0.95fr 1.35fr;
+    margin-bottom: 10px;
+}
+
+.shop-sales-page .shop-sale-form-row-sub {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    align-items: start;
+    margin-bottom: 10px;
+}
+
+.shop-sales-page .shop-sale-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.shop-sales-page .shop-sale-field span {
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+    white-space: nowrap;
+}
+
+.shop-sales-page .shop-sale-field input,
+.shop-sales-page .shop-sale-field select {
+    width: 100%;
+    height: 36px;
+    box-sizing: border-box;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #ffffff;
+    font-size: 13px;
+}
+
+/* ==========================================================
+   商品明細
+========================================================== */
+
+.shop-sales-page .shop-sale-inline-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: fit-content;
+}
+
+.shop-sales-page .shop-sale-inline-items .shop-sale-items-row {
+    display: grid;
+    grid-template-columns: 300px 110px 110px 110px 110px 60px;
+    gap: 12px;
+    align-items: end;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+.shop-sales-page .shop-sale-inline-items .shop-sale-items-row + .shop-sale-items-row {
+    padding-top: 8px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.shop-sales-page .shop-product-lookup {
+    position: relative;
+    width: 300px;
+}
+
+.shop-sales-page .shop-product-lookup input {
+    width: 100%;
+}
+
+.shop-sales-page .shop-display-box {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 100%;
+    height: 36px;
+    box-sizing: border-box;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #f8fafc;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.shop-sales-page .shop-remove-item-button {
+    width: 60px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+/* ==========================================================
+   商品追加・合計・登録
+========================================================== */
+
+.shop-sales-page .shop-sale-side-actions {
+    display: grid;
+    grid-template-columns: 112px 210px 150px;
+    gap: 10px;
+    align-items: start;
+    justify-self: start;
+    padding-top: 23px;
+}
+
+.shop-sales-page .shop-add-inline-button {
+    width: 112px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid #93c5fd;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.shop-sales-page .shop-sale-total-card {
+    width: 210px;
+    min-height: 66px;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+}
+
+.shop-sales-page .shop-sale-total-card div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 18px;
+    margin-bottom: 2px;
+    color: #334155;
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.shop-sales-page .shop-sale-grand-total {
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid #d6dde8;
+}
+
+.shop-sales-page .shop-sale-grand-total strong {
+    color: #0369a1;
+    font-size: 18px;
+}
+
+.shop-sales-page .shop-sale-submit-button {
+    width: 150px;
+    height: 38px;
+    margin: 0;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+/* ==========================================================
+   検索候補
+========================================================== */
+
+.shop-sales-page .shop-product-lookup-results,
+.shop-sales-page .tuition-student-lookup-results {
+    position: absolute;
+    z-index: 1000;
+    display: none;
+    max-height: 260px;
+    overflow: auto;
+    background: #ffffff;
+    border: 1px solid #d7dde8;
+    border-radius: 10px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+}
+
+.shop-sales-page .shop-product-lookup-results {
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+}
+
+.shop-sales-page .shop-product-lookup-results.is-open,
+.shop-sales-page .tuition-student-lookup-results.is-open {
+    display: block;
+}
+
+.shop-sales-page .tuition-student-lookup-item {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    border: none;
+    border-bottom: 1px solid #eef2f7;
+    background: #ffffff;
+    text-align: left;
+    cursor: pointer;
+}
+
+.shop-sales-page .tuition-student-lookup-item:hover {
+    background: #f3f8ff;
+}
+
+.shop-sales-page .tuition-student-lookup-item strong {
+    display: block;
+    color: #0f172a;
+    font-size: 13px;
+}
+
+.shop-sales-page .tuition-student-lookup-item span {
+    display: block;
+    margin-top: 3px;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.shop-sales-page .tuition-student-lookup-empty {
+    padding: 12px 14px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* ==========================================================
+   検索エリア
+========================================================== */
+
+.shop-sales-page .tuition-search-area {
+    margin: 0 0 14px;
+}
+
+.shop-sales-page .tuition-search-row{
+    display:flex;
+    flex-wrap:nowrap;
+    gap:10px;
+    align-items:flex-end;
+}
+
+.shop-sales-page .tuition-search-row label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 130px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.shop-sales-page .tuition-search-row label:has(select[name="school_id"]) {
+    min-width: 180px;
+}
+
+.shop-sales-page .tuition-search-keyword{
+    flex:1;
+    min-width:320px;
+}
+
+.shop-sales-page .tuition-search-keyword input {
+    width: 100%;
+}
+
+.shop-sales-page .tuition-search-row input,
+.shop-sales-page .tuition-search-row select {
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #ffffff;
+    font-size: 13px;
+}
+
+.shop-sales-page .tuition-search-actions{
+    margin-left:auto;
+    display:flex;
+    gap:8px;
+    flex-shrink:0;
+}
+
+.shop-sales-page .tuition-search-button,
+.shop-sales-page .tuition-clear-button,
+.shop-sales-page .tuition-export-button,
+.shop-sales-page .tuition-column-setting-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.shop-sales-page .tuition-search-button {
+    border: none;
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.shop-sales-page .tuition-clear-button {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+}
+
+.shop-sales-page .tuition-export-button {
+    border: 1px solid #22c55e;
+    background: #ecfdf5;
+    color: #15803d;
+}
+
+.shop-sales-page .tuition-column-setting-button {
+    border: none;
+    background: transparent;
+    color: #334155;
+}
+
+/* ==========================================================
+   一覧テーブル
+========================================================== */
+
+.shop-sales-page .tuition-table-card {
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #dbe2ea;
+    border-radius: 12px;
+}
+
+.shop-sales-page .tuition-table-scroll {
+    overflow: auto;
+}
+
+.shop-sales-page .tuition-sales-table {
+    width: 100%;
+    min-width: 1580px;
+    border-collapse: collapse;
+    color: #0f172a;
+    font-size: 12px;
+}
+
+.shop-sales-page .tuition-sales-table th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    height: 38px;
+    padding: 8px 10px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 800;
+    text-align: left;
+}
+
+.shop-sales-page .tuition-sales-table td {
+    height: 42px;
+    padding: 8px 10px;
+    border-bottom: 1px solid #edf2f7;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.shop-sales-page .tuition-sales-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.shop-sales-page .tuition-sort-link {
+    color: #0f172a;
+    text-decoration: none;
+    font-weight: 800;
+}
+
+.shop-sales-page .tuition-filter-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.shop-sales-page .tuition-filter-button {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.shop-sales-page .tuition-check-column {
+    width: 34px;
+    text-align: center;
+}
+
+.shop-sales-page .tuition-amount-cell {
+    text-align: right;
+    font-weight: 800;
+}
+
+.shop-sales-page .tuition-discount-amount {
+    color: #dc2626;
+}
+
+.shop-sales-page .tuition-final-amount {
+    color: #0f172a;
+}
+
+.shop-sales-page .tuition-pagination {
+    padding: 12px;
+}
+
+/* ==========================================================
+   ステータス・操作ボタン
+========================================================== */
+
+.shop-sales-page .tuition-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 54px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.shop-sales-page .tuition-status-badge.paid {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.shop-sales-page .tuition-status-badge.unpaid {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.shop-sales-page .tuition-status-badge.cancelled {
+    background: #eef2f7;
+    color: #334155;
+}
+
+.shop-sales-page .tuition-action-cell {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.shop-sales-page .tuition-detail-button,
+.shop-sales-page .tuition-edit-button,
+.shop-sales-page .tuition-save-button,
+.shop-sales-page .tuition-cancel-button {
+    height: 28px;
+    padding: 0 9px;
+    border: none;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.shop-sales-page .tuition-detail-button {
+    background: #e0ecff;
+    color: #1d4ed8;
+}
+
+.shop-sales-page .tuition-edit-button {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.shop-sales-page .tuition-save-button {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.shop-sales-page .tuition-cancel-button {
+    background: #eef2f7;
+    color: #334155;
+}
+
+/* ==========================================================
+   編集モード
+========================================================== */
+
+.shop-sales-page .tuition-sales-table tr:has(.tuition-edit-input) {
+    background: #eff6ff;
+}
+
+.shop-sales-page .tuition-sales-table td:has(.tuition-edit-input) {
+    padding: 6px 8px;
+    background: #eff6ff;
+}
+
+.shop-sales-page .tuition-edit-input {
+    width: 100%;
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid #93c5fd;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0f172a;
+    font: inherit;
+    outline: none;
+}
+
+.shop-sales-page .tuition-edit-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.shop-sales-page .tuition-sales-table td:has(.tuition-edit-input) select.tuition-edit-input {
+    min-width: 120px;
+}
+
+.shop-sales-page .tuition-sales-table td:has(.tuition-edit-input) input[type="date"].tuition-edit-input {
+    min-width: 130px;
+}
+
+.shop-sales-page .tuition-sales-table td:has(.tuition-edit-input) input[type="text"].tuition-edit-input {
+    min-width: 110px;
+}
+
+/* ==========================================================
+   モーダル
+========================================================== */
+
+.tuition-column-modal,
+.tuition-detail-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 99990;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.35);
+}
+
+.tuition-column-modal.is-open,
+.tuition-detail-modal.is-open {
+    display: flex;
+}
+
+.tuition-column-content,
+.tuition-detail-content {
+    width: min(720px, calc(100vw - 40px));
+    max-height: calc(100vh - 80px);
+    overflow: auto;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22);
+}
+
+.tuition-column-header,
+.tuition-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 18px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tuition-column-header h3,
+.tuition-detail-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.tuition-column-header button,
+.tuition-detail-header button {
+    border: none;
+    background: transparent;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.tuition-column-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 18px;
+}
+
+#tuitionDetailBody {
+    padding: 18px;
+}
+
+.tuition-detail-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    border: 1px solid #e5e7eb;
+    border-bottom: none;
+}
+
+.tuition-detail-grid dt,
+.tuition-detail-grid dd {
+    margin: 0;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tuition-detail-grid dt {
+    background: #f8fafc;
+    font-weight: 800;
+}
+
+/* ==========================================================
+   ホバー詳細
+========================================================== */
+
+.lf-tooltip {
+    cursor: help;
+}
+
+.lf-floating-tooltip {
+    position: fixed;
+    z-index: 99999;
+    display: none;
+    max-width: 420px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #1e293b;
+    color: #ffffff;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-line;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .18);
+    pointer-events: none;
+}
+
+/* ==========================================================
+   Responsive
+========================================================== */
+
+@media (max-width: 1200px) {
+    .shop-sales-page .shop-sale-form-row-main {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .shop-sales-page .shop-sale-form-row-sub {
+        grid-template-columns: 1fr;
+    }
+
+    .shop-sales-page .shop-sale-inline-items {
+        width: 100%;
+    }
+
+    .shop-sales-page .shop-sale-inline-items .shop-sale-items-row {
+        grid-template-columns: 1fr;
+    }
+
+    .shop-sales-page .shop-product-lookup {
+        width: 100%;
+    }
+
+    .shop-sales-page .shop-sale-side-actions {
+        grid-template-columns: 1fr;
+        padding-top: 0;
+    }
+
+    .shop-sales-page .shop-add-inline-button,
+    .shop-sales-page .shop-remove-item-button,
+    .shop-sales-page .shop-sale-total-card,
+    .shop-sales-page .shop-sale-submit-button {
+        width: 100%;
+    }
+
+    .shop-sales-page .tuition-search-keyword {
+        flex: 1 1 100%;
+        max-width: none;
+    }
+}
+
+.shop-sales-page .shop-chart-card {
+    margin-top: 14px;
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid #dbe2ea;
+    border-radius: 14px;
+}
+
+.shop-sales-page .shop-chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 14px;
+}
+
+.shop-sales-page .shop-chart-box {
+    padding: 16px;
+    border: 1px solid #dbe2ea;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.shop-sales-page .shop-chart-box h4 {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.shop-sales-page .shop-chart-box canvas {
+    width: 100% !important;
+    height: 300px !important;
+}
+
+@media (max-width: 1200px) {
+    .shop-sales-page .shop-chart-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tuition-chart-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:18px;
+}
+
+.tuition-chart-toolbar{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.tuition-chart-periods{
+    display:flex;
+    gap:8px;
+}
+
+.tuition-chart-periods a{
+    padding:8px 16px;
+    border-radius:999px;
+    border:1px solid #dbe2ea;
+    background:#fff;
+    color:#475569;
+    text-decoration:none;
+    font-size:13px;
+    font-weight:700;
+}
+
+.tuition-chart-periods a.active{
+    background:#2563eb;
+    color:#fff;
+    border-color:#2563eb;
+}
+
+.tuition-chart-toggle{
+    width:38px;
+    height:38px;
+    border-radius:999px;
+    border:1px solid #dbe2ea;
+    background:#fff;
+    cursor:pointer;
+    font-size:18px;
+    font-weight:700;
+}
+
+.shop-chart-grid.is-hidden{
+    display:none;
+}
+
+.shop-sales-page .shop-chart-grid.is-hidden {
+    display: none;
+}
+
+.shop-sales-page .shop-chart-card {
+    margin-top: 14px;
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid #dbe2ea;
+    border-radius: 14px;
+}
+
+.shop-sales-page .shop-chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 14px;
+}
+
+.shop-sales-page .shop-chart-box {
+    padding: 16px;
+    border: 1px solid #dbe2ea;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.shop-sales-page .shop-chart-box canvas {
+    width: 100% !important;
+    height: 300px !important;
+}
+
+.shop-sales-page .tuition-chart-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.shop-sales-page .tuition-chart-collapse-button {
+    width: 38px;
+    height: 38px;
+    border: 1px solid #dbe2ea;
+    border-radius: 999px;
+    background: #fff;
+    color: #334155;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.shop-sales-page .shop-chart-grid.is-hidden {
+    display: none;
+}
+
+.shop-sales-page .shop-chart-box {
+    min-height: 340px;
+}
+
+.shop-sales-page .shop-chart-box canvas {
+    width: 100% !important;
+    height: 300px !important;
+}
+
+.shop-chart-canvas{
+    height:600px;
+}
+
+.shop-sales-page .shop-chart-box {
+    min-height: 420px;
+}
+
+.shop-sales-page .shop-chart-canvas-wrap {
+    position: relative;
+    height: 340px;
+}
+
+.shop-sales-page .shop-chart-canvas-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.shop-sales-page .shop-chart-grid.is-hidden {
+    display: none;
+}
+
+.shop-sales-page .shop-chart-card {
+    margin-top: 24px;
+}
+
+.shop-sales-page .shop-chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.shop-sales-page .shop-chart-box {
+    border: 1px solid #dbe2ea;
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: #fff;
+}
+
+.shop-sales-page .shop-chart-box h4 {
+    margin: 0 0 12px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.shop-sales-page .shop-chart-canvas-wrap {
+    position: relative;
+    height: 400px;   /* ← グラフの縦幅はここ */
+}
+
+.tuition-pagination{
+    padding:12px 16px;
+    display:flex;
+    justify-content:flex-end;
+}
+
+.tuition-pagination nav{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:14px;
+}
+
+.tuition-pagination nav > div:first-child{
+    display:none;
+}
+
+.tuition-pagination nav > div:last-child{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.tuition-pagination p{
+    margin:0;
+    font-size:12px;
+    color:#64748b;
+}
+
+.tuition-pagination a,
+.tuition-pagination span{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:24px;
+    height:24px;
+    padding:0 6px;
+    border-radius:6px;
+    font-size:12px;
+    line-height:1;
+    text-decoration:none;
+}
+
+.tuition-pagination a{
+    color:#2563eb;
+}
+
+.tuition-pagination span[aria-current="page"],
+.tuition-pagination span[aria-current="true"]{
+    background:#2563eb;
+    color:#fff;
+    font-weight:700;
+}
+
+.tuition-pagination svg{
+    width:12px !important;
+    height:12px !important;
+}

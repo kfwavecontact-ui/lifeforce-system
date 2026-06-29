@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,16 +13,43 @@
     <link rel="stylesheet" href="{{ asset('css/admin/master.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/challenge-management.css') }}">
 
+    @if(request()->routeIs('admin.operations.classroom-accounting.transactions.*'))
+        <link rel="stylesheet" href="{{ asset('css/admin/account-transactions.css') }}">
+    @endif
 
+    @if(request()->routeIs('admin.operations.classroom-accounting.tuition-enrollment-sales.*'))
+        <link rel="stylesheet" href="{{ asset('css/admin/tuition-enrollment-sales.css') }}">
+    @endif
+
+    @if(request()->routeIs('admin.operations.classroom-accounting.shop-sales.*'))
+        <link rel="stylesheet" href="{{ asset('css/admin/shop-sales.css') }}">
+    @endif
+    
 
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     >
+
+    @stack('styles')
+
+    @if(request()->routeIs('admin.operations.classroom-accounting.*'))
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @endif
+
 </head>
 
 @if(request()->routeIs('admin.system.badges*'))
     <link rel="stylesheet" href="{{ asset('css/admin/badge-management.css') }}">
+@endif
+
+@if(request()->routeIs('admin.system.titles*'))
+    <link rel="stylesheet" href="{{ asset('css/admin/title-management.css') }}">
+@endif
+
+
+@if(request()->routeIs('admin.system.permissions*'))
+    <link rel="stylesheet" href="{{ asset('css/admin/permission-management.css') }}">
 @endif
 
 <body data-sidebar-key="{{ $sidebarPageKey ?? '' }}">
@@ -216,6 +244,24 @@ document.addEventListener('DOMContentLoaded', function () {
 @if(request()->routeIs('admin.system.badges*'))
     <script src="{{ asset('js/admin/badge-management.js') }}"></script>
 @endif
+
+@if(request()->routeIs('admin.system.titles*'))
+    <script src="{{ asset('js/admin/title-management.js') }}"></script>
+@endif
+
+@if(request()->routeIs('admin.operations.classroom-accounting.transactions.*'))
+    <script src="{{ asset('js/admin/account-transactions.js') }}"></script>
+@endif
+
+@if(request()->routeIs('admin.operations.classroom-accounting.tuition-enrollment-sales.*'))
+    <script src="{{ asset('js/admin/tuition-enrollment-sales.js') }}"></script>
+@endif
+
+@if(request()->routeIs('admin.operations.classroom-accounting.shop-sales.*'))
+    <script src="{{ asset('js/admin/shop-sales.js') }}"></script>
+@endif
+
+
 
 
 </body>

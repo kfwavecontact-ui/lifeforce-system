@@ -311,3 +311,61 @@
 .sidebar-subitem.current .sidebar-info{
     color:#dbeafe;
 }
+
+/* ==========================
+   売上台帳（閲覧のみ）
+========================== */
+
+.sidebar-audit-subitem{
+    margin-top:8px;
+    color:#fde68a;
+    padding-left:5px;
+}
+
+.sidebar-audit-subitem:hover{
+    color:#fef3c7;
+}
+
+.sidebar-audit-subitem .sidebar-info{
+    color:#fde68a;
+}
+
+.sidebar-audit-subitem span{
+    color:inherit;
+}
+
+.sidebar-income-item .sidebar-info{
+    color:#8fc3ff;
+}
+
+.sidebar-expense-item .sidebar-info{
+    color:#ff9a9a;
+}
+
+.sidebar-account-book{
+    color:#e9c46a !important;
+}
+
+.sidebar-account-book .sidebar-info{
+    color:#e9c46a !important;
+}
+
+.sidebar-account-book,
+.sidebar-account-book:hover,
+.sidebar-account-book:focus{
+    color:#e9c46a !important;
+}
+
+.sidebar-account-book .sidebar-info{
+    color:#e9c46a !important;
+}
+
+.sidebar-income-item,
+.sidebar-income-item .sidebar-info{
+    color:#8ecae6 !important;
+}
+
+.sidebar-expense-item,
+.sidebar-expense-item .sidebar-info{
+    color:#f28482 !important;
+}

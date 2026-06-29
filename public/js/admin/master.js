@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const masterStatusFilter = document.getElementById('masterStatusFilter');
 
     const reorderUrl = masterPage.dataset.masterReorderUrl;
+    const deleteUrlBase = masterPage.dataset.masterDeleteUrlBase;
     let draggedRowId = null;
 
     const addButton = document.getElementById('masterAddButton');
@@ -241,10 +242,25 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const operationTd = document.createElement('td');
+
+            const deleteButtonHtml = currentMasterKey === 'title_tags'
+                ? `
+                    <button type="button"
+                            class="master-secondary-button master-delete-button"
+                            data-id="${row.id}"
+                            data-used-count="${row.used_title_count || 0}">
+                        削除
+                    </button>
+                `
+                : '';
+
             operationTd.innerHTML = `
-                <button type="button" class="master-secondary-button master-edit-button" data-id="${row.id}">
-                    編集
-                </button>
+                <div class="master-action-buttons">
+                    <button type="button" class="master-secondary-button master-edit-button" data-id="${row.id}">
+                        編集
+                    </button>
+                    ${deleteButtonHtml}
+                </div>
             `;
 
             tr.appendChild(operationTd);
@@ -447,13 +463,50 @@ document.addEventListener('DOMContentLoaded', () => {
     modalCancel.addEventListener('click', closeModal);
     modalSave.addEventListener('click', saveModal);
 
-    masterTableBody.addEventListener('click', e => {
-        const button = e.target.closest('.master-edit-button');
-        if (!button) return;
+    masterTableBody.addEventListener('click', async event => {
+        const deleteButton = event.target.closest('.master-delete-button');
 
-        const row = currentRows.find(item => String(item.id) === String(button.dataset.id));
+        if (deleteButton) {
+            const id = deleteButton.dataset.id;
+            const usedCount = Number(deleteButton.dataset.usedCount || 0);
 
-        if (row) openModal(row);
+            if (currentMasterKey === 'title_tags' && usedCount > 0) {
+                alert('このタグは称号で使用中のため削除できません。');
+                return;
+            }
+
+            if (!confirm('削除しますか？')) {
+                return;
+            }
+
+            try {
+                await fetchJson(`${deleteUrlBase}/${id}?master=${encodeURIComponent(currentMasterKey)}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                });
+
+                await loadMaster();
+            } catch (error) {
+                alert(error.message);
+            }
+
+            return;
+        }
+
+        const editButton = event.target.closest('.master-edit-button');
+
+        if (!editButton) {
+            return;
+        }
+
+        const row = currentRows.find(item => String(item.id) === String(editButton.dataset.id));
+
+        if (row) {
+            openModal(row);
+        }
     });
 
     seederButton.addEventListener('click', openSeederModal);

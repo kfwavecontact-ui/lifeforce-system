@@ -42,6 +42,7 @@ class BadgeManagementController extends Controller
         $status = $request->query('status', 'all');
 
         $query = Badge::with(['category', 'series', 'requirements.requirementType'])
+            ->withCount('studentBadges')
             ->orderBy('display_order')
             ->orderBy('id');
 
@@ -104,6 +105,7 @@ class BadgeManagementController extends Controller
                     'requirement_type_name' => $firstRequirement['requirement_type_name'] ?? null,
                     'requirement_value' => $firstRequirement['requirement_value'] ?? null,
                     'point_reward' => $badge->point_reward,
+                    'acquired_count' => $badge->student_badges_count ?? 0,
                     'is_limited' => (bool) $badge->is_limited,
                     'start_date' => $badge->start_date,
                     'end_date' => $badge->end_date,

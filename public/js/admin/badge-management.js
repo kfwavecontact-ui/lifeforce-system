@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const loadBadges = async () => {
-        tableBody.innerHTML = '<tr><td colspan="13">読み込み中...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="14">読み込み中...</td></tr>';
 
         const response = await fetch(`${urls.list}?${buildQuery()}`, {
             headers: { 'Accept': 'application/json' },
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderRows = () => {
         if (badges.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="13">データがありません。</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="14">データがありません。</td></tr>';
             return;
         }
 
@@ -226,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </td>
                     <td>${renderRequirements(badge.requirements || [])}</td>
                     <td>${escapeHtml(badge.point_reward ?? 0)}Pt</td>
+                    <td>${escapeHtml(badge.acquired_count ?? 0)}人</td>
                     <td>
                         <span class="master-status ${badge.is_active ? 'is-active' : 'is-inactive'}">
                             ${badge.is_active ? '有効' : '無効'}

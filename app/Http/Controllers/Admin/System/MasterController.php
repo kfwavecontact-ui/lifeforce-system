@@ -28,8 +28,9 @@ class MasterController extends Controller
         'contact_statuses' => ['title' => '対応状況', 'description' => '未対応・対応中・完了などを管理します。'],
         'notification_masters' => ['title' => '通知種類', 'description' => '通知センターで扱う通知の種類を管理します。'],
 
-        'payment_methods' => ['title' => '支払方法', 'description' => '口座振替・現金・クレジットなどを管理します。'],
-        'discounts' => ['title' => '割引種別', 'description' => '兄弟割・紹介割などを管理します。'],
+        'account_categories' => ['title' => '会計カテゴリ', 'description' => '授業料売上・ショップ売上・返金・経費などの会計カテゴリを管理します。'],
+        'payment_methods' => ['title' => '入出金方法', 'description' => '口座振替・現金・クレジットカード・銀行振込などを管理します。'],
+        'discounts' => ['title' => '割引種別', 'description' => '兄弟割・紹介割・入会キャンペーンなどを管理します。'],
 
         'event_categories' => ['title' => 'イベントカテゴリ', 'description' => 'イベントカテゴリを管理します。'],
         'event_statuses' => ['title' => 'イベント状態', 'description' => '募集中・受付終了・開催済みなどを管理します。'],
@@ -37,6 +38,7 @@ class MasterController extends Controller
 
         'badge_categories' => ['title' => 'バッジカテゴリ', 'description' => 'バッジカテゴリを管理します。'],
         'badge_requirement_types' => ['title' => 'バッジ獲得条件', 'description' => 'バッジ獲得条件の種類を管理します。'],
+        'title_tags' => ['title' => '称号タグ', 'description' => '称号に付けるタグを管理します。'],
         'badge_series' => ['title' => 'バッジシリーズ', 'description' => 'バッジのシリーズを管理します。'],
         'reward_categories' => ['title' => '景品カテゴリ', 'description' => 'ポイント交換景品のカテゴリを管理します。'],
         'shop_categories' => ['title' => '商品カテゴリ', 'description' => 'ショップ商品のカテゴリを管理します。'],
@@ -68,7 +70,24 @@ class MasterController extends Controller
             ->orderBy($orderColumn)
             ->orderBy('id')
             ->get()
-            ->map(fn ($row) => (array) $row)
+            ->map(function ($row) use ($table) {
+                $item = (array) $row;
+
+                if ($table === 'payment_methods') {
+                    $item['is_auto_payment'] = $row->is_auto_payment
+                        ? '対象'
+                        : '対象外';
+                }
+
+
+                if ($table === 'title_tags') {
+                    $item['used_title_count'] = DB::table('title_tag_relations')
+                        ->where('title_tag_id', $row->id)
+                        ->count();
+                }
+
+                return $item;
+            })
             ->values();
 
         return response()->json([
@@ -152,6 +171,30 @@ class MasterController extends Controller
         ]);
     }
 
+
+    public function destroy(Request $request, int $id): JsonResponse
+    {
+        $table = $this->resolveTable($request->string('master')->toString());
+
+        if ($table === 'title_tags') {
+            $usedCount = DB::table('title_tag_relations')
+                ->where('title_tag_id', $id)
+                ->count();
+
+            if ($usedCount > 0) {
+                return response()->json([
+                    'message' => "このタグは{$usedCount}件の称号で使用中のため削除できません。",
+                ], 422);
+            }
+        }
+
+        DB::table($table)->where('id', $id)->delete();
+
+        return response()->json([
+            'message' => '削除しました。',
+        ]);
+    }
+
     private function resolveTable(string $table): string
     {
         if (!array_key_exists($table, $this->masters)) {
@@ -168,19 +211,50 @@ class MasterController extends Controller
     private function columns(string $table): array
     {
         return collect(Schema::getColumns($table))
-            ->map(function (array $column) {
+            ->filter(function (array $column) use ($table) {
+                if ($table === 'title_tags') {
+                    return !in_array(
+                        $column['name'],
+                        ['created_at', 'updated_at', 'display_order'],
+                        true
+                    );
+                }
+
+                return true;
+            })
+            ->map(function (array $column) use ($table) {
                 $name = $column['name'];
+
+                $label = $this->columnLabel($name);
+
+                if ($table === 'title_tags' && $name === 'name') {
+                    $label = 'タグ名';
+                }
 
                 return [
                     'name' => $name,
-                    'label' => $this->columnLabel($name),
+                    'label' => $label,
                     'type' => $column['type_name'] ?? $column['type'] ?? 'string',
                     'nullable' => (bool) ($column['nullable'] ?? true),
                     'required' => !$this->isSystemColumn($name) && !($column['nullable'] ?? true),
                     'editable' => !$this->isSystemColumn($name),
                     'system' => $this->isSystemColumn($name),
                 ];
+
             })
+
+            ->when($table === 'title_tags', function ($collection) {
+                return $collection->push([
+                    'name' => 'used_title_count',
+                    'label' => '使用称号数',
+                    'type' => 'integer',
+                    'nullable' => false,
+                    'required' => false,
+                    'editable' => false,
+                    'system' => true,
+                ]);
+            })
+
             ->values()
             ->all();
     }
@@ -263,10 +337,21 @@ class MasterController extends Controller
 
     private function columnLabel(string $column): string
     {
-        return [
+         return [
             'id' => 'ID',
             'code' => 'コード',
             'name' => '名称',
+
+            'transaction_type' => '収支区分',
+            'note' => '備考',
+
+            'is_auto_payment' => '自動決済',
+            'discount_type' => '割引区分',
+            'discount_value' => '割引値',
+
+            'start_date' => '開始日',
+            'end_date' => '終了日',
+
             'display_name' => '表示名',
             'description' => '説明',
             'sort_order' => '表示順',
@@ -274,6 +359,7 @@ class MasterController extends Controller
             'is_active' => '有効',
             'created_at' => '作成日時',
             'updated_at' => '更新日時',
+            'used_title_count' => '使用称号数',
         ][$column] ?? $column;
     }
 

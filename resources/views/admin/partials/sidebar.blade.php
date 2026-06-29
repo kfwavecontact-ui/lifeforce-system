@@ -308,26 +308,97 @@
         <div class="sidebar-group-title">運営</div>
 
         <button class="sidebar-item sidebar-toggle" type="button">
-            <span class="sidebar-toggle-label"><i class="fas fa-yen-sign"></i><span>会計</span></span>
+            <span class="sidebar-toggle-label">
+                <i class="fas fa-yen-sign"></i>
+                <span>教室会計</span>
+            </span>
             <i class="fas fa-chevron-down sidebar-arrow"></i>
         </button>
 
         <div class="sidebar-submenu">
-            <a href="#" class="sidebar-subitem" data-search-name="運営 ＞ 会計 ＞ 売上情報" data-info="売上状況を確認します"><span>売上情報</span><i class="fas fa-circle-info sidebar-info"></i></a>
-            <a href="#" class="sidebar-subitem" data-search-name="運営 ＞ 会計 ＞ 請求情報" data-info="請求状況を管理します"><span>請求情報</span><i class="fas fa-circle-info sidebar-info"></i></a>
-            <a href="#" class="sidebar-subitem" data-search-name="運営 ＞ 会計 ＞ 入金情報" data-info="入金状況を管理します"><span>入金情報</span><i class="fas fa-circle-info sidebar-info"></i></a>
-            <a href="#" class="sidebar-subitem" data-search-name="運営 ＞ 会計 ＞ 返金情報" data-info="返金情報を管理します"><span>返金情報</span><i class="fas fa-circle-info sidebar-info"></i></a>
-            <a href="#" class="sidebar-subitem" data-search-name="運営 ＞ 会計 ＞ 経費情報" data-info="経費・小口現金を管理します"><span>経費情報</span><i class="fas fa-circle-info sidebar-info"></i></a>
+            <a href="{{ route('admin.operations.classroom-accounting.tuition-enrollment-sales.index') }}"
+                class="sidebar-subitem sidebar-income-item"
+                data-search-name="運営 ＞ 教室会計 ＞ 授業料・入会金売上"
+                data-info="授業料・入会金の売上を管理します">
+                <span>授業料・入会金売上</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+
+            <a href="{{ route('admin.operations.classroom-accounting.shop-sales.index') }}"
+                class="sidebar-subitem sidebar-income-item"
+                data-search-name="運営 ＞ 教室会計 ＞ ショップ売上"
+                data-info="ショップ商品の売上を管理します">
+                <span>ショップ売上</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+
+            <a href="{{ route('admin.operations.classroom-accounting.event-sales.index') }}"
+                class="sidebar-subitem sidebar-income-item"
+                data-search-name="運営 ＞ 教室会計 ＞ イベント売上"
+                data-info="イベントの売上を管理します">
+                <span>イベント売上</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+
+            <a href="{{ route('admin.operations.classroom-accounting.spot-sales.index') }}"
+                class="sidebar-subitem sidebar-income-item"
+                data-search-name="運営 ＞ 教室会計 ＞ スポット売上"
+                data-info="教材費・検定費・特別講習などのスポット売上を管理します">
+                <span>スポット売上</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+
+            <a href="{{ route('admin.operations.classroom-accounting.refunds.index') }}"
+                class="sidebar-subitem sidebar-expense-item"
+                data-search-name="運営 ＞ 教室会計 ＞ 返金"
+                data-info="返金情報を管理します">
+                <span>返金</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+
+            <a href="{{ route('admin.operations.classroom-accounting.point-product-costs.index') }}"
+                class="sidebar-subitem sidebar-expense-item"
+                data-search-name="運営 ＞ 教室会計 ＞ ポイント商品費用"
+                data-info="ポイント交換商品の仕入・交換費用を管理します">
+                <span>ポイント商品費用</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+
+            <a href="{{ route('admin.operations.classroom-accounting.expenses.index') }}"
+                class="sidebar-subitem sidebar-expense-item"
+                data-search-name="運営 ＞ 教室会計 ＞ 経費"
+                data-info="教室運営に関する経費を管理します">
+                <span>経費</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+
+            <a href="{{ route('admin.operations.classroom-accounting.transactions.index') }}"
+                class="sidebar-subitem sidebar-account-book"
+                data-search-name="運営 ＞ 教室会計 ＞ 会計台帳"
+                data-info="収益・費用・返金・経費をまとめて管理します">
+                <span>会計台帳</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
         </div>
 
         <button class="sidebar-item sidebar-toggle" type="button">
-            <span class="sidebar-toggle-label"><i class="fas fa-comment-dots"></i><span>連絡・メモ</span></span>
+            <span class="sidebar-toggle-label">
+                <i class="fas fa-comment-dots"></i>
+                <span>連絡・メモ</span>
+            </span>
             <i class="fas fa-chevron-down sidebar-arrow"></i>
         </button>
 
         <div class="sidebar-submenu">
-            <a href="#" class="sidebar-subitem" data-search-name="運営 ＞ 連絡・メモ ＞ お知らせ" data-info="一斉通知を配信します"><span>お知らせ</span><i class="fas fa-circle-info sidebar-info"></i></a>
-            <a href="#" class="sidebar-subitem" data-search-name="運営 ＞ 連絡・メモ ＞ メッセージ" data-info="個別メッセージを管理します"><span>メッセージ</span><i class="fas fa-circle-info sidebar-info"></i></a>
+            <a href="#" class="sidebar-subitem" data-search-name="運営 ＞ 連絡・メモ ＞ お知らせ" data-info="一斉通知を配信します">
+                <span>お知らせ</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+
+            <a href="#" class="sidebar-subitem" data-search-name="運営 ＞ 連絡・メモ ＞ メッセージ" data-info="個別メッセージを管理します">
+                <span>メッセージ</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
         </div>
     </div>
 
@@ -353,8 +424,8 @@
             <a href="{{ route('admin.system.badges') }}" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ バッジ管理" data-info="バッジ情報を管理します"><span>バッジ管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
 
 
-            <a href="#" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ 称号管理" data-info="称号情報を管理します"><span>称号管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
-            <a href="#" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ 権限管理" data-info="ロール権限を管理します"><span>権限管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
+            <a href="{{ route('admin.system.titles') }}" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ 称号管理" data-info="称号情報を管理します"><span>称号管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
+            <a href="{{ route('admin.system.permissions') }}" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ 権限管理" data-info="ロール権限を管理します"><span>権限管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
             <a href="{{ route('admin.system.master') }}" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ マスタ管理" data-info="各種マスタを管理します"><span>マスタ管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
         </div>
 

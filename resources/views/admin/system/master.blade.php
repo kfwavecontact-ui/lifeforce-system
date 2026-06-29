@@ -9,12 +9,13 @@
      data-master-store-url="{{ route('admin.system.master.store') }}"
      data-master-update-url-base="{{ url('/admin/system/master') }}"
      data-master-reorder-url="{{ route('admin.system.master.reorder') }}"
+     data-master-delete-url-base="{{ url('/admin/system/master') }}"
      data-csrf-token="{{ csrf_token() }}">
 
     <div class="master-page-header">
         <div>
             <h1>{{ $pageTitle ?? 'マスタ管理' }}</h1>
-            <p>{{ $pageDescription ?? '支払方法・雇用形態・イベントカテゴリなど、各種マスタを管理します。' }}</p>
+            <p>{{ $pageDescription ?? '入出金方法・雇用形態・イベントカテゴリなど、各種マスタを管理します。' }}</p>
         </div>
 
         <button type="button" class="master-primary-button" id="masterAddButton">
@@ -30,63 +31,166 @@
     @endif
         @if (($initialMaster ?? null) !== 'notification_masters')
             <aside class="master-sidebar">
-            <div class="master-sidebar-title">マスタ一覧</div>
+                <div class="master-sidebar-title">マスタ一覧</div>
 
-            @if (($initialMaster ?? null) === 'notification_masters')
-                <div class="master-category">
-                    <div class="master-category-title">連絡・通知</div>
-                    <button class="master-menu active" data-master="notification_masters">
-                        通知種類
-                    </button>
-                </div>
-            @else
-                <div class="master-category">
-                    <div class="master-category-title">組織・人</div>
-                    <button class="master-menu active" data-master="enrollment_statuses">入会状態</button>
-                    <button class="master-menu" data-master="employment_types">雇用形態</button>
-                    <button class="master-menu" data-master="teacher_statuses">講師状態</button>
-                    <button class="master-menu" data-master="grades">学年</button>
-                </div>
+                @if (($initialMaster ?? null) === 'notification_masters')
+                    <div class="master-category">
+                        <div class="master-category-title">連絡・通知</div>
+                        <button class="master-menu active" data-master="notification_masters">
+                            <span class="master-menu-name">通知種類</span>
+                            <span class="master-menu-table">notification_masters</span>
+                        </button>
+                    </div>
+                @else
+                    <div class="master-category">
+                        <div class="master-category-title">組織・人</div>
 
-                <div class="master-category">
-                    <div class="master-category-title">授業・学習</div>
-                    <button class="master-menu" data-master="lesson_types">授業種別</button>
-                    <button class="master-menu" data-master="learning_plan_types">学習計画種別</button>
-                    <button class="master-menu" data-master="learning_material_categories">教材カテゴリ</button>
-                    <button class="master-menu" data-master="routine_completion_types">達成判定種別</button>
-                    <button class="master-menu" data-master="qualifications">資格種別</button>
-                </div>
+                        <button class="master-menu active" data-master="enrollment_statuses">
+                            <span class="master-menu-name">入会状態</span>
+                            <span class="master-menu-table">enrollment_statuses</span>
+                        </button>
 
-                <div class="master-category">
-                    <div class="master-category-title">連絡・通知</div>
-                    <button class="master-menu" data-master="note_types">メモ種別</button>
-                    <button class="master-menu" data-master="contact_types">連絡種別</button>
-                    <button class="master-menu" data-master="contact_statuses">対応状況</button>
-                    <button class="master-menu" data-master="notification_masters">通知種類</button>
-                </div>
+                        <button class="master-menu" data-master="employment_types">
+                            <span class="master-menu-name">雇用形態</span>
+                            <span class="master-menu-table">employment_types</span>
+                        </button>
 
-                <div class="master-category">
-                    <div class="master-category-title">会計</div>
-                    <button class="master-menu" data-master="payment_methods">支払方法</button>
-                    <button class="master-menu" data-master="discounts">割引種別</button>
-                </div>
+                        <button class="master-menu" data-master="teacher_statuses">
+                            <span class="master-menu-name">講師状態</span>
+                            <span class="master-menu-table">teacher_statuses</span>
+                        </button>
 
-                <div class="master-category">
-                    <div class="master-category-title">イベント</div>
-                    <button class="master-menu" data-master="event_categories">イベントカテゴリ</button>
-                    <button class="master-menu" data-master="event_statuses">イベント状態</button>
-                    <button class="master-menu" data-master="event_rewards">イベント報酬</button>
-                </div>
+                        <button class="master-menu" data-master="grades">
+                            <span class="master-menu-name">学年</span>
+                            <span class="master-menu-table">grades</span>
+                        </button>
+                    </div>
 
-                <div class="master-category">
-                    <div class="master-category-title">わくわく</div>
-                    <button class="master-menu" data-master="badge_categories">バッジカテゴリ</button>
-                    <button class="master-menu" data-master="badge_series">バッジシリーズ</button>
-                    <button class="master-menu" data-master="badge_requirement_types">バッジ獲得条件</button>
-                    <button class="master-menu" data-master="reward_categories">景品カテゴリ</button>
-                    <button class="master-menu" data-master="shop_categories">商品カテゴリ</button>
-                </div>
-            @endif
+                    <div class="master-category">
+                        <div class="master-category-title">授業・学習</div>
+
+                        <button class="master-menu" data-master="lesson_types">
+                            <span class="master-menu-name">授業種別</span>
+                            <span class="master-menu-table">lesson_types</span>
+                        </button>
+
+                        <button class="master-menu" data-master="learning_plan_types">
+                            <span class="master-menu-name">学習計画種別</span>
+                            <span class="master-menu-table">learning_plan_types</span>
+                        </button>
+
+                        <button class="master-menu" data-master="learning_material_categories">
+                            <span class="master-menu-name">教材カテゴリ</span>
+                            <span class="master-menu-table">learning_material_categories</span>
+                        </button>
+
+                        <button class="master-menu" data-master="routine_completion_types">
+                            <span class="master-menu-name">達成判定種別</span>
+                            <span class="master-menu-table">routine_completion_types</span>
+                        </button>
+
+                        <button class="master-menu" data-master="qualifications">
+                            <span class="master-menu-name">資格種別</span>
+                            <span class="master-menu-table">qualifications</span>
+                        </button>
+                    </div>
+
+                    <div class="master-category">
+                        <div class="master-category-title">連絡・通知</div>
+
+                        <button class="master-menu" data-master="note_types">
+                            <span class="master-menu-name">メモ種別</span>
+                            <span class="master-menu-table">note_types</span>
+                        </button>
+
+                        <button class="master-menu" data-master="contact_types">
+                            <span class="master-menu-name">連絡種別</span>
+                            <span class="master-menu-table">contact_types</span>
+                        </button>
+
+                        <button class="master-menu" data-master="contact_statuses">
+                            <span class="master-menu-name">対応状況</span>
+                            <span class="master-menu-table">contact_statuses</span>
+                        </button>
+
+                        <button class="master-menu" data-master="notification_masters">
+                            <span class="master-menu-name">通知種類</span>
+                            <span class="master-menu-table">notification_masters</span>
+                        </button>
+                    </div>
+
+                    <div class="master-category">
+                        <div class="master-category-title">会計</div>
+
+                        <button class="master-menu" data-master="account_categories">
+                            <span class="master-menu-name">会計カテゴリ</span>
+                            <span class="master-menu-table">account_categories</span>
+                        </button>
+
+                        <button class="master-menu" data-master="payment_methods">
+                            <span class="master-menu-name">入出金方法</span>
+                            <span class="master-menu-table">payment_methods</span>
+                        </button>
+
+                        <button class="master-menu" data-master="discounts">
+                            <span class="master-menu-name">割引種別</span>
+                            <span class="master-menu-table">discounts</span>
+                        </button>
+                    </div>
+
+                    <div class="master-category">
+                        <div class="master-category-title">イベント</div>
+
+                        <button class="master-menu" data-master="event_categories">
+                            <span class="master-menu-name">イベントカテゴリ</span>
+                            <span class="master-menu-table">event_categories</span>
+                        </button>
+
+                        <button class="master-menu" data-master="event_statuses">
+                            <span class="master-menu-name">イベント状態</span>
+                            <span class="master-menu-table">event_statuses</span>
+                        </button>
+
+                        <button class="master-menu" data-master="event_rewards">
+                            <span class="master-menu-name">イベント報酬</span>
+                            <span class="master-menu-table">event_rewards</span>
+                        </button>
+                    </div>
+
+                    <div class="master-category">
+                        <div class="master-category-title">わくわく</div>
+
+                        <button class="master-menu" data-master="badge_categories">
+                            <span class="master-menu-name">バッジカテゴリ</span>
+                            <span class="master-menu-table">badge_categories</span>
+                        </button>
+
+                        <button class="master-menu" data-master="badge_series">
+                            <span class="master-menu-name">バッジシリーズ</span>
+                            <span class="master-menu-table">badge_series</span>
+                        </button>
+
+                        <button class="master-menu" data-master="badge_requirement_types">
+                            <span class="master-menu-name">バッジ獲得条件</span>
+                            <span class="master-menu-table">badge_requirement_types</span>
+                        </button>
+
+                        <button class="master-menu" data-master="title_tags">
+                            <span class="master-menu-name">称号タグ</span>
+                            <span class="master-menu-table">title_tags</span>
+                        </button>
+
+                        <button class="master-menu" data-master="reward_categories">
+                            <span class="master-menu-name">景品カテゴリ</span>
+                            <span class="master-menu-table">reward_categories</span>
+                        </button>
+
+                        <button class="master-menu" data-master="shop_categories">
+                            <span class="master-menu-name">商品カテゴリ</span>
+                            <span class="master-menu-table">shop_categories</span>
+                        </button>
+                    </div>
+                @endif
             </aside>
         @endif
 
