@@ -22,7 +22,7 @@ enum AccountTransactionSourceType: string
     /**
      * スポット売上
      */
-    case SpotSale = 'spot_sale';
+    case SpotSales = 'spot_sales';
 
     /**
      * 返金

@@ -173,4 +173,15 @@ class Student extends Model
         return $this->hasMany(StudentCourseContract::class);
     }
 
+
+    public function getNameAttribute(): string
+    {
+        return trim(($this->last_name ?? '') . ' ' . ($this->first_name ?? ''));
+    }
+
+    public function getFullNameAttribute(): string
+    {
+        return $this->name;
+    }
+
 }

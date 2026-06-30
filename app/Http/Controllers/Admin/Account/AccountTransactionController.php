@@ -10,11 +10,15 @@ use App\Models\Discount;
 use App\Models\School;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class AccountTransactionController extends Controller
 {
     public function index(Request $request)
     {
+        $this->syncLinkedTransactionDates();
+
         $query = AccountTransaction::query()
             ->with([
                 'accountCategory',
@@ -65,7 +69,7 @@ class AccountTransactionController extends Controller
 
             'student' => $query
                 ->leftJoin('students as sort_students', 'account_transactions.student_id', '=', 'sort_students.id')
-                ->orderBy('sort_students.name', $direction)
+                ->orderByRaw("CONCAT(COALESCE(sort_students.last_name, ''), ' ', COALESCE(sort_students.first_name, '')) {$direction}")
                 ->select('account_transactions.*'),
 
             'payment_method' => $query
@@ -126,6 +130,8 @@ class AccountTransactionController extends Controller
 
     public function export(Request $request)
     {
+        $this->syncLinkedTransactionDates();
+
         $query = AccountTransaction::query()
             ->with([
                 'accountCategory',
@@ -198,7 +204,7 @@ class AccountTransactionController extends Controller
                 $row->accountCategory?->name ?? '',
                 $row->transaction_name ?? '',
                 $row->school?->name ?? '',
-                $row->student?->name ?? '',
+                trim(($row->student?->last_name ?? '') . ' ' . ($row->student?->first_name ?? '')) ?: '',
                 $row->scheduled_date ? Carbon::parse($row->scheduled_date)->format('Y/m/d') : '',
                 $row->paymentMethod?->name ?? '',
                 $row->transaction_date ? Carbon::parse($row->transaction_date)->format('Y/m/d') : '',
@@ -219,6 +225,81 @@ class AccountTransactionController extends Controller
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
+    }
+
+    private function syncLinkedTransactionDates(): void
+    {
+        if (! Schema::hasTable('account_transactions')) {
+            return;
+        }
+
+        if (Schema::hasTable('spot_sales') && Schema::hasColumn('spot_sales', 'paid_at')) {
+            DB::statement(<<<'SQL'
+                UPDATE account_transactions AS account_transactions_sync
+                SET transaction_date = DATE(spot_sales.paid_at)
+                FROM spot_sales
+                WHERE account_transactions_sync.source_table = 'spot_sales'
+                  AND account_transactions_sync.source_id = spot_sales.id
+                  AND account_transactions_sync.transaction_date IS DISTINCT FROM DATE(spot_sales.paid_at)
+            SQL);
+        }
+
+        if (Schema::hasTable('shop_orders') && Schema::hasColumn('shop_orders', 'transaction_date')) {
+            DB::statement(<<<'SQL'
+                UPDATE account_transactions AS account_transactions_sync
+                SET transaction_date = shop_orders.transaction_date
+                FROM shop_orders
+                WHERE account_transactions_sync.source_table = 'shop_order'
+                  AND account_transactions_sync.source_id = shop_orders.id
+                  AND account_transactions_sync.transaction_date IS DISTINCT FROM shop_orders.transaction_date
+            SQL);
+        } elseif (Schema::hasTable('shop_orders') && Schema::hasColumn('shop_orders', 'paid_at')) {
+            DB::statement(<<<'SQL'
+                UPDATE account_transactions AS account_transactions_sync
+                SET transaction_date = DATE(shop_orders.paid_at)
+                FROM shop_orders
+                WHERE account_transactions_sync.source_table = 'shop_order'
+                  AND account_transactions_sync.source_id = shop_orders.id
+                  AND account_transactions_sync.transaction_date IS DISTINCT FROM DATE(shop_orders.paid_at)
+            SQL);
+        }
+
+        if (Schema::hasTable('event_payments') && Schema::hasColumn('event_payments', 'paid_at')) {
+            DB::statement(<<<'SQL'
+                UPDATE account_transactions AS account_transactions_sync
+                SET transaction_date = linked_event_payments.paid_at_date
+                FROM (
+                    SELECT event_application_id, MAX(DATE(paid_at)) AS paid_at_date
+                    FROM event_payments
+                    GROUP BY event_application_id
+                ) AS linked_event_payments
+                WHERE account_transactions_sync.source_table = 'event_application'
+                  AND account_transactions_sync.source_id = linked_event_payments.event_application_id
+                  AND account_transactions_sync.transaction_date IS DISTINCT FROM linked_event_payments.paid_at_date
+            SQL);
+        }
+
+        if (
+            Schema::hasTable('invoice_items')
+            && Schema::hasTable('payments')
+            && Schema::hasColumn('invoice_items', 'invoice_id')
+            && Schema::hasColumn('payments', 'invoice_id')
+            && Schema::hasColumn('payments', 'payment_date')
+        ) {
+            DB::statement(<<<'SQL'
+                UPDATE account_transactions AS account_transactions_sync
+                SET transaction_date = linked_invoice_payments.payment_date
+                FROM (
+                    SELECT invoice_items.id AS invoice_item_id, MAX(payments.payment_date) AS payment_date
+                    FROM invoice_items
+                    INNER JOIN payments ON payments.invoice_id = invoice_items.invoice_id
+                    GROUP BY invoice_items.id
+                ) AS linked_invoice_payments
+                WHERE account_transactions_sync.source_table = 'invoice_item'
+                  AND account_transactions_sync.source_id = linked_invoice_payments.invoice_item_id
+                  AND account_transactions_sync.transaction_date IS DISTINCT FROM linked_invoice_payments.payment_date
+            SQL);
+        }
     }
 
     private function applyFilters($query, Request $request): void
@@ -273,7 +354,11 @@ class AccountTransactionController extends Controller
                     ->orWhere('source_table', 'like', "%{$keyword}%")
                     ->orWhere('discount_note', 'like', "%{$keyword}%")
                     ->orWhereHas('student', function ($studentQuery) use ($keyword) {
-                        $studentQuery->where('name', 'like', "%{$keyword}%");
+                        $studentQuery->where('student_code', 'like', "%{$keyword}%")
+                            ->orWhere('last_name', 'like', "%{$keyword}%")
+                            ->orWhere('first_name', 'like', "%{$keyword}%")
+                            ->orWhereRaw("CONCAT(last_name, first_name) LIKE ?", ["%{$keyword}%"])
+                            ->orWhereRaw("CONCAT(last_name, ' ', first_name) LIKE ?", ["%{$keyword}%"]);
                     });
             });
         }

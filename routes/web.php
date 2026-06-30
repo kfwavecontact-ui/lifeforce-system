@@ -308,7 +308,7 @@ Route::prefix('admin')
             Route::post('/spot-sales', [SpotSaleController::class, 'store'])
                 ->name('spot-sales.store');
 
-            Route::put('/spot-sales/{invoiceItemId}', [SpotSaleController::class, 'update'])
+            Route::put('/spot-sales/{spotSaleId}', [SpotSaleController::class, 'update'])
                 ->name('spot-sales.update');
 
 
