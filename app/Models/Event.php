@@ -40,4 +40,15 @@ class Event extends Model
     {
         return $this->hasMany(EventSchedule::class);
     }
+
+    public function prices()
+    {
+        return $this->hasMany(EventPrice::class);
+    }
+
+    public function applications()
+    {
+        return $this->hasMany(EventApplication::class);
+    }
+
 }

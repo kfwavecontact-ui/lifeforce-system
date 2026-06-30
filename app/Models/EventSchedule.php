@@ -32,4 +32,10 @@ class EventSchedule extends Model
     {
         return $this->belongsTo(Event::class);
     }
+
+    public function applications()
+    {
+        return $this->hasMany(EventApplication::class, 'event_schedule_id');
+    }
+
 }

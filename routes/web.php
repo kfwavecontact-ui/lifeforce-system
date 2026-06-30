@@ -288,8 +288,11 @@ Route::prefix('admin')
             Route::post('/event-sales', [EventSaleController::class, 'store'])
                 ->name('event-sales.store');
 
-            Route::put('/event-sales/{invoiceItemId}', [EventSaleController::class, 'update'])
+            Route::put('/event-sales/{eventApplicationId}', [EventSaleController::class, 'update'])
                 ->name('event-sales.update');
+
+            Route::get('/event-sales/events/search', [EventSaleController::class, 'searchEvents'])
+                ->name('event-sales.events.search');
 
 
             // スポット売上

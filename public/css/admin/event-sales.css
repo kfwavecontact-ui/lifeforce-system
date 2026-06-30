@@ -1,0 +1,2505 @@
+/* ==========================================================
+   Shop Sales Page
+========================================================== */
+
+.shop-sales-page {
+    padding: 0;
+}
+
+/* ==========================================================
+   新規ショップ売上登録
+========================================================== */
+
+.shop-sales-page .shop-sale-create-card {
+    width: 100%;
+    max-width: none;
+    margin: 0 0 22px;
+    padding: 16px 18px;
+    background: #ffffff;
+    border: 1px solid #dbe2ea;
+    border-radius: 14px;
+    box-shadow: none;
+}
+
+.shop-sales-page .shop-sale-create-header {
+    margin-bottom: 12px;
+}
+
+.shop-sales-page .shop-sale-create-header h3 {
+    margin: 0 0 6px;
+    font-size: 17px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.shop-sales-page .shop-sale-create-header p {
+    margin: 0;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.shop-sales-page .shop-sale-form-row {
+    display: grid;
+    gap: 12px;
+    align-items: end;
+}
+
+.shop-sales-page .shop-sale-form-row-main {
+    grid-template-columns: 1.35fr 0.95fr 0.95fr 0.95fr 0.95fr 1.35fr;
+    margin-bottom: 10px;
+}
+
+.shop-sales-page .shop-sale-form-row-sub {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    align-items: start;
+    margin-bottom: 10px;
+}
+
+.shop-sales-page .shop-sale-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.shop-sales-page .shop-sale-field span {
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+    white-space: nowrap;
+}
+
+.shop-sales-page .shop-sale-field input,
+.shop-sales-page .shop-sale-field select {
+    width: 100%;
+    height: 36px;
+    box-sizing: border-box;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #ffffff;
+    font-size: 13px;
+}
+
+/* ==========================================================
+   商品明細
+========================================================== */
+
+.shop-sales-page .shop-sale-inline-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: fit-content;
+}
+
+.shop-sales-page .shop-sale-inline-items .shop-sale-items-row {
+    display: grid;
+    grid-template-columns: 300px 110px 110px 110px 110px 60px;
+    gap: 12px;
+    align-items: end;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+.shop-sales-page .shop-sale-inline-items .shop-sale-items-row + .shop-sale-items-row {
+    padding-top: 8px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.shop-sales-page .shop-product-lookup {
+    position: relative;
+    width: 300px;
+}
+
+.shop-sales-page .shop-product-lookup input {
+    width: 100%;
+}
+
+.shop-sales-page .shop-display-box {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 100%;
+    height: 36px;
+    box-sizing: border-box;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #f8fafc;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.shop-sales-page .shop-remove-item-button {
+    width: 60px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+/* ==========================================================
+   商品追加・合計・登録
+========================================================== */
+
+.shop-sales-page .shop-sale-side-actions {
+    display: grid;
+    grid-template-columns: 112px 210px 150px;
+    gap: 10px;
+    align-items: start;
+    justify-self: start;
+    padding-top: 23px;
+}
+
+.shop-sales-page .shop-add-inline-button {
+    width: 112px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid #93c5fd;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.shop-sales-page .shop-sale-total-card {
+    width: 210px;
+    min-height: 66px;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+}
+
+.shop-sales-page .shop-sale-total-card div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 18px;
+    margin-bottom: 2px;
+    color: #334155;
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.shop-sales-page .shop-sale-grand-total {
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid #d6dde8;
+}
+
+.shop-sales-page .shop-sale-grand-total strong {
+    color: #0369a1;
+    font-size: 18px;
+}
+
+.shop-sales-page .shop-sale-submit-button {
+    width: 150px;
+    height: 38px;
+    margin: 0;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+/* ==========================================================
+   検索候補
+========================================================== */
+
+.shop-sales-page .shop-product-lookup-results,
+.shop-sales-page .tuition-student-lookup-results {
+    position: absolute;
+    z-index: 1000;
+    display: none;
+    max-height: 260px;
+    overflow: auto;
+    background: #ffffff;
+    border: 1px solid #d7dde8;
+    border-radius: 10px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+}
+
+.shop-sales-page .shop-product-lookup-results {
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+}
+
+.shop-sales-page .shop-product-lookup-results.is-open,
+.shop-sales-page .tuition-student-lookup-results.is-open {
+    display: block;
+}
+
+.shop-sales-page .tuition-student-lookup-item {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    border: none;
+    border-bottom: 1px solid #eef2f7;
+    background: #ffffff;
+    text-align: left;
+    cursor: pointer;
+}
+
+.shop-sales-page .tuition-student-lookup-item:hover {
+    background: #f3f8ff;
+}
+
+.shop-sales-page .tuition-student-lookup-item strong {
+    display: block;
+    color: #0f172a;
+    font-size: 13px;
+}
+
+.shop-sales-page .tuition-student-lookup-item span {
+    display: block;
+    margin-top: 3px;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.shop-sales-page .tuition-student-lookup-empty {
+    padding: 12px 14px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* ==========================================================
+   検索エリア
+========================================================== */
+
+.shop-sales-page .tuition-search-area {
+    margin: 0 0 14px;
+}
+
+.shop-sales-page .tuition-search-row{
+    display:flex;
+    flex-wrap:nowrap;
+    gap:10px;
+    align-items:flex-end;
+}
+
+.shop-sales-page .tuition-search-row label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 130px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.shop-sales-page .tuition-search-row label:has(select[name="school_id"]) {
+    min-width: 180px;
+}
+
+.shop-sales-page .tuition-search-keyword{
+    flex:1;
+    min-width:320px;
+}
+
+.shop-sales-page .tuition-search-keyword input {
+    width: 100%;
+}
+
+.shop-sales-page .tuition-search-row input,
+.shop-sales-page .tuition-search-row select {
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #ffffff;
+    font-size: 13px;
+}
+
+.shop-sales-page .tuition-search-actions{
+    margin-left:auto;
+    display:flex;
+    gap:8px;
+    flex-shrink:0;
+}
+
+.shop-sales-page .tuition-search-button,
+.shop-sales-page .tuition-clear-button,
+.shop-sales-page .tuition-export-button,
+.shop-sales-page .tuition-column-setting-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.shop-sales-page .tuition-search-button {
+    border: none;
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.shop-sales-page .tuition-clear-button {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+}
+
+.shop-sales-page .tuition-export-button {
+    border: 1px solid #22c55e;
+    background: #ecfdf5;
+    color: #15803d;
+}
+
+.shop-sales-page .tuition-column-setting-button {
+    border: none;
+    background: transparent;
+    color: #334155;
+}
+
+/* ==========================================================
+   一覧テーブル
+========================================================== */
+
+.shop-sales-page .tuition-table-card {
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #dbe2ea;
+    border-radius: 12px;
+}
+
+.shop-sales-page .tuition-table-scroll {
+    overflow: auto;
+}
+
+.shop-sales-page .tuition-sales-table {
+    width: 100%;
+    min-width: 1580px;
+    border-collapse: collapse;
+    color: #0f172a;
+    font-size: 12px;
+}
+
+.shop-sales-page .tuition-sales-table th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    height: 38px;
+    padding: 8px 10px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 800;
+    text-align: left;
+}
+
+.shop-sales-page .tuition-sales-table td {
+    height: 42px;
+    padding: 8px 10px;
+    border-bottom: 1px solid #edf2f7;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.shop-sales-page .tuition-sales-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.shop-sales-page .tuition-sort-link {
+    color: #0f172a;
+    text-decoration: none;
+    font-weight: 800;
+}
+
+.shop-sales-page .tuition-filter-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.shop-sales-page .tuition-filter-button {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.shop-sales-page .tuition-check-column {
+    width: 34px;
+    text-align: center;
+}
+
+.shop-sales-page .tuition-amount-cell {
+    text-align: right;
+    font-weight: 800;
+}
+
+.shop-sales-page .tuition-discount-amount {
+    color: #dc2626;
+}
+
+.shop-sales-page .tuition-final-amount {
+    color: #0f172a;
+}
+
+.shop-sales-page .tuition-pagination {
+    padding: 12px;
+}
+
+/* ==========================================================
+   ステータス・操作ボタン
+========================================================== */
+
+.shop-sales-page .tuition-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 54px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.shop-sales-page .tuition-status-badge.paid {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.shop-sales-page .tuition-status-badge.unpaid {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.shop-sales-page .tuition-status-badge.cancelled {
+    background: #eef2f7;
+    color: #334155;
+}
+
+.shop-sales-page .tuition-action-cell {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.shop-sales-page .tuition-detail-button,
+.shop-sales-page .tuition-edit-button,
+.shop-sales-page .tuition-save-button,
+.shop-sales-page .tuition-cancel-button {
+    height: 28px;
+    padding: 0 9px;
+    border: none;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.shop-sales-page .tuition-detail-button {
+    background: #e0ecff;
+    color: #1d4ed8;
+}
+
+.shop-sales-page .tuition-edit-button {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.shop-sales-page .tuition-save-button {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.shop-sales-page .tuition-cancel-button {
+    background: #eef2f7;
+    color: #334155;
+}
+
+/* ==========================================================
+   編集モード
+========================================================== */
+
+.shop-sales-page .tuition-sales-table tr:has(.tuition-edit-input) {
+    background: #eff6ff;
+}
+
+.shop-sales-page .tuition-sales-table td:has(.tuition-edit-input) {
+    padding: 6px 8px;
+    background: #eff6ff;
+}
+
+.shop-sales-page .tuition-edit-input {
+    width: 100%;
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid #93c5fd;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0f172a;
+    font: inherit;
+    outline: none;
+}
+
+.shop-sales-page .tuition-edit-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.shop-sales-page .tuition-sales-table td:has(.tuition-edit-input) select.tuition-edit-input {
+    min-width: 120px;
+}
+
+.shop-sales-page .tuition-sales-table td:has(.tuition-edit-input) input[type="date"].tuition-edit-input {
+    min-width: 130px;
+}
+
+.shop-sales-page .tuition-sales-table td:has(.tuition-edit-input) input[type="text"].tuition-edit-input {
+    min-width: 110px;
+}
+
+/* ==========================================================
+   モーダル
+========================================================== */
+
+.tuition-column-modal,
+.tuition-detail-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 99990;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.35);
+}
+
+.tuition-column-modal.is-open,
+.tuition-detail-modal.is-open {
+    display: flex;
+}
+
+.tuition-column-content,
+.tuition-detail-content {
+    width: min(720px, calc(100vw - 40px));
+    max-height: calc(100vh - 80px);
+    overflow: auto;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22);
+}
+
+.tuition-column-header,
+.tuition-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 18px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tuition-column-header h3,
+.tuition-detail-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.tuition-column-header button,
+.tuition-detail-header button {
+    border: none;
+    background: transparent;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.tuition-column-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 18px;
+}
+
+#tuitionDetailBody {
+    padding: 18px;
+}
+
+.tuition-detail-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    border: 1px solid #e5e7eb;
+    border-bottom: none;
+}
+
+.tuition-detail-grid dt,
+.tuition-detail-grid dd {
+    margin: 0;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tuition-detail-grid dt {
+    background: #f8fafc;
+    font-weight: 800;
+}
+
+/* ==========================================================
+   ホバー詳細
+========================================================== */
+
+.lf-tooltip {
+    cursor: help;
+}
+
+.lf-floating-tooltip {
+    position: fixed;
+    z-index: 99999;
+    display: none;
+    max-width: 420px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #1e293b;
+    color: #ffffff;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-line;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .18);
+    pointer-events: none;
+}
+
+/* ==========================================================
+   Responsive
+========================================================== */
+
+@media (max-width: 1200px) {
+    .shop-sales-page .shop-sale-form-row-main {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .shop-sales-page .shop-sale-form-row-sub {
+        grid-template-columns: 1fr;
+    }
+
+    .shop-sales-page .shop-sale-inline-items {
+        width: 100%;
+    }
+
+    .shop-sales-page .shop-sale-inline-items .shop-sale-items-row {
+        grid-template-columns: 1fr;
+    }
+
+    .shop-sales-page .shop-product-lookup {
+        width: 100%;
+    }
+
+    .shop-sales-page .shop-sale-side-actions {
+        grid-template-columns: 1fr;
+        padding-top: 0;
+    }
+
+    .shop-sales-page .shop-add-inline-button,
+    .shop-sales-page .shop-remove-item-button,
+    .shop-sales-page .shop-sale-total-card,
+    .shop-sales-page .shop-sale-submit-button {
+        width: 100%;
+    }
+
+    .shop-sales-page .tuition-search-keyword {
+        flex: 1 1 100%;
+        max-width: none;
+    }
+}
+
+.shop-sales-page .shop-chart-card {
+    margin-top: 14px;
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid #dbe2ea;
+    border-radius: 14px;
+}
+
+.shop-sales-page .shop-chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 14px;
+}
+
+.shop-sales-page .shop-chart-box {
+    padding: 16px;
+    border: 1px solid #dbe2ea;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.shop-sales-page .shop-chart-box h4 {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.shop-sales-page .shop-chart-box canvas {
+    width: 100% !important;
+    height: 300px !important;
+}
+
+@media (max-width: 1200px) {
+    .shop-sales-page .shop-chart-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tuition-chart-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:18px;
+}
+
+.tuition-chart-toolbar{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.tuition-chart-periods{
+    display:flex;
+    gap:8px;
+}
+
+.tuition-chart-periods a{
+    padding:8px 16px;
+    border-radius:999px;
+    border:1px solid #dbe2ea;
+    background:#fff;
+    color:#475569;
+    text-decoration:none;
+    font-size:13px;
+    font-weight:700;
+}
+
+.tuition-chart-periods a.active{
+    background:#2563eb;
+    color:#fff;
+    border-color:#2563eb;
+}
+
+.tuition-chart-toggle{
+    width:38px;
+    height:38px;
+    border-radius:999px;
+    border:1px solid #dbe2ea;
+    background:#fff;
+    cursor:pointer;
+    font-size:18px;
+    font-weight:700;
+}
+
+.shop-chart-grid.is-hidden{
+    display:none;
+}
+
+.shop-sales-page .shop-chart-grid.is-hidden {
+    display: none;
+}
+
+.shop-sales-page .shop-chart-card {
+    margin-top: 14px;
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid #dbe2ea;
+    border-radius: 14px;
+}
+
+.shop-sales-page .shop-chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 14px;
+}
+
+.shop-sales-page .shop-chart-box {
+    padding: 16px;
+    border: 1px solid #dbe2ea;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.shop-sales-page .shop-chart-box canvas {
+    width: 100% !important;
+    height: 300px !important;
+}
+
+.shop-sales-page .tuition-chart-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.shop-sales-page .tuition-chart-collapse-button {
+    width: 38px;
+    height: 38px;
+    border: 1px solid #dbe2ea;
+    border-radius: 999px;
+    background: #fff;
+    color: #334155;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.shop-sales-page .shop-chart-grid.is-hidden {
+    display: none;
+}
+
+.shop-sales-page .shop-chart-box {
+    min-height: 340px;
+}
+
+.shop-sales-page .shop-chart-box canvas {
+    width: 100% !important;
+    height: 300px !important;
+}
+
+.shop-chart-canvas{
+    height:600px;
+}
+
+.shop-sales-page .shop-chart-box {
+    min-height: 420px;
+}
+
+.shop-sales-page .shop-chart-canvas-wrap {
+    position: relative;
+    height: 340px;
+}
+
+.shop-sales-page .shop-chart-canvas-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.shop-sales-page .shop-chart-grid.is-hidden {
+    display: none;
+}
+
+.shop-sales-page .shop-chart-card {
+    margin-top: 24px;
+}
+
+.shop-sales-page .shop-chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.shop-sales-page .shop-chart-box {
+    border: 1px solid #dbe2ea;
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: #fff;
+}
+
+.shop-sales-page .shop-chart-box h4 {
+    margin: 0 0 12px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.shop-sales-page .shop-chart-canvas-wrap {
+    position: relative;
+    height: 400px;   /* ← グラフの縦幅はここ */
+}
+
+.tuition-pagination{
+    padding:12px 16px;
+    display:flex;
+    justify-content:flex-end;
+}
+
+.tuition-pagination nav{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:14px;
+}
+
+.tuition-pagination nav > div:first-child{
+    display:none;
+}
+
+.tuition-pagination nav > div:last-child{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.tuition-pagination p{
+    margin:0;
+    font-size:12px;
+    color:#64748b;
+}
+
+.tuition-pagination a,
+.tuition-pagination span{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:24px;
+    height:24px;
+    padding:0 6px;
+    border-radius:6px;
+    font-size:12px;
+    line-height:1;
+    text-decoration:none;
+}
+
+.tuition-pagination a{
+    color:#2563eb;
+}
+
+.tuition-pagination span[aria-current="page"],
+.tuition-pagination span[aria-current="true"]{
+    background:#2563eb;
+    color:#fff;
+    font-weight:700;
+}
+
+.tuition-pagination svg{
+    width:12px !important;
+    height:12px !important;
+}
+/* Event sales additions */
+.event-sales-page .event-sale-form-row-main {
+    grid-template-columns: minmax(220px, 1.2fr) minmax(260px, 1.5fr) minmax(160px, .9fr) minmax(150px, .8fr);
+}
+
+.event-sales-page .event-sale-amount-row {
+    grid-template-columns: minmax(180px, 1fr) minmax(140px, .8fr) minmax(140px, .8fr) minmax(260px, 1.2fr);
+    align-items: end;
+}
+
+.event-sales-page .event-sale-summary {
+    margin-top: 0;
+}
+
+.event-sales-page .event-sale-memo-row {
+    grid-template-columns: minmax(260px, 1fr) minmax(260px, 1fr) auto;
+    align-items: end;
+}
+
+.event-sales-page .event-search-event-field {
+    min-width: 260px;
+}
+
+.event-sales-table th,
+.event-sales-table td {
+    white-space: nowrap;
+}
+
+.event-sales-table th:nth-child(6),
+.event-sales-table td:nth-child(6) {
+    min-width: 220px;
+    max-width: 280px;
+}
+
+.event-sales-table th:nth-child(17),
+.event-sales-table td:nth-child(17),
+.event-sales-table th:nth-child(18),
+.event-sales-table td:nth-child(18) {
+    min-width: 160px;
+    max-width: 220px;
+}
+
+.event-sales-page .shop-chart-grid.is-hidden {
+    display: none;
+}
+
+@media (max-width: 1200px) {
+    .event-sales-page .event-sale-form-row-main,
+    .event-sales-page .event-sale-amount-row,
+    .event-sales-page .event-sale-memo-row {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+
+/* ==========================================================
+   Event Sales Phase1 UI polish
+   ショップ売上と同等の見た目に寄せるための上書き
+========================================================== */
+.event-sales-page {
+    color: #0f172a;
+}
+
+.event-sales-page .page-header {
+    margin-bottom: 18px;
+}
+
+.event-sales-page .page-header h1 {
+    margin: 0 0 8px;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: .02em;
+}
+
+.event-sales-page .page-header p {
+    margin: 0;
+    color: #475569;
+    font-size: 14px;
+}
+
+.event-sales-page .event-sale-create-card {
+    margin-bottom: 22px;
+    padding: 18px 20px 20px;
+}
+
+.event-sales-page .shop-sale-create-header {
+    margin-bottom: 16px;
+}
+
+.event-sales-page .shop-sale-create-header h3 {
+    font-size: 18px;
+}
+
+.event-sales-page .shop-sale-create-header p {
+    font-size: 13px;
+}
+
+.event-sales-page .event-sale-form-row-main {
+    display: grid;
+    grid-template-columns: minmax(260px, 1.35fr) minmax(360px, 1.85fr) minmax(220px, 1.1fr) minmax(210px, 1fr);
+    gap: 14px;
+    align-items: end;
+    margin-bottom: 12px;
+}
+
+.event-sales-page .shop-sale-field {
+    position: relative;
+}
+
+.event-sales-page .shop-sale-field input,
+.event-sales-page .shop-sale-field select,
+.event-sales-page .event-sale-amount-row input,
+.event-sales-page .event-sale-amount-row select {
+    height: 38px;
+    border-color: #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.event-sales-page .shop-sale-field input:focus,
+.event-sales-page .shop-sale-field select:focus,
+.event-sales-page .event-sale-amount-row input:focus,
+.event-sales-page .event-sale-amount-row select:focus,
+.event-sales-page .tuition-search-area input:focus,
+.event-sales-page .tuition-search-area select:focus {
+    outline: none;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
+}
+
+.event-sales-page .event-sale-amount-card {
+    margin: 4px 0 12px;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+.event-sales-page .event-sale-amount-card .shop-sale-items-header {
+    margin: 0 0 6px;
+    padding: 0;
+    border: none;
+}
+
+.event-sales-page .event-sale-amount-card .shop-sale-items-header strong {
+    display: inline-block;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.event-sales-page .event-sale-amount-row {
+    display: grid;
+    grid-template-columns: minmax(190px, .9fr) minmax(170px, .75fr) minmax(170px, .75fr) 240px;
+    gap: 14px;
+    align-items: end;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+.event-sales-page .event-sale-amount-row > label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.event-sales-page .event-sale-amount-row input,
+.event-sales-page .event-sale-amount-row select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 10px;
+    background: #ffffff;
+}
+
+.event-sales-page .event-sale-summary {
+    width: 240px;
+    min-height: 76px;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.event-sales-page .event-sale-summary div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 19px;
+    color: #334155;
+    font-size: 12px;
+}
+
+.event-sales-page .event-sale-summary strong {
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.event-sales-page .event-sale-summary .shop-sale-summary-total {
+    margin-top: 6px;
+    padding-top: 7px;
+    border-top: 1px solid #d6dde8;
+}
+
+.event-sales-page .event-sale-summary .shop-sale-summary-total strong {
+    color: #0369a1;
+    font-size: 17px;
+}
+
+.event-sales-page .event-sale-memo-row {
+    display: grid;
+    grid-template-columns: minmax(340px, 1fr) minmax(340px, 1fr) 230px;
+    gap: 14px;
+    align-items: end;
+    margin: 0;
+}
+
+.event-sales-page .shop-sale-actions {
+    display: grid;
+    grid-template-columns: 78px 150px;
+    gap: 8px;
+    align-items: end;
+    justify-content: end;
+}
+
+.event-sales-page .shop-sale-clear-button,
+.event-sales-page .shop-sale-submit-button {
+    height: 38px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.event-sales-page .shop-sale-clear-button {
+    border: 1px solid #dbe2ea;
+    background: #ffffff;
+    color: #334155;
+}
+
+.event-sales-page .shop-sale-submit-button {
+    width: 150px;
+}
+
+.event-sales-page .tuition-search-area {
+    margin-bottom: 18px;
+    padding: 16px 18px;
+    background: #ffffff;
+    border: 1px solid #dbe2ea;
+    border-radius: 14px;
+}
+
+.event-sales-page .tuition-search-row {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(140px, 1fr));
+    gap: 12px;
+    align-items: end;
+    margin-bottom: 10px;
+}
+
+.event-sales-page .tuition-search-row label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.event-sales-page .tuition-search-area input,
+.event-sales-page .tuition-search-area select {
+    width: 100%;
+    height: 36px;
+    box-sizing: border-box;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+}
+
+.event-sales-page .tuition-search-row-last {
+    display: grid;
+    grid-template-columns: minmax(520px, 1fr) auto;
+    gap: 12px;
+    margin-bottom: 0;
+}
+
+.event-sales-page .tuition-search-keyword {
+    min-width: 0;
+}
+
+.event-sales-page .tuition-search-buttons {
+    display: flex;
+    align-items: end;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 17px;
+}
+
+.event-sales-page .tuition-search-button,
+.event-sales-page .tuition-clear-button,
+.event-sales-page .tuition-export-button,
+.event-sales-page .tuition-column-setting-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.event-sales-page .tuition-search-button {
+    border: none;
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.event-sales-page .tuition-clear-button {
+    border: 1px solid #dbe2ea;
+    background: #ffffff;
+    color: #334155;
+}
+
+.event-sales-page .tuition-export-button {
+    border: 1px solid #22c55e;
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.event-sales-page .tuition-column-setting-button {
+    border: none;
+    background: transparent;
+    color: #334155;
+}
+
+.event-sales-page .tuition-table-card {
+    overflow: hidden;
+    margin-bottom: 24px;
+    background: #ffffff;
+    border: 1px solid #dbe2ea;
+    border-radius: 14px;
+}
+
+.event-sales-page .tuition-table-summary {
+    padding: 12px 14px 4px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.event-sales-page .tuition-table-scroll {
+    max-height: 520px;
+    overflow: auto;
+}
+
+.event-sales-page .event-sales-table {
+    width: 100%;
+    min-width: 1780px;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.event-sales-page .event-sales-table th,
+.event-sales-page .event-sales-table td {
+    height: 34px;
+    padding: 7px 10px;
+    border-bottom: 1px solid #edf2f7;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.event-sales-page .event-sales-table th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: #f8fafc;
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.event-sales-page .event-sales-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.event-sales-page .event-sales-table .tuition-amount-cell {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+}
+
+.event-sales-page .event-sales-table .tuition-discount-amount {
+    color: #dc2626;
+}
+
+.event-sales-page .event-sales-table .tuition-final-amount {
+    color: #0f172a;
+    font-weight: 900;
+}
+
+.event-sales-page .tuition-action-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.event-sales-page .tuition-detail-button,
+.event-sales-page .tuition-edit-button,
+.event-sales-page .tuition-save-button,
+.event-sales-page .tuition-cancel-button {
+    height: 26px;
+    padding: 0 9px;
+    border: none;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.event-sales-page .tuition-detail-button {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.event-sales-page .tuition-edit-button {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.event-sales-page .tuition-save-button {
+    background: #2563eb;
+    color: #fff;
+}
+
+.event-sales-page .tuition-cancel-button {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.event-sales-page .tuition-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 54px;
+    height: 24px;
+    padding: 0 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.event-sales-page .tuition-status-badge.paid {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.event-sales-page .tuition-status-badge.unpaid {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.event-sales-page .tuition-status-badge.cancelled {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.event-sales-page .event-chart-card {
+    margin-top: 24px;
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid #dbe2ea;
+    border-radius: 14px;
+}
+
+.event-sales-page .tuition-chart-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.event-sales-page .tuition-chart-header h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.event-sales-page .tuition-chart-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.event-sales-page .tuition-chart-periods {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.event-sales-page .tuition-chart-periods a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 13px;
+    border: 1px solid #dbe2ea;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.event-sales-page .tuition-chart-periods a.active {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.event-sales-page .tuition-chart-collapse-button {
+    width: 32px;
+    height: 32px;
+}
+
+.event-sales-page .shop-chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.event-sales-page .shop-chart-box {
+    min-height: 360px;
+    padding: 16px;
+    border: 1px solid #dbe2ea;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.event-sales-page .shop-chart-box h4 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.event-sales-page .shop-chart-canvas-wrap {
+    height: 310px;
+}
+
+@media (max-width: 1280px) {
+    .event-sales-page .event-sale-form-row-main,
+    .event-sales-page .event-sale-amount-row,
+    .event-sales-page .event-sale-memo-row,
+    .event-sales-page .tuition-search-row,
+    .event-sales-page .tuition-search-row-last {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .event-sales-page .shop-sale-actions,
+    .event-sales-page .tuition-search-buttons {
+        justify-content: flex-start;
+    }
+}
+
+
+/* ==========================================================
+   Event Sales Phase1 micro polish
+   画面確認後の追加調整
+========================================================== */
+.event-sales-page .event-sale-create-card {
+    padding: 18px 20px 18px;
+}
+
+.event-sales-page .event-sale-form-row-main {
+    grid-template-columns: minmax(280px, 1.2fr) minmax(430px, 1.8fr) minmax(250px, 1.05fr) minmax(230px, .95fr);
+    column-gap: 14px;
+    row-gap: 10px;
+}
+
+.event-sales-page .event-sale-amount-card {
+    margin-top: 8px;
+    margin-bottom: 10px;
+}
+
+.event-sales-page .event-sale-amount-row {
+    grid-template-columns: minmax(260px, 1fr) minmax(210px, .8fr) minmax(210px, .8fr) 230px;
+    column-gap: 14px;
+    row-gap: 8px;
+    align-items: end;
+}
+
+.event-sales-page .event-sale-summary {
+    width: 230px;
+    min-height: 72px;
+    padding: 7px 11px;
+    align-self: end;
+}
+
+.event-sales-page .event-sale-memo-row {
+    grid-template-columns: minmax(420px, 1.15fr) minmax(420px, 1.15fr) 238px;
+    gap: 12px;
+    align-items: end;
+}
+
+.event-sales-page .shop-sale-actions {
+    grid-template-columns: 76px 154px;
+    gap: 8px;
+}
+
+.event-sales-page .shop-sale-submit-button {
+    width: 154px;
+}
+
+.event-sales-page .tuition-search-area {
+    padding: 15px 18px 14px;
+}
+
+.event-sales-page .tuition-search-row {
+    grid-template-columns: 120px 120px 120px 120px 160px 120px 120px 140px 120px 150px;
+    gap: 10px;
+    align-items: end;
+}
+
+.event-sales-page .tuition-search-row label {
+    min-width: 0;
+}
+
+.event-sales-page .tuition-search-row-last {
+    grid-template-columns: minmax(520px, 1fr) auto;
+    gap: 10px;
+}
+
+.event-sales-page .tuition-search-buttons {
+    padding-top: 16px;
+}
+
+.event-sales-page .tuition-table-summary {
+    display: flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 8px 12px 6px;
+}
+
+.event-sales-page .tuition-table-scroll {
+    position: relative;
+    max-height: 560px;
+    overflow: auto;
+}
+
+.event-sales-page .event-sales-table {
+    min-width: 1880px;
+    table-layout: fixed;
+}
+
+.event-sales-page .event-sales-table thead {
+    display: table-header-group;
+}
+
+.event-sales-page .event-sales-table thead tr {
+    height: 38px;
+}
+
+.event-sales-page .event-sales-table th {
+    height: 38px;
+    padding: 8px 10px;
+    line-height: 1.25;
+    background: #f8fafc;
+    box-shadow: inset 0 -1px 0 #e5e7eb;
+}
+
+.event-sales-page .event-sales-table td {
+    height: 36px;
+}
+
+.event-sales-page .event-sales-table th:nth-child(1),
+.event-sales-page .event-sales-table td:nth-child(1) { width: 36px; }
+.event-sales-page .event-sales-table th:nth-child(2),
+.event-sales-page .event-sales-table td:nth-child(2) { width: 58px; }
+.event-sales-page .event-sales-table th:nth-child(3),
+.event-sales-page .event-sales-table td:nth-child(3) { width: 120px; }
+.event-sales-page .event-sales-table th:nth-child(4),
+.event-sales-page .event-sales-table td:nth-child(4) { width: 90px; }
+.event-sales-page .event-sales-table th:nth-child(5),
+.event-sales-page .event-sales-table td:nth-child(5) { width: 95px; }
+.event-sales-page .event-sales-table th:nth-child(6),
+.event-sales-page .event-sales-table td:nth-child(6) { width: 170px; }
+.event-sales-page .event-sales-table th:nth-child(7),
+.event-sales-page .event-sales-table td:nth-child(7) { width: 90px; }
+.event-sales-page .event-sales-table th:nth-child(8),
+.event-sales-page .event-sales-table td:nth-child(8) { width: 92px; }
+.event-sales-page .event-sales-table th:nth-child(9),
+.event-sales-page .event-sales-table td:nth-child(9) { width: 105px; }
+.event-sales-page .event-sales-table th:nth-child(10),
+.event-sales-page .event-sales-table td:nth-child(10) { width: 110px; }
+.event-sales-page .event-sales-table th:nth-child(11),
+.event-sales-page .event-sales-table td:nth-child(11) { width: 95px; }
+.event-sales-page .event-sales-table th:nth-child(12),
+.event-sales-page .event-sales-table td:nth-child(12) { width: 82px; }
+.event-sales-page .event-sales-table th:nth-child(13),
+.event-sales-page .event-sales-table td:nth-child(13) { width: 105px; }
+.event-sales-page .event-sales-table th:nth-child(14),
+.event-sales-page .event-sales-table td:nth-child(14) { width: 88px; }
+.event-sales-page .event-sales-table th:nth-child(15),
+.event-sales-page .event-sales-table td:nth-child(15) { width: 112px; }
+.event-sales-page .event-sales-table th:nth-child(16),
+.event-sales-page .event-sales-table td:nth-child(16) { width: 86px; }
+.event-sales-page .event-sales-table th:nth-child(17),
+.event-sales-page .event-sales-table td:nth-child(17) { width: 150px; }
+.event-sales-page .event-sales-table th:nth-child(18),
+.event-sales-page .event-sales-table td:nth-child(18) { width: 150px; }
+.event-sales-page .event-sales-table th:nth-child(19),
+.event-sales-page .event-sales-table td:nth-child(19) { width: 84px; }
+
+.event-sales-page .event-sales-table td:nth-child(6),
+.event-sales-page .event-sales-table td:nth-child(17),
+.event-sales-page .event-sales-table td:nth-child(18) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.event-sales-page .tuition-pagination {
+    padding: 10px 12px;
+}
+
+.event-sales-page .event-chart-card {
+    margin-top: 24px;
+}
+
+.event-sales-page .shop-chart-box {
+    min-height: 330px;
+}
+
+.event-sales-page .shop-chart-canvas-wrap {
+    height: 285px;
+}
+
+@media (max-width: 1500px) {
+    .event-sales-page .tuition-search-row {
+        grid-template-columns: repeat(5, minmax(130px, 1fr));
+    }
+}
+
+@media (max-width: 1280px) {
+    .event-sales-page .event-sale-form-row-main,
+    .event-sales-page .event-sale-amount-row,
+    .event-sales-page .event-sale-memo-row,
+    .event-sales-page .tuition-search-row,
+    .event-sales-page .tuition-search-row-last {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* ==========================================================
+   Phase1.5 Event Sales UI completion
+========================================================== */
+.event-sales-page .event-sale-create-card {
+    padding: 18px 20px 16px !important;
+}
+
+.event-sales-page .event-sale-create-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.event-sales-page .event-sale-create-grid {
+    display: grid;
+    gap: 12px;
+    align-items: end;
+}
+
+.event-sales-page .event-sale-create-grid-basic {
+    grid-template-columns: 1.15fr 1.65fr 1fr 1fr;
+}
+
+.event-sales-page .event-sale-create-grid-payment {
+    grid-template-columns: 1fr 1fr 1fr 1fr 1.05fr;
+}
+
+.event-sales-page .event-sale-create-grid-amount {
+    grid-template-columns: 1fr 1fr 1.45fr 1.45fr 170px 178px;
+}
+
+.event-sales-page .event-sale-summary-inline {
+    width: 170px;
+    min-height: 54px;
+    margin: 0;
+    padding: 7px 10px;
+    align-self: end;
+}
+
+.event-sales-page .event-sale-summary-inline div {
+    height: 16px;
+    margin: 0;
+    font-size: 11px;
+}
+
+.event-sales-page .event-sale-summary-inline strong {
+    font-size: 12px;
+}
+
+.event-sales-page .event-sale-summary-inline .shop-sale-summary-total {
+    margin-top: 4px;
+    padding-top: 4px;
+}
+
+.event-sales-page .event-sale-summary-inline .shop-sale-summary-total strong {
+    font-size: 16px;
+}
+
+.event-sales-page .event-sale-create-actions {
+    display: grid;
+    grid-template-columns: 112px 56px;
+    gap: 8px;
+    align-self: end;
+    justify-content: end;
+    width: 178px;
+}
+
+.event-sales-page .event-sale-create-actions .shop-sale-clear-button,
+.event-sales-page .event-sale-create-actions .shop-sale-submit-button {
+    width: 100%;
+    height: 36px;
+    margin: 0;
+}
+
+.event-sales-page .event-sale-create-actions .shop-sale-submit-button {
+    white-space: nowrap;
+    font-size: 11px;
+}
+
+.event-sales-page .event-sale-search-area {
+    padding: 14px 16px !important;
+}
+
+.event-sales-page .event-sale-search-grid {
+    display: grid;
+    gap: 10px;
+    align-items: end;
+}
+
+.event-sales-page .event-sale-search-grid-dates {
+    grid-template-columns: 145px 145px 145px 145px 180px;
+    margin-bottom: 10px;
+}
+
+.event-sales-page .event-sale-search-grid-main {
+    grid-template-columns: 170px 140px 145px 145px 145px minmax(260px, 1fr) auto;
+}
+
+.event-sales-page .event-sale-search-grid label {
+    min-width: 0;
+}
+
+.event-sales-page .event-sale-search-keyword input {
+    min-width: 0;
+}
+
+.event-sales-page .event-sale-search-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    align-self: end;
+    white-space: nowrap;
+}
+
+.event-sales-page .event-sale-search-buttons .tuition-search-button,
+.event-sales-page .event-sale-search-buttons .tuition-clear-button,
+.event-sales-page .event-sale-search-buttons .tuition-export-button,
+.event-sales-page .event-sale-search-buttons .tuition-column-setting-button {
+    height: 32px;
+}
+
+.event-sales-page .event-th-filter-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+}
+
+.event-sales-page .event-column-filter-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.event-sales-page .event-column-filter-button:hover,
+.event-sales-page .event-column-filter-button.is-active {
+    background: #e0ecff;
+    color: #2563eb;
+}
+
+.event-column-filter-popover {
+    position: fixed;
+    z-index: 5000;
+    display: none;
+    width: 276px;
+    max-height: 370px;
+    box-sizing: border-box;
+    padding: 14px;
+    background: #ffffff;
+    border: 1px solid #dbe2ea;
+    border-radius: 14px;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.18);
+}
+
+.event-column-filter-popover.is-open {
+    display: block;
+}
+
+.event-column-filter-title {
+    margin-bottom: 10px;
+    color: #0f172a;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.event-column-filter-search {
+    width: 100%;
+    height: 36px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+    padding: 0 12px;
+    border: 1px solid #dbe2ea;
+    border-radius: 9px;
+    font-size: 13px;
+}
+
+.event-column-filter-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.event-column-filter-actions button {
+    height: 30px;
+    padding: 0 10px;
+    border: none;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.event-column-filter-list {
+    max-height: 205px;
+    overflow: auto;
+    padding-right: 4px;
+}
+
+.event-column-filter-item {
+    display: grid;
+    grid-template-columns: 18px 1fr auto;
+    gap: 8px;
+    align-items: center;
+    min-height: 28px;
+    color: #334155;
+    font-size: 13px;
+}
+
+.event-column-filter-item input {
+    width: 14px;
+    height: 14px;
+}
+
+.event-column-filter-count {
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.event-column-filter-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.event-column-filter-footer button {
+    height: 34px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 9px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.event-sales-page .event-sales-table tbody tr.is-column-filter-hidden {
+    display: none;
+}
+
+.event-sales-page .event-sales-table th:nth-child(6),
+.event-sales-page .event-sales-table td:nth-child(6) { width: 185px; }
+
+.event-sales-page .event-sales-table th:nth-child(10),
+.event-sales-page .event-sales-table td:nth-child(10) { width: 118px; }
+
+.event-sales-page .event-sales-table th:nth-child(16),
+.event-sales-page .event-sales-table td:nth-child(16) { width: 90px; }
+
+@media (max-width: 1500px) {
+    .event-sales-page .event-sale-create-grid-basic,
+    .event-sales-page .event-sale-create-grid-payment {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .event-sales-page .event-sale-create-grid-payment .shop-sale-field:last-child {
+        grid-column: span 1;
+    }
+
+    .event-sales-page .event-sale-create-grid-amount {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .event-sales-page .event-sale-memo-field {
+        grid-column: span 1;
+    }
+
+    .event-sales-page .event-sale-summary-inline,
+    .event-sales-page .event-sale-create-actions {
+        width: 100%;
+    }
+
+    .event-sales-page .event-sale-search-grid-main {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .event-sales-page .event-sale-search-keyword {
+        grid-column: span 3;
+    }
+
+    .event-sales-page .event-sale-search-buttons {
+        grid-column: span 2;
+    }
+}
+
+.event-sales-page .tuition-pagination.is-column-filtered nav > div:first-child,
+.event-sales-page .tuition-pagination.is-column-filtered nav > div:last-child {
+    display: none;
+}
+
+.event-sales-page .event-filtered-pagination-note {
+    padding: 10px 12px;
+    text-align: right;
+    color: #64748b;
+    font-size: 12px;
+}
+
+
+/* ==========================================================
+   Phase1.7 修正：検索ラベル・編集行・詳細モーダル・表示項目
+========================================================== */
+.event-sales-page .event-sale-search-grid label {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    line-height: 1.35;
+}
+
+.event-sales-page .event-sale-search-grid input,
+.event-sales-page .event-sale-search-grid select {
+    margin-top: 6px;
+}
+
+.event-sales-page .tuition-sales-table tr.is-editing {
+    background: #eff6ff;
+}
+
+.event-sales-page .tuition-sales-table tr.is-editing td {
+    padding: 6px 8px;
+    background: #eff6ff;
+    vertical-align: middle;
+}
+
+.event-sales-page .tuition-edit-input {
+    width: 100%;
+    height: 30px;
+    padding: 0 8px;
+    border: 1px solid #93c5fd;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: 600;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.event-sales-page .tuition-edit-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.event-sales-page .tuition-sales-table tr.is-editing td[data-edit-field="scheduled_date"],
+.event-sales-page .tuition-sales-table tr.is-editing td[data-edit-field="transaction_date"] {
+    min-width: 128px;
+}
+
+.event-sales-page .tuition-sales-table tr.is-editing td[data-edit-field="payment_method_id"],
+.event-sales-page .tuition-sales-table tr.is-editing td[data-edit-field="payment_status"] {
+    min-width: 132px;
+}
+
+.event-sales-page .tuition-sales-table tr.is-editing td[data-edit-field="before_discount_amount"],
+.event-sales-page .tuition-sales-table tr.is-editing td[data-edit-field="discount_amount"] {
+    min-width: 104px;
+}
+
+.event-sales-page .tuition-sales-table tr.is-editing td[data-edit-field="memo"],
+.event-sales-page .tuition-sales-table tr.is-editing td[data-edit-field="discount_note"] {
+    min-width: 160px;
+}
+
+.event-sales-page .tuition-sales-table tr.is-editing .tuition-action-cell {
+    min-width: 94px;
+    white-space: nowrap;
+}
+
+.event-sales-page .tuition-detail-content {
+    width: min(860px, calc(100vw - 48px));
+    max-height: calc(100vh - 72px);
+    overflow: hidden;
+}
+
+.event-sales-page #tuitionDetailBody {
+    max-height: calc(100vh - 150px);
+    overflow: auto;
+    padding: 18px;
+}
+
+.event-sales-page .event-detail-grid {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-bottom: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.event-sales-page .event-detail-grid dt,
+.event-sales-page .event-detail-grid dd {
+    min-width: 0;
+    margin: 0;
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.6;
+}
+
+.event-sales-page .event-detail-grid dt {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.event-sales-page .event-detail-grid dd {
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* ==========================================================
+   Phase1.8: inline edit layout fix
+   - 編集モード時に日付・select・金額入力が隣列へはみ出さないように固定
+   ========================================================== */
+.event-sales-page .event-sales-table {
+    min-width: 2160px;
+}
+
+.event-sales-page .event-sales-table th,
+.event-sales-page .event-sales-table td {
+    box-sizing: border-box;
+}
+
+.event-sales-page .event-sales-table th:nth-child(9),
+.event-sales-page .event-sales-table td:nth-child(9) { width: 125px; }
+.event-sales-page .event-sales-table th:nth-child(10),
+.event-sales-page .event-sales-table td:nth-child(10) { width: 135px; }
+.event-sales-page .event-sales-table th:nth-child(11),
+.event-sales-page .event-sales-table td:nth-child(11) { width: 125px; }
+.event-sales-page .event-sales-table th:nth-child(12),
+.event-sales-page .event-sales-table td:nth-child(12) { width: 90px; }
+.event-sales-page .event-sales-table th:nth-child(13),
+.event-sales-page .event-sales-table td:nth-child(13) { width: 118px; }
+.event-sales-page .event-sales-table th:nth-child(14),
+.event-sales-page .event-sales-table td:nth-child(14) { width: 100px; }
+.event-sales-page .event-sales-table th:nth-child(16),
+.event-sales-page .event-sales-table td:nth-child(16) { width: 96px; }
+.event-sales-page .event-sales-table th:nth-child(17),
+.event-sales-page .event-sales-table td:nth-child(17) { width: 180px; }
+.event-sales-page .event-sales-table th:nth-child(18),
+.event-sales-page .event-sales-table td:nth-child(18) { width: 180px; }
+.event-sales-page .event-sales-table th:nth-child(19),
+.event-sales-page .event-sales-table td:nth-child(19) { width: 96px; }
+
+.event-sales-page .event-sales-table tr.is-editing td {
+    overflow: visible;
+    padding: 5px 7px;
+}
+
+.event-sales-page .event-sales-table tr.is-editing td[data-edit-field] {
+    position: relative;
+}
+
+.event-sales-page .event-sales-table tr.is-editing .tuition-edit-input {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: 32px;
+    padding: 0 8px;
+    box-sizing: border-box;
+    line-height: 32px;
+    font-size: 12px;
+}
+
+.event-sales-page .event-sales-table tr.is-editing select.tuition-edit-input {
+    padding-right: 22px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.event-sales-page .event-sales-table tr.is-editing input[type="date"].tuition-edit-input {
+    padding-right: 6px;
+}
+
+.event-sales-page .event-sales-table tr.is-editing input[type="number"].tuition-edit-input {
+    text-align: right;
+}
+
+.event-sales-page .event-sales-table tr.is-editing .tuition-action-cell {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: flex-start;
+    white-space: nowrap;
+}
+
+.event-sales-page .event-sales-table tr.is-editing .tuition-save-button,
+.event-sales-page .event-sales-table tr.is-editing .tuition-cancel-button {
+    min-width: 42px;
+    height: 28px;
+    padding: 0 8px;
+}
+
+/* ==========================================================
+   Phase1.9: inline edit table hard fix
+   編集行でセル内容や入力枠が隣列へ重ならないよう、イベント売上一覧は固定レイアウトにする
+========================================================== */
+.event-sales-page .tuition-table-scroll {
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+.event-sales-page .event-sales-table {
+    table-layout: fixed !important;
+    width: 2520px !important;
+    min-width: 2520px !important;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.event-sales-page .event-sales-table th,
+.event-sales-page .event-sales-table td {
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.event-sales-page .event-sales-table th:nth-child(1),
+.event-sales-page .event-sales-table td:nth-child(1) { width: 38px !important; min-width: 38px !important; max-width: 38px !important; }
+.event-sales-page .event-sales-table th:nth-child(2),
+.event-sales-page .event-sales-table td:nth-child(2) { width: 64px !important; min-width: 64px !important; max-width: 64px !important; }
+.event-sales-page .event-sales-table th:nth-child(3),
+.event-sales-page .event-sales-table td:nth-child(3) { width: 130px !important; min-width: 130px !important; max-width: 130px !important; }
+.event-sales-page .event-sales-table th:nth-child(4),
+.event-sales-page .event-sales-table td:nth-child(4) { width: 116px !important; min-width: 116px !important; max-width: 116px !important; }
+.event-sales-page .event-sales-table th:nth-child(5),
+.event-sales-page .event-sales-table td:nth-child(5) { width: 112px !important; min-width: 112px !important; max-width: 112px !important; }
+.event-sales-page .event-sales-table th:nth-child(6),
+.event-sales-page .event-sales-table td:nth-child(6) { width: 220px !important; min-width: 220px !important; max-width: 220px !important; }
+.event-sales-page .event-sales-table th:nth-child(7),
+.event-sales-page .event-sales-table td:nth-child(7) { width: 116px !important; min-width: 116px !important; max-width: 116px !important; }
+.event-sales-page .event-sales-table th:nth-child(8),
+.event-sales-page .event-sales-table td:nth-child(8) { width: 118px !important; min-width: 118px !important; max-width: 118px !important; }
+.event-sales-page .event-sales-table th:nth-child(9),
+.event-sales-page .event-sales-table td:nth-child(9) { width: 142px !important; min-width: 142px !important; max-width: 142px !important; }
+.event-sales-page .event-sales-table th:nth-child(10),
+.event-sales-page .event-sales-table td:nth-child(10) { width: 160px !important; min-width: 160px !important; max-width: 160px !important; }
+.event-sales-page .event-sales-table th:nth-child(11),
+.event-sales-page .event-sales-table td:nth-child(11) { width: 142px !important; min-width: 142px !important; max-width: 142px !important; }
+.event-sales-page .event-sales-table th:nth-child(12),
+.event-sales-page .event-sales-table td:nth-child(12) { width: 126px !important; min-width: 126px !important; max-width: 126px !important; }
+.event-sales-page .event-sales-table th:nth-child(13),
+.event-sales-page .event-sales-table td:nth-child(13) { width: 142px !important; min-width: 142px !important; max-width: 142px !important; }
+.event-sales-page .event-sales-table th:nth-child(14),
+.event-sales-page .event-sales-table td:nth-child(14) { width: 124px !important; min-width: 124px !important; max-width: 124px !important; }
+.event-sales-page .event-sales-table th:nth-child(15),
+.event-sales-page .event-sales-table td:nth-child(15) { width: 142px !important; min-width: 142px !important; max-width: 142px !important; }
+.event-sales-page .event-sales-table th:nth-child(16),
+.event-sales-page .event-sales-table td:nth-child(16) { width: 112px !important; min-width: 112px !important; max-width: 112px !important; }
+.event-sales-page .event-sales-table th:nth-child(17),
+.event-sales-page .event-sales-table td:nth-child(17) { width: 210px !important; min-width: 210px !important; max-width: 210px !important; }
+.event-sales-page .event-sales-table th:nth-child(18),
+.event-sales-page .event-sales-table td:nth-child(18) { width: 210px !important; min-width: 210px !important; max-width: 210px !important; }
+.event-sales-page .event-sales-table th:nth-child(19),
+.event-sales-page .event-sales-table td:nth-child(19) { width: 112px !important; min-width: 112px !important; max-width: 112px !important; }
+
+.event-sales-page .event-sales-table tr.is-editing td {
+    overflow: hidden !important;
+    padding: 6px 8px !important;
+    height: 48px;
+}
+
+.event-sales-page .event-sales-table tr.is-editing td[data-edit-field] {
+    overflow: hidden !important;
+}
+
+.event-sales-page .event-sales-table tr.is-editing .tuition-edit-input {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: 32px !important;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
+    border-radius: 8px;
+    font-size: 12px !important;
+}
+
+.event-sales-page .event-sales-table tr.is-editing select.tuition-edit-input {
+    padding-right: 24px !important;
+}
+
+.event-sales-page .event-sales-table tr.is-editing input[type="date"].tuition-edit-input {
+    min-width: 0 !important;
+    padding-right: 4px !important;
+}
+
+.event-sales-page .event-sales-table tr.is-editing input[type="number"].tuition-edit-input {
+    text-align: right;
+}
+
+.event-sales-page .event-sales-table tr.is-editing .tuition-action-cell {
+    overflow: visible !important;
+    display: flex !important;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.event-sales-page .event-sales-table tr.is-editing .tuition-save-button,
+.event-sales-page .event-sales-table tr.is-editing .tuition-cancel-button {
+    flex: 0 0 auto;
+    min-width: 42px;
+}
+
+/* ==========================================================
+   Phase1.10: usability polish
+   - 操作列固定
+   - メモ全文ホバー
+   - 詳細2列レイアウト調整
+   - グラフ0件表示
+   - フィルタ時グラフ期間切替対応
+========================================================== */
+.event-sales-page .event-sales-table th:nth-child(19),
+.event-sales-page .event-sales-table td:nth-child(19) {
+    position: sticky;
+    right: 0;
+    z-index: 4;
+    background: #ffffff;
+    box-shadow: -8px 0 14px rgba(15, 23, 42, 0.06);
+}
+
+.event-sales-page .event-sales-table th:nth-child(19) {
+    z-index: 8;
+    background: #f8fafc;
+}
+
+.event-sales-page .event-sales-table tbody tr:hover td:nth-child(19),
+.event-sales-page .event-sales-table tbody tr.is-editing td:nth-child(19) {
+    background: #eff6ff;
+}
+
+.event-sales-page .event-memo-cell {
+    cursor: help;
+}
+
+.event-memo-floating-tooltip {
+    position: fixed;
+    z-index: 8000;
+    display: none;
+    max-width: 420px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.96);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.6;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.22);
+    pointer-events: none;
+}
+
+.event-memo-floating-tooltip.is-visible {
+    display: block;
+}
+
+.event-sales-page .tuition-detail-content {
+    width: min(980px, calc(100vw - 56px));
+}
+
+.event-sales-page #tuitionDetailBody {
+    padding: 20px 22px 24px;
+}
+
+.event-sales-page .event-detail-grid {
+    grid-template-columns: 150px minmax(0, 1fr) 150px minmax(0, 1fr);
+    gap: 0;
+    border-radius: 14px;
+}
+
+.event-sales-page .event-detail-grid dt,
+.event-sales-page .event-detail-grid dd {
+    min-height: 48px;
+    padding: 13px 16px;
+}
+
+.event-sales-page .event-detail-grid dt {
+    display: flex;
+    align-items: center;
+}
+
+.event-sales-page .event-detail-grid dd {
+    display: flex;
+    align-items: center;
+    border-right: 1px solid #eef2f7;
+}
+
+.event-sales-page .event-detail-grid dd:nth-of-type(2n) {
+    border-right: 0;
+}
+
+.event-sales-page .shop-chart-canvas-wrap {
+    position: relative;
+}
+
+.event-sales-page .shop-chart-canvas-wrap canvas.is-empty {
+    opacity: 0.22;
+}
+
+.event-sales-page .event-chart-empty {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+    pointer-events: none;
+}
+
+.event-sales-page .event-chart-empty.is-visible {
+    display: flex;
+}
+
+@media (max-width: 1180px) {
+    .event-sales-page .event-detail-grid {
+        grid-template-columns: 150px minmax(0, 1fr);
+    }
+
+    .event-sales-page .event-detail-grid dd {
+        border-right: 0;
+    }
+}
