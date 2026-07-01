@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Admin\Account;
 
+use App\Enums\RefundSourceType;
+use App\Enums\RefundStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AccountCategory;
-use App\Models\Discount;
+use App\Models\AccountTransaction;
 use App\Models\PaymentMethod;
+use App\Models\Refund;
 use App\Models\School;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -18,75 +19,45 @@ class RefundController extends Controller
 {
     public function index(Request $request)
     {
-        $rows = $this->getBaseRows()
-            ->where('account_category_name', '返金')
-            ->values();
+        $query = $this->baseQuery();
+        $this->applyFilters($query, $request);
 
-        $filteredRows = $this->applyFilters($rows, $request);
+        $summaryRows = (clone $query)->get([
+            'refunds.refund_amount',
+            'refunds.status',
+            'refunds.refund_source_type',
+            'refunds.scheduled_date',
+            'refunds.refunded_at',
+        ]);
 
         $sort = $request->input('sort', 'id');
         $direction = $request->input('direction', 'desc') === 'asc' ? 'asc' : 'desc';
-        $sortedRows = $this->sortRows($filteredRows, $sort, $direction);
+        $this->applySort($query, $sort, $direction);
 
-        $page = LengthAwarePaginator::resolveCurrentPage();
-        $perPage = 50;
-
-        $sales = new LengthAwarePaginator(
-            $sortedRows->forPage($page, $perPage)->values(),
-            $sortedRows->count(),
-            $perPage,
-            $page,
-            [
-                'path' => request()->url(),
-                'query' => request()->query(),
-            ]
-        );
+        $refunds = $query->paginate(50)->withQueryString();
+        $refunds->getCollection()->transform(fn ($row) => $this->decorateRow($row));
 
         $chartPeriod = $request->input('chart_period', '1year');
-
-        if (!in_array($chartPeriod, ['all', '5years', '3years', '1year'], true)) {
+        if (! in_array($chartPeriod, ['all', '5years', '3years', '1year'], true)) {
             $chartPeriod = '1year';
         }
 
         return view('admin.account.refunds.index', [
-            'sales' => $sales,
-            'summary' => $this->buildSummary($filteredRows),
-            'tuitionSalesChartData' => $this->buildTuitionSalesChartData($filteredRows, $chartPeriod),
-            'courseCompositionData' => $this->buildCourseCompositionData($filteredRows),
+            'refunds' => $refunds,
+            'totalRefundCount' => Refund::count(),
+            'summary' => $this->buildSummary($summaryRows),
+            'refundAmountChartData' => $this->buildRefundAmountChartData($summaryRows, $chartPeriod),
+            'refundCountChartData' => $this->buildRefundCountChartData($summaryRows, $chartPeriod),
+            'refundSourceChartData' => $this->buildRefundSourceChartData($summaryRows),
             'chartPeriod' => $chartPeriod,
-
-            'students' => DB::table('students')
-                ->select('id', 'student_code', 'last_name', 'first_name')
-                ->orderBy('id')
-                ->get(),
-
             'schools' => School::orderBy('name')->get(),
-
-            'accountCategories' => AccountCategory::where('name', '返金')
-                ->orderBy('sort_order')
-                ->get(),
-
             'paymentMethods' => PaymentMethod::orderBy('sort_order')->get(),
-            'discounts' => Discount::orderBy('sort_order')->get(),
-
-            'courseNames' => $rows->pluck('course_name')->filter()->unique()->sort()->values(),
-            'attendanceTypes' => $rows->pluck('attendance_type')->filter()->unique()->sort()->values(),
-
+            'refundStatuses' => RefundStatus::options(),
+            'refundSourceTypes' => RefundSourceType::options(),
             'filters' => $request->only([
-                'scheduled_from',
-                'scheduled_to',
-                'transaction_from',
-                'transaction_to',
-                'school_id',
-                'account_category_id',
-                'payment_method_id',
-                'discount_type_id',
-                'payment_status',
-                'course_name',
-                'attendance_type',
-                'keyword',
+                'scheduled_from', 'scheduled_to', 'refunded_from', 'refunded_to', 'school_id',
+                'refund_source_type', 'refund_method_id', 'status', 'keyword',
             ]),
-
             'sort' => $sort,
             'direction' => $direction,
         ]);
@@ -94,53 +65,35 @@ class RefundController extends Controller
 
     public function export(Request $request)
     {
-        $rows = $this->applyFilters($this->getBaseRows(), $request);
-        $rows = $this->sortRows($rows, 'id', 'desc');
-
-        $filename = 'tuition_enrollment_sales_' . now()->format('Ymd_His') . '.csv';
+        $query = $this->baseQuery();
+        $this->applyFilters($query, $request);
+        $this->applySort($query, 'id', 'desc');
+        $rows = $query->get()->map(fn ($row) => $this->decorateRow($row));
+        $filename = 'refunds_' . now()->format('Ymd_His') . '.csv';
 
         return response()->streamDownload(function () use ($rows) {
             $handle = fopen('php://output', 'w');
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
-
-            fputcsv($handle, [
-                'ID',
-                '教室',
-                '生徒',
-                '生徒コード',
-                'コース名',
-                '通塾種別',
-                '会計区分',
-                '取引予定日',
-                '入出金方法',
-                '取引日',
-                '割引種別',
-                '割引前金額',
-                '割引額',
-                '取引額(税込)',
-                '入金状態',
-            ]);
+            fputcsv($handle, ['ID', '返金番号', '教室', '生徒', '生徒コード', '返金元区分', '返金対象', '返金予定日', '返金方法', '返金日', '返金額', '状態', '返金理由', 'メモ']);
 
             foreach ($rows as $row) {
                 fputcsv($handle, [
                     $row->id,
+                    $row->refund_code,
                     $row->school_name,
                     $row->student_name,
                     $row->student_code,
-                    $row->course_name,
-                    $row->attendance_type,
-                    $row->account_category_name,
+                    $row->refund_source_type_label,
+                    $row->refund_target_label,
                     $row->scheduled_date,
-                    $row->payment_method_name,
-                    $row->transaction_date,
-                    $row->discount_type_name,
-                    $row->before_discount_amount,
-                    $row->discount_amount,
-                    $row->amount,
-                    $row->payment_status_label,
+                    $row->refund_method_name,
+                    $row->refunded_at,
+                    $row->refund_amount,
+                    $row->status_label,
+                    $row->refund_reason,
+                    $row->memo,
                 ]);
             }
-
             fclose($handle);
         }, $filename);
     }
@@ -148,149 +101,112 @@ class RefundController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'student_id'          => ['required', 'exists:students,id'],
-            'account_category_id' => ['required', 'exists:account_categories,id'],
-            'scheduled_date'      => ['required', 'date'],
-            'transaction_date'    => ['nullable', 'date'],
-            'payment_method_id'   => ['nullable', 'exists:payment_methods,id'],
-            'before_discount_amount' => ['required', 'integer', 'min:0'],
-            'discount_amount'        => ['required', 'integer', 'min:0'],
-            'payment_status'      => ['required', 'in:paid,unpaid,cancelled'],
+            'refund_source_type' => ['required', 'in:tuition_enrollment,shop,event,spot,other'],
+            'refund_source_id' => ['nullable', 'integer', 'min:1'],
+            'student_id' => ['nullable', 'exists:students,id'],
+            'refund_amount' => ['required', 'integer', 'min:1'],
+            'refund_method_id' => ['nullable', 'exists:payment_methods,id'],
+            'scheduled_date' => ['required', 'date'],
+            'refunded_at' => ['nullable', 'date'],
+            'status' => ['required', 'in:pending,completed,cancelled'],
+            'refund_reason' => ['nullable', 'string', 'max:1000'],
             'memo' => ['nullable', 'string', 'max:1000'],
-            'discount_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
         if ($validator->fails()) {
-            return back()
-                ->withErrors($validator)
-                ->withInput();
+            return back()->withErrors($validator)->withInput();
+        }
+
+        if ($request->status !== 'cancelled' && ! trim((string) $request->refund_reason)) {
+            return back()->withErrors(['refund_reason' => '未返金・返金済の場合は返金理由を入力してください。'])->withInput();
         }
 
         DB::transaction(function () use ($request) {
+            $sourceType = (string) $request->refund_source_type;
+            $sourceId = $sourceType === 'other' ? null : (int) $request->refund_source_id;
+            $source = $this->resolveSourceForStore($sourceType, $sourceId, (int) $request->student_id);
+            $amount = (int) $request->refund_amount;
 
-            $student = DB::table('students')
-                ->where('id', $request->student_id)
-                ->first();
+            abort_if($amount > (int) $source['remaining_amount'], 422, '返金可能額を超えています。');
 
-            $category = AccountCategory::findOrFail($request->account_category_id);
-
-            $before = (int) $request->before_discount_amount;
-            $discount = (int) $request->discount_amount;
-            $total = max(0, $before - $discount);
-
-            $invoiceId = DB::table('invoices')->insertGetId([
-                'student_id'        => $student->id,
-                'payment_method_id' => $request->payment_method_id,
-                'invoice_no'        => 'INV-' . now()->format('YmdHis'),
-                'billing_year'      => Carbon::parse($request->scheduled_date)->year,
-                'billing_month'     => Carbon::parse($request->scheduled_date)->month,
-                'issue_date'        => now()->toDateString(),
-                'due_date'          => $request->scheduled_date,
-                'subtotal'          => $before,
-                'discount_amount'   => $discount,
-                'tax_amount'        => 0,
-                'total_amount'      => $total,
-                'payment_status'    => match ($request->payment_status) {
-                    'paid' => 'paid',
-                    'cancelled' => 'cancelled',
-                    default => 'unpaid',
-                },
-                'paid_at' => $request->payment_status === 'paid' && $request->transaction_date
-                    ? Carbon::parse($request->transaction_date)->format('Y-m-d H:i:s')
-                    : null,
-                'note'       => $request->memo,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            $invoiceItemId = DB::table('invoice_items')->insertGetId([
-                'invoice_id'      => $invoiceId,
-                'item_type'       => $category->name === '入会金売上'
-                                        ? 'admission'
-                                        : 'tuition',
-                'item_name'       => $category->name,
-                'quantity'        => 1,
-                'unit_price'      => $before,
-                'amount'          => $before,
-                'discount_amount' => $discount,
-                'tax_rate'        => 10,
-                'note'            => $request->memo,
-                'created_at'      => now(),
-                'updated_at'      => now(),
-            ]);
-
-            if ($request->payment_status === 'paid') {
-                $nextPaymentId = ((int) DB::table('payments')->max('id')) + 1;
-
-                DB::table('payments')->insert([
-                    'id' => $nextPaymentId,
-                    'invoice_id' => $invoiceId,
-                    'student_id'        => $student->id,
-                    'payment_method_id' => $request->payment_method_id,
-                    'payment_date'      => $request->transaction_date,
-                    'payment_amount'    => $total,
-                    'payment_status'    => 'confirmed',
-                    'transaction_no'    => 'PAY-' . now()->format('YmdHis'),
-                    'confirmed_by'      => 1,
-                    'confirmed_at'      => now(),
-                    'note'              => '新規登録',
-                    'created_at'        => now(),
-                    'updated_at'        => now(),
-                ]);
-            }
-
-            DB::table('account_transactions')->insert([
-                'scheduled_date'        => $request->scheduled_date,
-                'transaction_date'      => $request->payment_status === 'paid'
-                                            ? $request->transaction_date
-                                            : null,
-                'account_category_id'   => $category->id,
-                'payment_method_id'     => $request->payment_method_id,
-                'transaction_name'      => $category->name,
-                'amount'                => $total,
-                'before_discount_amount'=> $before,
-                'discount_amount'       => $discount,
-                'discount_type_id'      => $discount > 0 ? 1 : null,
-                'status' => match ($request->payment_status) {
-                    'paid' => 'confirmed',
-                    'cancelled' => 'cancelled',
-                    default => 'planned',
-                },
-                'memo'                  => $request->memo,
-                'discount_note'         => $request->discount_note,
-                'school_id'             => $student->school_id,
-                'student_id'            => $student->id,
-                'source_table'          => 'invoice_item',
-                'source_id'             => $invoiceItemId,
+            $refund = Refund::create([
+                'school_id' => $source['school_id'],
+                'student_id' => $source['student_id'],
+                'refund_code' => $this->generateRefundCode(),
+                'refund_source_type' => $sourceType,
+                'refund_source_id' => $sourceId,
+                'refund_amount' => $amount,
+                'refund_method_id' => $request->refund_method_id,
+                'refund_reason' => $request->refund_reason,
+                'scheduled_date' => $request->scheduled_date,
+                'refunded_at' => $request->status === 'completed' ? ($request->refunded_at ?: now()->toDateString()) : null,
+                'status' => $request->status,
+                'memo' => $request->memo,
                 'created_by' => auth()->id() ?? 1,
                 'updated_by' => auth()->id() ?? 1,
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
+
+            $this->upsertAccountTransaction($refund);
         });
 
-        return redirect()
-            ->route('admin.operations.classroom-accounting.tuition-enrollment-sales.index')
-            ->with('success', '取引を登録しました。');
+        return redirect()->route('admin.operations.classroom-accounting.refunds.index')->with('success', '返金を登録しました。');
+    }
+
+    public function update(Request $request, int $refundId)
+    {
+        $validator = Validator::make($request->all(), [
+            'refund_amount' => ['required', 'integer', 'min:1'],
+            'refund_method_id' => ['nullable', 'integer', 'exists:payment_methods,id'],
+            'scheduled_date' => ['required', 'date'],
+            'refunded_at' => ['nullable', 'date'],
+            'status' => ['required', 'in:pending,completed,cancelled'],
+            'refund_reason' => ['nullable', 'string', 'max:1000'],
+            'memo' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => '入力内容を確認してください。', 'errors' => $validator->errors()], 422);
+        }
+
+        if ($request->status !== 'cancelled' && ! trim((string) $request->refund_reason)) {
+            return response()->json(['message' => '未返金・返金済の場合は返金理由を入力してください。'], 422);
+        }
+
+        DB::transaction(function () use ($request, $refundId) {
+            $refund = Refund::findOrFail($refundId);
+            $amount = (int) $request->refund_amount;
+
+            if ($refund->refund_source_type !== 'other' && $refund->refund_source_id) {
+                $source = $this->resolveSourceForStore($refund->refund_source_type, (int) $refund->refund_source_id, (int) $refund->student_id, $refund->id, false);
+                abort_if($amount > (int) $source['remaining_amount'], 422, '返金可能額を超えています。');
+            }
+
+            $refund->update([
+                'refund_amount' => $amount,
+                'refund_method_id' => $request->refund_method_id,
+                'scheduled_date' => $request->scheduled_date,
+                'refunded_at' => $request->status === 'completed' ? ($request->refunded_at ?: now()->toDateString()) : null,
+                'status' => $request->status,
+                'refund_reason' => $request->refund_reason,
+                'memo' => $request->memo,
+                'updated_by' => auth()->id() ?? 1,
+            ]);
+
+            $this->upsertAccountTransaction($refund->fresh());
+        });
+
+        return response()->json(['message' => '更新しました。']);
     }
 
     public function searchStudents(Request $request)
     {
         $keyword = trim((string) $request->input('q', ''));
-
-        if (mb_strlen($keyword) < 1) {
+        if ($keyword === '') {
             return response()->json([]);
         }
 
         $students = DB::table('students')
             ->join('schools', 'students.school_id', '=', 'schools.id')
-            ->leftJoin('student_course_contracts', function ($join) {
-                $join->on('student_course_contracts.student_id', '=', 'students.id')
-                    ->where('student_course_contracts.is_active', true)
-                    ->where('student_course_contracts.contract_status', 'active');
-            })
-            ->leftJoin('courses', 'student_course_contracts.course_id', '=', 'courses.id')
-            ->leftJoin('course_prices', 'student_course_contracts.course_price_id', '=', 'course_prices.id')
             ->where(function ($query) use ($keyword) {
                 $query->where('students.student_code', 'like', "%{$keyword}%")
                     ->orWhere('students.last_name', 'like', "%{$keyword}%")
@@ -298,401 +214,247 @@ class RefundController extends Controller
                     ->orWhereRaw("CONCAT(students.last_name, students.first_name) LIKE ?", ["%{$keyword}%"])
                     ->orWhereRaw("CONCAT(students.last_name, ' ', students.first_name) LIKE ?", ["%{$keyword}%"]);
             })
-            ->select([
-                'students.id',
-                'students.student_code',
-                'students.last_name',
-                'students.first_name',
-                'schools.name as school_name',
-                'courses.name as course_name',
-                'course_prices.attendance_type',
-                'student_course_contracts.monthly_fee',
-                
-            ])
+            ->select('students.id', 'students.student_code', 'students.last_name', 'students.first_name', 'students.school_id', 'schools.name as school_name')
             ->orderBy('students.student_code')
             ->limit(20)
             ->get()
-            ->map(function ($student) {
-                return [
-                    'id' => $student->id,
-                    'label' => $student->student_code . '｜' . $student->last_name . ' ' . $student->first_name,
-                    'student_code' => $student->student_code,
-                    'name' => $student->last_name . ' ' . $student->first_name,
-                    'school_name' => $student->school_name,
-                    'course_name' => $student->course_name,
-                    'attendance_type' => $student->attendance_type,
-                    'monthly_fee' => $student->monthly_fee,
-                ];
-            });
+            ->map(fn ($student) => [
+                'id' => $student->id,
+                'label' => $student->student_code . '｜' . $student->last_name . ' ' . $student->first_name,
+                'student_code' => $student->student_code,
+                'name' => $student->last_name . ' ' . $student->first_name,
+                'school_id' => $student->school_id,
+                'school_name' => $student->school_name,
+            ]);
 
         return response()->json($students);
     }
 
-    public function update(Request $request, int $invoiceItemId)
+    public function searchTargets(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'scheduled_date' => ['required', 'date'],
-            'transaction_date' => ['nullable', 'date'],
-            'payment_method_id' => ['nullable', 'integer', 'exists:payment_methods,id'],
-            'payment_status' => ['required', 'in:paid,unpaid,cancelled'],
-            'before_discount_amount' => ['required', 'integer', 'min:0'],
-            'discount_amount' => ['required', 'integer', 'min:0'],
-            'memo' => ['nullable', 'string', 'max:1000'],
-            'discount_note' => ['nullable', 'string', 'max:1000'],
-        ]);
+        $sourceType = (string) $request->input('type', '');
+        $keyword = trim((string) $request->input('q', ''));
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => '入力内容を確認してください。',
-                'errors' => $validator->errors(),
-            ], 422);
+        if (! in_array($sourceType, ['tuition_enrollment', 'shop', 'event', 'spot'], true)) {
+            return response()->json([]);
         }
 
-        DB::transaction(function () use ($request, $invoiceItemId) {
-            $item = DB::table('invoice_items')->where('id', $invoiceItemId)->first();
+        $rows = match ($sourceType) {
+            'tuition_enrollment' => $this->searchInvoiceTargets($keyword),
+            'shop' => $this->searchShopTargets($keyword),
+            'event' => $this->searchEventTargets($keyword),
+            'spot' => $this->searchSpotTargets($keyword),
+        };
 
-            if (!$item) {
-                abort(404);
-            }
-
-            $invoice = DB::table('invoices')->where('id', $item->invoice_id)->first();
-
-            if (!$invoice) {
-                abort(404);
-            }
-
-            $beforeDiscountAmount = (int) $request->input('before_discount_amount');
-            $discountAmount = (int) $request->input('discount_amount');
-
-            DB::table('invoice_items')
-                ->where('id', $invoiceItemId)
-                ->update([
-                    'unit_price' => $beforeDiscountAmount,
-                    'amount' => $beforeDiscountAmount,
-                    'discount_amount' => $discountAmount,
-                    'updated_at' => now(),
-                ]);
-
-            $subtotal = (int) DB::table('invoice_items')
-                ->where('invoice_id', $invoice->id)
-                ->sum('amount');
-
-            $totalDiscount = (int) DB::table('invoice_items')
-                ->where('invoice_id', $invoice->id)
-                ->sum('discount_amount');
-
-            $totalAmount = max(0, $subtotal - $totalDiscount);
-
-            $paymentStatus = $request->input('payment_status');
-            $transactionDate = $request->input('transaction_date');
-            $paymentMethodId = $request->input('payment_method_id') ?: $invoice->payment_method_id;
-
-            DB::table('invoices')
-                ->where('id', $invoice->id)
-                ->update([
-                    'payment_method_id' => $paymentMethodId,
-                    'due_date' => $request->input('scheduled_date'),
-                    'subtotal' => $subtotal,
-                    'discount_amount' => $totalDiscount,
-                    'total_amount' => $totalAmount,
-                    'payment_status' => match ($paymentStatus) {
-                        'paid' => 'paid',
-                        'cancelled' => 'cancelled',
-                        default => 'unpaid',
-                    },
-                    'paid_at' => $paymentStatus === 'paid' && $transactionDate
-                        ? Carbon::parse($transactionDate)->format('Y-m-d H:i:s')
-                        : null,
-                    'updated_at' => now(),
-                ]);
-
-            DB::table('payments')->where('invoice_id', $invoice->id)->delete();
-
-            if ($paymentStatus === 'paid') {
-                $nextPaymentId = ((int) DB::table('payments')->max('id')) + 1;
-
-                DB::table('payments')->insert([
-                    'id' => $nextPaymentId,
-                    'invoice_id' => $invoice->id,
-                    'student_id' => $invoice->student_id,
-                    'payment_method_id' => $paymentMethodId,
-                    'payment_date' => $transactionDate ?: now()->toDateString(),
-                    'payment_amount' => $totalAmount,
-                    'payment_status' => 'confirmed',
-                    'transaction_no' => 'PAY-EDIT-' . $invoice->id . '-' . now()->format('YmdHis'),
-                    'confirmed_by' => 1,
-                    'confirmed_at' => now(),
-                    'note' => '授業料・入会金売上画面から更新',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-
-            $categoryId = AccountCategory::where('name', $item->item_type === 'admission' ? '入会金売上' : '授業料売上')->value('id');
-
-            DB::table('account_transactions')
-                ->where('source_table', 'invoice_item')
-                ->where('source_id', $invoiceItemId)
-                ->update([
-                    'scheduled_date' => $request->input('scheduled_date'),
-                    'transaction_date' => $paymentStatus === 'paid' ? $transactionDate : null,
-                    'account_category_id' => $categoryId,
-                    'payment_method_id' => $paymentMethodId,
-                    'amount' => max(0, $beforeDiscountAmount - $discountAmount),
-                    'before_discount_amount' => $beforeDiscountAmount,
-                    'discount_amount' => $discountAmount,
-                    'discount_type_id' => $discountAmount > 0 ? 1 : null,
-                    'status' => match ($paymentStatus) {
-                        'paid' => 'confirmed',
-                        'cancelled' => 'cancelled',
-                        default => 'planned',
-                    },
-                    'updated_at' => now(),
-                    'memo' => $request->input('memo'),
-                    'discount_note' => $request->input('discount_note'),
-                ]);
-        });
-
-        return response()->json([
-            'message' => '更新しました。',
-        ]);
+        return response()->json($rows);
     }
 
-    private function getBaseRows(): Collection
+    private function baseQuery()
     {
-        $paymentSummary = DB::table('payments')
-            ->select(
-                'invoice_id',
-                DB::raw('MAX(payment_date) as payment_date'),
-                DB::raw('MAX(payment_method_id) as payment_method_id'),
-                DB::raw('SUM(payment_amount) as paid_amount')
-            )
-            ->groupBy('invoice_id');
-
-        $discountSummary = DB::table('student_discounts')
-            ->leftJoin('discounts', 'student_discounts.discount_id', '=', 'discounts.id')
-            ->select(
-                'student_discounts.student_id',
-                DB::raw('MAX(student_discounts.discount_id) as discount_id'),
-                DB::raw('MAX(discounts.name) as discount_name')
-            )
-            ->where('student_discounts.is_active', true)
-            ->groupBy('student_discounts.student_id');
-
-        return DB::table('invoice_items')
-            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-            ->join('students', 'invoices.student_id', '=', 'students.id')
-            ->join('schools', 'students.school_id', '=', 'schools.id')
-            ->leftJoin('student_course_contracts', function ($join) {
-                $join->on('student_course_contracts.student_id', '=', 'students.id')
-                    ->where('student_course_contracts.is_active', true)
-                    ->where('student_course_contracts.contract_status', 'active');
-            })
-            ->leftJoin('courses', 'student_course_contracts.course_id', '=', 'courses.id')
-            ->leftJoin('course_prices', 'student_course_contracts.course_price_id', '=', 'course_prices.id')
-            ->leftJoinSub($paymentSummary, 'payment_summary', function ($join) {
-                $join->on('invoices.id', '=', 'payment_summary.invoice_id');
-            })
-            ->leftJoinSub($discountSummary, 'discount_summary', function ($join) {
-                $join->on('students.id', '=', 'discount_summary.student_id');
-            })
-            ->leftJoin('payment_methods', function ($join) {
-                $join->on(DB::raw('COALESCE(payment_summary.payment_method_id, invoices.payment_method_id)'), '=', 'payment_methods.id');
-            })
-            ->leftJoin('account_transactions', function ($join) {
-                $join->on('account_transactions.source_id', '=', 'invoice_items.id')
-                    ->where('account_transactions.source_table', 'invoice_item');
-            })
-            ->leftJoin('users as created_users', 'account_transactions.created_by', '=', 'created_users.id')
-            ->leftJoin('users as updated_users', 'account_transactions.updated_by', '=', 'updated_users.id')
-            ->whereIn('invoice_items.item_type', ['tuition', 'admission'])
+        return DB::table('refunds')
+            ->join('schools', 'refunds.school_id', '=', 'schools.id')
+            ->leftJoin('students', 'refunds.student_id', '=', 'students.id')
+            ->leftJoin('payment_methods', 'refunds.refund_method_id', '=', 'payment_methods.id')
+            ->leftJoin('users as created_users', 'refunds.created_by', '=', 'created_users.id')
+            ->leftJoin('users as updated_users', 'refunds.updated_by', '=', 'updated_users.id')
             ->select([
-                'invoice_items.id as id',
-                'invoice_items.invoice_id',
-                'invoice_items.item_type',
-                'invoice_items.item_name',
-                'invoice_items.amount as item_amount',
-                'invoice_items.discount_amount as item_discount_amount',
-                'invoice_items.note as item_note',
-
-                'invoices.student_id',
-                'invoices.payment_method_id as invoice_payment_method_id',
-                'invoices.due_date',
-                'invoices.paid_at',
-                'invoices.payment_status',
-                'invoices.note as invoice_note',
-
-                'students.school_id',
-                'students.student_code',
-                'students.last_name',
-                'students.first_name',
-
+                'refunds.id',
+                'refunds.refund_code',
+                'refunds.school_id',
                 'schools.name as school_name',
-                'courses.name as course_name',
-                'course_prices.attendance_type',
-
-                'payment_summary.payment_date',
-                'payment_summary.payment_method_id as payment_payment_method_id',
-                'payment_methods.name as payment_method_name',
-
-                'discount_summary.discount_id',
-                'discount_summary.discount_name',
-
-                'invoice_items.created_at',
-                'invoice_items.updated_at',
-
-                'account_transactions.id as account_transaction_id',
-                'account_transactions.memo as transaction_note',
-                'account_transactions.discount_note',
-                'account_transactions.created_at as transaction_created_at',
-                'account_transactions.updated_at as transaction_updated_at',
+                'refunds.student_id',
+                'students.student_code',
+                DB::raw("CONCAT(COALESCE(students.last_name, ''), ' ', COALESCE(students.first_name, '')) as student_name"),
+                'refunds.refund_source_type',
+                'refunds.refund_source_id',
+                'refunds.refund_amount',
+                'refunds.refund_method_id',
+                'payment_methods.name as refund_method_name',
+                'refunds.scheduled_date',
+                'refunds.refunded_at',
+                'refunds.status',
+                'refunds.refund_reason',
+                'refunds.memo',
                 'created_users.name as created_by_name',
                 'updated_users.name as updated_by_name',
+                'refunds.created_at',
+                'refunds.updated_at',
+            ]);
+    }
 
-            ])
-            ->orderByDesc('invoice_items.id')
-            ->get()
-            ->map(function ($row) {
-                $categoryName = $row->item_type === 'admission'
-                    ? '入会金売上'
-                    : '授業料売上';
-
-                $categoryId = AccountCategory::where('name', $categoryName)->value('id');
-
-                $beforeDiscount = (int) $row->item_amount;
-                $discountAmount = (int) ($row->item_discount_amount ?? 0);
-                $amount = max(0, $beforeDiscount - $discountAmount);
-
-                return (object) [
-                    'id' => (int) $row->id,
-                    'invoice_id' => (int) $row->invoice_id,
-                    'student_id' => (int) $row->student_id,
-                    'school_id' => (int) $row->school_id,
-                    'payment_method_id' => $row->payment_payment_method_id ?: $row->invoice_payment_method_id,
-
-                    'scheduled_date' => $row->due_date,
-                    'transaction_date' => $row->payment_date ?: $row->paid_at,
-
-                    'account_category_id' => $categoryId,
-                    'account_category_name' => $categoryName,
-                    'transaction_name' => $row->item_name,
-
-                    'school_name' => $row->school_name ?? '-',
-                    'student_name' => trim(($row->last_name ?? '') . ' ' . ($row->first_name ?? '')) ?: '-',
-                    'student_code' => $row->student_code ?? '-',
-
-                    'course_name' => $row->course_name ?? '未設定コース',
-                    'attendance_type' => $row->item_type === 'admission'
-                        ? '-'
-                        : ($row->attendance_type ?? '未設定'),
-
-                    'discount_type_id' => $discountAmount > 0 ? ($row->discount_id ?? null) : null,
-                    'discount_type_name' => $discountAmount > 0 ? ($row->discount_name ?? '割引あり') : '-',
-                    'discount_amount' => $discountAmount,
-                    'before_discount_amount' => $beforeDiscount,
-                    'amount' => $amount,
-
-                    'payment_status' => $this->normalizePaymentStatus($row->payment_status),
-                    'payment_status_label' => $this->paymentStatusLabel($row->payment_status),
-
-                    'payment_method_name' => $row->payment_method_name ?? '-',
-                    'transaction_note' => $row->transaction_note ?? '-',
-                    'discount_note' => $row->discount_note ?? '-',
-
-                    'created_at' => $row->created_at,
-
-                    'updated_at' => $row->transaction_updated_at,
-
-                    'created_by_name' => $row->created_by_name ?? '-',
-
-                    'updated_by_name' => $row->updated_by_name ?? '-',
-
-                    'account_transaction_id' => $row->account_transaction_id,
-                ];
+    private function applyFilters($query, Request $request): void
+    {
+        $query
+            ->when($request->filled('scheduled_from'), fn ($q) => $q->whereDate('refunds.scheduled_date', '>=', $request->scheduled_from))
+            ->when($request->filled('scheduled_to'), fn ($q) => $q->whereDate('refunds.scheduled_date', '<=', $request->scheduled_to))
+            ->when($request->filled('refunded_from'), fn ($q) => $q->whereDate('refunds.refunded_at', '>=', $request->refunded_from))
+            ->when($request->filled('refunded_to'), fn ($q) => $q->whereDate('refunds.refunded_at', '<=', $request->refunded_to))
+            ->when($request->filled('school_id'), fn ($q) => $q->where('refunds.school_id', $request->school_id))
+            ->when($request->filled('refund_source_type'), fn ($q) => $q->where('refunds.refund_source_type', $request->refund_source_type))
+            ->when($request->filled('refund_method_id'), fn ($q) => $q->where('refunds.refund_method_id', $request->refund_method_id))
+            ->when($request->filled('status'), fn ($q) => $q->where('refunds.status', $request->status))
+            ->when($request->filled('keyword'), function ($q) use ($request) {
+                $keyword = '%' . $request->keyword . '%';
+                $q->where(function ($sub) use ($keyword) {
+                    $sub->where('refunds.refund_code', 'like', $keyword)
+                        ->orWhere('refunds.refund_reason', 'like', $keyword)
+                        ->orWhere('refunds.memo', 'like', $keyword)
+                        ->orWhere('students.student_code', 'like', $keyword)
+                        ->orWhere('students.last_name', 'like', $keyword)
+                        ->orWhere('students.first_name', 'like', $keyword);
+                });
             });
     }
 
-    private function applyFilters(Collection $rows, Request $request): Collection
+    private function applySort($query, string $sort, string $direction): void
     {
-        return $rows
-            ->when($request->filled('scheduled_from'), fn ($c) => $c->filter(fn ($r) => $r->scheduled_date && $r->scheduled_date >= $request->scheduled_from))
-            ->when($request->filled('scheduled_to'), fn ($c) => $c->filter(fn ($r) => $r->scheduled_date && $r->scheduled_date <= $request->scheduled_to))
-            ->when($request->filled('transaction_from'), fn ($c) => $c->filter(fn ($r) => $r->transaction_date && $r->transaction_date >= $request->transaction_from))
-            ->when($request->filled('transaction_to'), fn ($c) => $c->filter(fn ($r) => $r->transaction_date && $r->transaction_date <= $request->transaction_to))
-            ->when($request->filled('school_id'), fn ($c) => $c->where('school_id', (int) $request->school_id))
-            ->when($request->filled('account_category_id'), fn ($c) => $c->where('account_category_id', (int) $request->account_category_id))
-            ->when($request->filled('payment_method_id'), fn ($c) => $c->where('payment_method_id', (int) $request->payment_method_id))
-            ->when($request->filled('discount_type_id'), fn ($c) => $c->where('discount_type_id', (int) $request->discount_type_id))
-            ->when($request->filled('payment_status'), fn ($c) => $c->where('payment_status', $request->payment_status))
-            ->when($request->filled('course_name'), fn ($c) => $c->where('course_name', $request->course_name))
-            ->when($request->filled('attendance_type'), fn ($c) => $c->where('attendance_type', $request->attendance_type))
-            ->when($request->filled('keyword'), function ($c) use ($request) {
-                $keyword = trim($request->keyword);
-
-                return $c->filter(fn ($r) =>
-                    str_contains($r->transaction_name, $keyword)
-                    || str_contains($r->student_name, $keyword)
-                    || str_contains($r->student_code, $keyword)
-                    || str_contains($r->course_name, $keyword)
-                    || str_contains($r->transaction_note ?? '', $keyword)
-                    || str_contains($r->discount_note ?? '', $keyword)
-                );
-            })
-            ->values();
-    }
-
-    private function sortRows(Collection $rows, string $sort, string $direction): Collection
-    {
-        $keyMap = [
-            'id' => 'id',
-            'school' => 'school_name',
-            'student' => 'student_name',
-            'student_code' => 'student_code',
-            'course_name' => 'course_name',
-            'attendance_type' => 'attendance_type',
-            'account_category' => 'account_category_name',
-            'scheduled_date' => 'scheduled_date',
-            'payment_method' => 'payment_method_name',
-            'transaction_date' => 'transaction_date',
-            'discount_amount' => 'discount_amount',
-            'before_discount_amount' => 'before_discount_amount',
-            'amount' => 'amount',
-            'payment_status' => 'payment_status',
+        $map = [
+            'id' => 'refunds.id',
+            'refund_code' => 'refunds.refund_code',
+            'school' => 'schools.name',
+            'student' => 'students.last_name',
+            'source_type' => 'refunds.refund_source_type',
+            'scheduled_date' => 'refunds.scheduled_date',
+            'refund_method' => 'payment_methods.name',
+            'refunded_at' => 'refunds.refunded_at',
+            'amount' => 'refunds.refund_amount',
+            'status' => 'refunds.status',
         ];
 
-        $key = $keyMap[$sort] ?? 'id';
-
-        return $direction === 'asc'
-            ? $rows->sortBy($key, SORT_REGULAR)->values()
-            : $rows->sortByDesc($key, SORT_REGULAR)->values();
+        $query->orderBy($map[$sort] ?? 'refunds.id', $direction);
     }
 
-    private function buildSummary(Collection $rows): array
+    private function decorateRow($row)
     {
-        $currentMonth = Carbon::now()->format('Y/m');
+        $row->student_name = trim((string) $row->student_name) ?: '-';
+        $row->student_code = $row->student_code ?: '-';
+        $row->refund_method_name = $row->refund_method_name ?: '未設定';
+        $row->refund_source_type_label = $this->sourceTypeLabel($row->refund_source_type);
+        $row->refund_target_label = $this->resolveSourceLabel($row->refund_source_type, $row->refund_source_id);
+        $row->status_label = $this->statusLabel($row->status);
+        $row->status_class = $this->statusClass($row->status);
+        $row->scheduled_date = $row->scheduled_date ? Carbon::parse($row->scheduled_date)->toDateString() : null;
+        $row->refunded_at = $row->refunded_at ? Carbon::parse($row->refunded_at)->toDateString() : null;
+        $row->refund_reason = $row->refund_reason ?: '-';
+        $row->memo = $row->memo ?: '-';
 
-        $currentRows = $rows->filter(function ($row) use ($currentMonth) {
-            $date = $row->transaction_date ?: $row->scheduled_date;
-            return $date && Carbon::parse($date)->format('Y/m') === $currentMonth;
-        });
+        return $row;
+    }
 
-        $salesAmount = $currentRows->sum('amount');
-        $paidAmount = $currentRows->where('payment_status', 'paid')->sum('amount');
-        $unpaidAmount = $currentRows->where('payment_status', 'unpaid')->sum('amount');
-        $collectionRate = $salesAmount > 0 ? round(($paidAmount / $salesAmount) * 100, 1) : 0;
+    private function buildSummary($rows): array
+    {
+        $now = Carbon::now();
+        $thisMonth = $now->copy()->startOfMonth();
+        $lastMonth = $now->copy()->subMonth()->startOfMonth();
+        $lastYearSameMonth = $now->copy()->subYear()->startOfMonth();
+
+        $monthRows = function ($month) use ($rows) {
+            return $rows->filter(function ($row) use ($month) {
+                $date = $row->refunded_at ?: $row->scheduled_date;
+                return $date && Carbon::parse($date)->isSameMonth($month);
+            });
+        };
+
+        $rate = function ($targetRows): float {
+            $validCount = $targetRows->whereIn('status', ['pending', 'completed'])->count();
+            if ($validCount <= 0) {
+                return 0.0;
+            }
+
+            return round($targetRows->where('status', 'completed')->count() / $validCount * 100, 1);
+        };
+
+        $changeRate = function ($current, $previous): ?float {
+            $current = (float) $current;
+            $previous = (float) $previous;
+            if ($previous == 0.0) {
+                return $current == 0.0 ? 0.0 : null;
+            }
+
+            return round(($current - $previous) / $previous * 100, 1);
+        };
+
+        $thisMonthRows = $monthRows($thisMonth);
+        $lastMonthRows = $monthRows($lastMonth);
+        $lastYearRows = $monthRows($lastYearSameMonth);
+        $validCount = max(1, $rows->whereIn('status', ['pending', 'completed'])->count());
+        $completedCount = $rows->where('status', 'completed')->count();
+
+        $thisMonthAmount = (int) $thisMonthRows->sum('refund_amount');
+        $lastYearAmount = (int) $lastYearRows->sum('refund_amount');
+        $thisMonthPendingAmount = (int) $thisMonthRows->where('status', 'pending')->sum('refund_amount');
+        $lastYearPendingAmount = (int) $lastYearRows->where('status', 'pending')->sum('refund_amount');
+        $thisMonthCount = $thisMonthRows->count();
+        $lastYearCount = $lastYearRows->count();
+        $thisMonthRate = $rate($thisMonthRows);
+        $lastYearRate = $rate($lastYearRows);
 
         return [
-            'sales_amount' => $salesAmount,
-            'paid_amount' => $paidAmount,
-            'unpaid_amount' => $unpaidAmount,
-            'collection_rate' => $collectionRate,
+            'count' => $rows->count(),
+            'total_amount' => (int) $rows->sum('refund_amount'),
+            'completed_amount' => (int) $rows->where('status', 'completed')->sum('refund_amount'),
+            'pending_amount' => (int) $rows->where('status', 'pending')->sum('refund_amount'),
+            'completed_count' => $completedCount,
+            'completion_rate' => round($completedCount / $validCount * 100, 1),
+
+            'this_month_amount' => $thisMonthAmount,
+            'last_month_amount' => (int) $lastMonthRows->sum('refund_amount'),
+            'last_year_amount' => $lastYearAmount,
+            'amount_yoy_rate' => $changeRate($thisMonthAmount, $lastYearAmount),
+
+            'this_month_pending_amount' => $thisMonthPendingAmount,
+            'last_month_pending_amount' => (int) $lastMonthRows->where('status', 'pending')->sum('refund_amount'),
+            'last_year_pending_amount' => $lastYearPendingAmount,
+            'pending_amount_yoy_rate' => $changeRate($thisMonthPendingAmount, $lastYearPendingAmount),
+
+            'this_month_count' => $thisMonthCount,
+            'last_month_count' => $lastMonthRows->count(),
+            'last_year_count' => $lastYearCount,
+            'count_yoy_rate' => $changeRate($thisMonthCount, $lastYearCount),
+
+            'this_month_completion_rate' => $thisMonthRate,
+            'last_month_completion_rate' => $rate($lastMonthRows),
+            'last_year_completion_rate' => $lastYearRate,
+            'completion_rate_yoy_rate' => $lastYearRate == 0.0 ? ($thisMonthRate == 0.0 ? 0.0 : null) : round($thisMonthRate - $lastYearRate, 1),
         ];
     }
 
-    private function buildTuitionSalesChartData(Collection $rows, string $period): Collection
+    private function buildRefundAmountChartData($rows, string $period): array
+    {
+        $labels = $this->buildMonthLabels($rows, $period);
+        return $labels->map(function ($label) use ($rows) {
+            $amount = $rows->filter(function ($row) use ($label) {
+                $date = $row->refunded_at ?: $row->scheduled_date;
+                return $date && Carbon::parse($date)->format('Y/m') === $label;
+            })->sum('refund_amount');
+            return ['month' => $label, 'amount' => (int) $amount];
+        })->values()->all();
+    }
+
+    private function buildRefundCountChartData($rows, string $period): array
+    {
+        $labels = $this->buildMonthLabels($rows, $period);
+        return $labels->map(function ($label) use ($rows) {
+            $count = $rows->filter(function ($row) use ($label) {
+                $date = $row->refunded_at ?: $row->scheduled_date;
+                return $date && Carbon::parse($date)->format('Y/m') === $label;
+            })->count();
+            return ['month' => $label, 'count' => (int) $count];
+        })->values()->all();
+    }
+
+    private function buildRefundSourceChartData($rows): array
+    {
+        return $rows->groupBy(fn ($row) => $this->sourceTypeLabel($row->refund_source_type))->map(fn ($items, $label) => [
+            'label' => $label,
+            'amount' => (int) $items->sum('refund_amount'),
+            'count' => $items->count(),
+        ])->values()->all();
+    }
+
+    private function buildMonthLabels($rows, string $period)
     {
         $now = Carbon::now()->startOfMonth();
-
         $start = match ($period) {
             '5years' => $now->copy()->subMonths(59)->startOfMonth(),
             '3years' => $now->copy()->subMonths(35)->startOfMonth(),
@@ -702,103 +464,339 @@ class RefundController extends Controller
             default => $now->copy()->subMonths(11)->startOfMonth(),
         };
 
-        $labels = collect(range(0, $start->diffInMonths($now)))
-            ->map(fn ($i) => $start->copy()->addMonths($i)->format('Y/m'))
-            ->values();
-
-        $tuitionRows = $rows->filter(fn ($r) => $r->account_category_name === '授業料売上');
-
-        $courseNames = $tuitionRows->pluck('course_name')->unique()->values();
-
-        return collect([
-            'labels' => $labels,
-            'datasets' => $courseNames->map(function ($courseName) use ($labels, $tuitionRows) {
-                return [
-                    'label' => $courseName,
-                    'data' => $labels->map(function ($label) use ($tuitionRows, $courseName) {
-                        return $tuitionRows
-                            ->filter(function ($row) use ($label, $courseName) {
-                                $date = $row->transaction_date ?: $row->scheduled_date;
-
-                                return $date
-                                    && Carbon::parse($date)->format('Y/m') === $label
-                                    && $row->course_name === $courseName;
-                            })
-                            ->sum('amount');
-                    })->values(),
-                ];
-            })->values(),
-
-            'collectionRates' => $labels->map(function ($label) use ($tuitionRows) {
-                $monthRows = $tuitionRows
-                    ->filter(function ($row) use ($label) {
-                        $date = $row->transaction_date ?: $row->scheduled_date;
-                        return $date && Carbon::parse($date)->format('Y/m') === $label;
-                    });
-
-                $salesAmount = $monthRows->sum('amount');
-                $paidAmount = $monthRows->where('payment_status', 'paid')->sum('amount');
-
-                return $salesAmount > 0
-                    ? round(($paidAmount / $salesAmount) * 100, 1)
-                    : 0;
-            })->values(),
-        ]);
+        return collect(range(0, $start->diffInMonths($now)))->map(fn ($i) => $start->copy()->addMonths($i)->format('Y/m'))->values();
     }
 
-    private function buildCourseCompositionData(Collection $rows): Collection
+    private function searchInvoiceTargets(string $keyword)
     {
-        $currentMonth = Carbon::now()->format('Y/m');
-
-        $targetRows = $rows
-            ->filter(fn ($r) => $r->account_category_name === '授業料売上')
-            ->filter(function ($row) use ($currentMonth) {
-                $date = $row->transaction_date ?: $row->scheduled_date;
-                return $date && Carbon::parse($date)->format('Y/m') === $currentMonth;
-            });
-
-        $totalAmount = $targetRows->sum('amount');
-
-        $courseRows = $targetRows
-            ->groupBy('course_name')
-            ->map(function ($items, $courseName) use ($totalAmount) {
-                $amount = $items->sum('amount');
-
-                return [
-                    'label' => $courseName,
-                    'amount' => $amount,
-                    'rate' => $totalAmount > 0 ? round(($amount / $totalAmount) * 100, 1) : 0,
-                ];
+        return DB::table('invoices')
+            ->leftJoin('students', 'invoices.student_id', '=', 'students.id')
+            ->select('invoices.id', 'invoices.student_id', 'students.school_id', 'invoices.invoice_no as code', 'invoices.total_amount as amount', DB::raw('COALESCE(invoices.paid_at, invoices.issue_date) as transaction_date'), 'students.student_code', 'students.last_name', 'students.first_name')
+            ->where('invoices.total_amount', '>', 0)
+            ->where(function ($query) {
+                $query->where('invoices.payment_status', 'paid')
+                    ->orWhere('invoices.payment_status', 'completed')
+                    ->orWhereNotNull('invoices.paid_at');
             })
-            ->sortByDesc('amount')
+            ->when($keyword !== '', fn ($q) => $this->applyTargetKeyword($q, $keyword, 'invoices', 'invoice_no'))
+            ->orderByDesc('invoices.id')
+            ->limit(30)
+            ->get()
+            ->map(fn ($row) => $this->targetArray('tuition_enrollment', $row->id, $row->student_id, $row->school_id, $row->amount, $row->code ?: '請求ID:' . $row->id, '授業料・入会金', $this->studentLabel($row), $row->transaction_date))
             ->values();
-
-        return collect([
-            'labels' => $courseRows->pluck('label')->values(),
-            'data' => $courseRows->pluck('amount')->values(),
-            'rows' => $courseRows,
-            'totalAmount' => $totalAmount,
-            'recordCount' => $targetRows->count(),
-            'monthlyAverage' => $targetRows->count() > 0 ? round($totalAmount / 3) : 0,
-            'studentCount' => $targetRows->pluck('student_id')->unique()->count(),
-        ]);
     }
 
-    private function normalizePaymentStatus(?string $status): string
+    private function searchShopTargets(string $keyword)
+    {
+        return DB::table('shop_orders')
+            ->leftJoin('students', 'shop_orders.student_id', '=', 'students.id')
+            ->select('shop_orders.id', 'shop_orders.student_id', 'shop_orders.school_id', 'shop_orders.order_no as code', 'shop_orders.total_amount as amount', DB::raw('COALESCE(shop_orders.transaction_date, shop_orders.ordered_at) as transaction_date'), 'students.student_code', 'students.last_name', 'students.first_name')
+            ->where('shop_orders.total_amount', '>', 0)
+            ->where(function ($query) {
+                $query->where('shop_orders.payment_status', 'paid')
+                    ->orWhere('shop_orders.payment_status', 'completed')
+                    ->orWhereNotNull('shop_orders.transaction_date');
+            })
+            ->when($keyword !== '', fn ($q) => $this->applyTargetKeyword($q, $keyword, 'shop_orders', 'order_no'))
+            ->orderByDesc('shop_orders.id')
+            ->limit(30)
+            ->get()
+            ->map(fn ($row) => $this->targetArray('shop', $row->id, $row->student_id, $row->school_id, $row->amount, $row->code ?: '注文ID:' . $row->id, 'ショップ注文', $this->studentLabel($row), $row->transaction_date))
+            ->values();
+    }
+
+    private function searchEventTargets(string $keyword)
+    {
+        return DB::table('event_applications')
+            ->leftJoin('events', 'event_applications.event_id', '=', 'events.id')
+            ->leftJoin('event_prices', 'event_applications.event_price_id', '=', 'event_prices.id')
+            ->leftJoin('students', 'event_applications.student_id', '=', 'students.id')
+            ->where('event_prices.price', '>', 0)
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('event_payments')
+                    ->whereColumn('event_payments.event_application_id', 'event_applications.id')
+                    ->where(function ($sub) {
+                        $sub->where('event_payments.payment_status', 'paid')
+                            ->orWhere('event_payments.payment_status', 'completed')
+                            ->orWhereNotNull('event_payments.paid_at');
+                    });
+            })
+            ->when($keyword !== '', function ($q) use ($keyword) {
+                $like = '%' . $keyword . '%';
+                $q->where(function ($sub) use ($like) {
+                    $sub->whereRaw('CAST(event_applications.id AS TEXT) LIKE ?', [$like])
+                        ->orWhere('events.title', 'like', $like)
+                        ->orWhere('students.student_code', 'like', $like)
+                        ->orWhere('students.last_name', 'like', $like)
+                        ->orWhere('students.first_name', 'like', $like)
+                        ->orWhereRaw("CONCAT(students.last_name, students.first_name) LIKE ?", [$like])
+                        ->orWhereRaw("CONCAT(students.last_name, ' ', students.first_name) LIKE ?", [$like]);
+                });
+            })
+            ->select('event_applications.id', 'event_applications.student_id', 'event_applications.school_id', 'events.title as title', 'event_prices.price as amount', 'event_applications.applied_at as transaction_date', 'students.student_code', 'students.last_name', 'students.first_name')
+            ->orderByDesc('event_applications.id')
+            ->limit(30)
+            ->get()
+            ->map(fn ($row) => $this->targetArray('event', $row->id, $row->student_id, $row->school_id, $row->amount, 'イベント申込ID:' . $row->id, $row->title ?: 'イベント', $this->studentLabel($row), $row->transaction_date))
+            ->values();
+    }
+
+    private function searchSpotTargets(string $keyword)
+    {
+        return DB::table('spot_sales')
+            ->leftJoin('students', 'spot_sales.student_id', '=', 'students.id')
+            ->select('spot_sales.id', 'spot_sales.student_id', 'spot_sales.school_id', 'spot_sales.sale_code as code', 'spot_sales.sale_title as title', 'spot_sales.total_amount as amount', DB::raw('COALESCE(spot_sales.paid_at, spot_sales.sale_date) as transaction_date'), 'students.student_code', 'students.last_name', 'students.first_name')
+            ->where('spot_sales.total_amount', '>', 0)
+            ->where(function ($query) {
+                $query->where('spot_sales.payment_status', 'paid')
+                    ->orWhere('spot_sales.payment_status', 'completed')
+                    ->orWhereNotNull('spot_sales.paid_at');
+            })
+            ->when($keyword !== '', fn ($q) => $this->applyTargetKeyword($q, $keyword, 'spot_sales', 'sale_code', 'sale_title'))
+            ->orderByDesc('spot_sales.id')
+            ->limit(30)
+            ->get()
+            ->map(fn ($row) => $this->targetArray('spot', $row->id, $row->student_id, $row->school_id, $row->amount, $row->code ?: 'スポットID:' . $row->id, $row->title ?: 'スポット売上', $this->studentLabel($row), $row->transaction_date))
+            ->values();
+    }
+
+    private function applyTargetKeyword($query, string $keyword, string $table, string $codeColumn, ?string $titleColumn = null): void
+    {
+        $like = '%' . $keyword . '%';
+        $query->where(function ($sub) use ($like, $table, $codeColumn, $titleColumn) {
+            $sub->whereRaw("CAST({$table}.id AS TEXT) LIKE ?", [$like])
+                ->orWhere("{$table}.{$codeColumn}", 'like', $like)
+                ->orWhere('students.student_code', 'like', $like)
+                ->orWhere('students.last_name', 'like', $like)
+                ->orWhere('students.first_name', 'like', $like)
+                ->orWhereRaw("CONCAT(students.last_name, students.first_name) LIKE ?", [$like])
+                ->orWhereRaw("CONCAT(students.last_name, ' ', students.first_name) LIKE ?", [$like]);
+
+            if ($titleColumn) {
+                $sub->orWhere("{$table}.{$titleColumn}", 'like', $like);
+            }
+        });
+    }
+
+    private function targetArray(string $type, int $id, ?int $studentId, ?int $schoolId, int $amount, string $code, string $title, string $studentLabel, $transactionDate = null): array
+    {
+        $alreadyRefundedAmount = $this->alreadyRefundedAmount($type, $id);
+        $maxAmount = max(0, $amount - $alreadyRefundedAmount);
+        $dateText = $transactionDate ? Carbon::parse($transactionDate)->format('Y/m/d') : '-';
+
+        return [
+            'type' => $type,
+            'id' => $id,
+            'student_id' => $studentId,
+            'school_id' => $schoolId,
+            'original_amount' => $amount,
+            'already_refunded_amount' => $alreadyRefundedAmount,
+            'max_amount' => $maxAmount,
+            'code' => $code,
+            'title' => $title,
+            'student_label' => $studentLabel,
+            'transaction_date' => $dateText,
+            'label' => $code . '｜' . $title . '｜' . $studentLabel . '｜¥' . number_format($amount) . '｜返金可能 ¥' . number_format($maxAmount),
+        ];
+    }
+
+    private function resolveSourceForStore(string $sourceType, ?int $sourceId, int $studentId = 0, ?int $exceptRefundId = null, bool $paidOnly = true): array
+    {
+        if ($sourceType === 'other') {
+            $student = DB::table('students')->where('id', $studentId)->first();
+            abort_if(! $student, 422, 'その他返金は生徒を選択してください。');
+            return ['school_id' => (int) $student->school_id, 'student_id' => (int) $student->id, 'remaining_amount' => 9999999];
+        }
+
+        $meta = $this->sourceMeta($sourceType, $sourceId, $paidOnly);
+        abort_if(! $meta, 422, '入金済の返金対象を選択してください。');
+
+        $already = $this->alreadyRefundedAmount($sourceType, $sourceId, $exceptRefundId);
+        $remaining = max(0, (int) $meta['amount'] - $already);
+        abort_if($remaining <= 0, 422, '返金可能額がありません。');
+
+        return [
+            'school_id' => (int) $meta['school_id'],
+            'student_id' => (int) $meta['student_id'],
+            'remaining_amount' => $remaining,
+        ];
+    }
+
+    private function resolveSourceLabel(?string $sourceType, ?int $sourceId): string
+    {
+        if (! $sourceType || $sourceType === 'other' || ! $sourceId) {
+            return '手動登録';
+        }
+
+        $meta = $this->sourceMeta($sourceType, $sourceId);
+        if (! $meta) {
+            return $this->sourceTypeLabel($sourceType) . ' ID:' . $sourceId;
+        }
+
+        return $meta['code'] . '｜' . $meta['title'];
+    }
+
+    private function sourceMeta(?string $sourceType, ?int $sourceId, bool $paidOnly = false): ?array
+    {
+        if (! $sourceType || ! $sourceId) {
+            return null;
+        }
+
+        $row = match ($sourceType) {
+            'tuition_enrollment' => tap(DB::table('invoices')
+                ->leftJoin('students', 'invoices.student_id', '=', 'students.id')
+                ->where('invoices.id', $sourceId)
+                ->select('invoices.id', 'invoices.student_id', 'students.school_id', 'invoices.invoice_no as code', 'invoices.total_amount as amount'), function ($query) use ($paidOnly) {
+                    if ($paidOnly) {
+                        $query->where(function ($q) {
+                            $q->where('invoices.payment_status', 'paid')->orWhere('invoices.payment_status', 'completed')->orWhereNotNull('invoices.paid_at');
+                        });
+                    }
+                })->first(),
+            'shop' => tap(DB::table('shop_orders')
+                ->where('id', $sourceId)
+                ->select('id', 'student_id', 'school_id', 'order_no as code', 'total_amount as amount'), function ($query) use ($paidOnly) {
+                    if ($paidOnly) {
+                        $query->where(function ($q) {
+                            $q->where('payment_status', 'paid')->orWhere('payment_status', 'completed')->orWhereNotNull('transaction_date');
+                        });
+                    }
+                })->first(),
+            'event' => tap(DB::table('event_applications')
+                ->leftJoin('events', 'event_applications.event_id', '=', 'events.id')
+                ->leftJoin('event_prices', 'event_applications.event_price_id', '=', 'event_prices.id')
+                ->where('event_applications.id', $sourceId)
+                ->select('event_applications.id', 'event_applications.student_id', 'event_applications.school_id', DB::raw("'イベント申込ID:' || event_applications.id as code"), 'events.title as title', 'event_prices.price as amount'), function ($query) use ($paidOnly) {
+                    if ($paidOnly) {
+                        $query->whereExists(function ($q) {
+                            $q->select(DB::raw(1))->from('event_payments')
+                                ->whereColumn('event_payments.event_application_id', 'event_applications.id')
+                                ->where(function ($sub) {
+                                    $sub->where('event_payments.payment_status', 'paid')->orWhere('event_payments.payment_status', 'completed')->orWhereNotNull('event_payments.paid_at');
+                                });
+                        });
+                    }
+                })->first(),
+            'spot' => tap(DB::table('spot_sales')
+                ->where('id', $sourceId)
+                ->select('id', 'student_id', 'school_id', 'sale_code as code', 'sale_title as title', 'total_amount as amount'), function ($query) use ($paidOnly) {
+                    if ($paidOnly) {
+                        $query->where(function ($q) {
+                            $q->where('payment_status', 'paid')->orWhere('payment_status', 'completed')->orWhereNotNull('paid_at');
+                        });
+                    }
+                })->first(),
+            default => null,
+        };
+
+        if (! $row) {
+            return null;
+        }
+
+        return [
+            'student_id' => (int) $row->student_id,
+            'school_id' => (int) $row->school_id,
+            'code' => $row->code ?: 'ID:' . $sourceId,
+            'title' => $row->title ?? $this->sourceTypeLabel($sourceType),
+            'amount' => (int) $row->amount,
+        ];
+    }
+
+    private function alreadyRefundedAmount(string $sourceType, ?int $sourceId, ?int $exceptRefundId = null): int
+    {
+        if (! $sourceId || $sourceType === 'other') {
+            return 0;
+        }
+
+        $query = Refund::where('refund_source_type', $sourceType)
+            ->where('refund_source_id', $sourceId)
+            ->where('status', '!=', 'cancelled');
+
+        if ($exceptRefundId) {
+            $query->where('id', '!=', $exceptRefundId);
+        }
+
+        return (int) $query->sum('refund_amount');
+    }
+
+    private function upsertAccountTransaction(Refund $refund): void
+    {
+        $category = AccountCategory::where('name', '返金')->first();
+        if (! $category) {
+            return;
+        }
+
+        AccountTransaction::updateOrCreate(
+            ['source_table' => 'refund', 'source_id' => $refund->id],
+            [
+                'scheduled_date' => $refund->scheduled_date,
+                'transaction_date' => $refund->status === 'completed' ? $refund->refunded_at : null,
+                'account_category_id' => $category->id,
+                'payment_method_id' => $refund->refund_method_id,
+                'transaction_name' => $this->sourceTypeLabel($refund->refund_source_type),
+                'amount' => $refund->refund_amount,
+                'before_discount_amount' => $refund->refund_amount,
+                'discount_amount' => 0,
+                'discount_type_id' => null,
+                'discount_note' => null,
+                'status' => $this->toTransactionStatus($refund->status),
+                'cancelled_reason' => $refund->status === 'cancelled' ? $refund->refund_reason : null,
+                'memo' => trim(($refund->refund_reason ?: '') . "\n" . ($refund->memo ?: '')) ?: null,
+                'school_id' => $refund->school_id,
+                'student_id' => $refund->student_id,
+                'created_by' => auth()->id() ?? 1,
+            ]
+        );
+    }
+
+    private function generateRefundCode(): string
+    {
+        $prefix = 'REF-' . now()->format('Ymd') . '-';
+        $next = Refund::where('refund_code', 'like', $prefix . '%')->count() + 1;
+        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function studentLabel($row): string
+    {
+        return trim(($row->student_code ?: '') . ' ' . ($row->last_name ?: '') . ' ' . ($row->first_name ?: '')) ?: '生徒未設定';
+    }
+
+    private function sourceTypeLabel(?string $sourceType): string
+    {
+        return match ($sourceType) {
+            'tuition_enrollment' => '授業料・入会金返金',
+            'shop' => 'ショップ返金',
+            'event' => 'イベント返金',
+            'spot' => 'スポット返金',
+            default => 'その他',
+        };
+    }
+
+    private function statusLabel(?string $status): string
     {
         return match ($status) {
-            'paid', 'confirmed', '入金済' => 'paid',
-            'cancelled', 'canceled', '取消' => 'cancelled',
+            'completed' => '返金済',
+            'cancelled' => '取消',
+            default => '未返金',
+        };
+    }
+
+    private function statusClass(?string $status): string
+    {
+        return match ($status) {
+            'completed' => 'paid',
+            'cancelled' => 'cancelled',
             default => 'unpaid',
         };
     }
 
-    private function paymentStatusLabel(?string $status): string
+    private function toTransactionStatus(?string $status): string
     {
-        return match ($this->normalizePaymentStatus($status)) {
-            'paid' => '入金済',
-            'cancelled' => '取消',
-            default => '未入金',
+        return match ($status) {
+            'completed' => 'confirmed',
+            'cancelled' => 'cancelled',
+            default => 'planned',
         };
     }
 }

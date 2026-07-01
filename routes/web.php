@@ -319,13 +319,16 @@ Route::prefix('admin')
             Route::get('/refunds/students/search', [RefundController::class, 'searchStudents'])
                 ->name('refunds.students.search');
 
+            Route::get('/refunds/targets/search', [RefundController::class, 'searchTargets'])
+                ->name('refunds.targets.search');
+
             Route::get('/refunds/export', [RefundController::class, 'export'])
                 ->name('refunds.export');
 
             Route::post('/refunds', [RefundController::class, 'store'])
                 ->name('refunds.store');
 
-            Route::put('/refunds/{invoiceItemId}', [RefundController::class, 'update'])
+            Route::put('/refunds/{refundId}', [RefundController::class, 'update'])
                 ->name('refunds.update');
 
 

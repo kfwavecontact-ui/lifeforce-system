@@ -1,0 +1,299 @@
+.refund-create-card{padding:18px 20px;margin-bottom:18px}.refund-create-header{margin-bottom:12px}.refund-create-form-compact{display:block}.refund-create-two-line-grid{display:grid;grid-template-columns:1.1fr 2.2fr 1fr 1fr 1fr;gap:12px 14px;align-items:start}.refund-create-two-line-grid .shop-sale-field span,.refund-search-grid label{font-weight:700;color:#0f172a;font-size:12px}.refund-create-two-line-grid input,.refund-create-two-line-grid select,.refund-search-grid input,.refund-search-grid select{width:100%;height:42px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;padding:0 12px;font-size:14px;box-sizing:border-box}.refund-lookup-field{position:relative}.refund-lookup-row{display:flex;gap:8px}.refund-lookup-row input{flex:1}.refund-lookup-row button{height:42px;white-space:nowrap}.refund-selected-target{min-height:20px;margin-top:4px;font-size:12px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.refund-lookup-results,.event-student-search-results{position:absolute;z-index:40;left:0;right:0;top:70px;max-height:260px;overflow:auto;background:#fff;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 16px 40px rgba(15,23,42,.14)}.refund-lookup-results:empty,.event-student-search-results:empty{display:none}.refund-lookup-results button,.event-student-search-results button{display:block;width:100%;padding:10px 12px;text-align:left;border:0;border-bottom:1px solid #e2e8f0;background:#fff;cursor:pointer;font-size:13px}.refund-lookup-results button:hover,.event-student-search-results button:hover{background:#eff6ff}.refund-lookup-results strong{display:block;color:#0f172a}.refund-lookup-results span{display:block;color:#64748b;font-size:12px;margin-top:2px}.refund-reason-field,.refund-memo-field{min-width:0}.refund-create-bottom-row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:16px}.refund-total-box-inline{display:flex;gap:20px;align-items:center;padding:9px 14px;border:1px solid #fecaca;background:#fff7f7;border-radius:10px;min-width:300px}.refund-total-box-inline span{display:block;font-size:12px;color:#64748b;text-align:right}.refund-total-box-inline strong{display:block;color:#dc2626;font-size:16px;text-align:right}.refund-create-bottom-row .tuition-primary-button:disabled{opacity:.45;cursor:not-allowed}.refund-summary-grid{margin:14px 0}.refund-filter-card{padding:16px 18px}.refund-search-grid{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:12px 14px;align-items:end}.refund-keyword-field{grid-column:span 2}.refund-search-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}.refund-target-cell{min-width:220px}.refund-chart-grid{grid-template-columns:1fr 1fr}.refund-detail-content{max-width:720px}.refund-detail-grid{display:grid;grid-template-columns:160px 1fr;gap:10px 14px}.refund-detail-grid dt{font-weight:700;color:#475569}.refund-detail-grid dd{margin:0;color:#0f172a}.refund-amount-error{color:#dc2626!important}.refund-column-filter-button{margin-left:6px;border:0;background:#e2e8f0;color:#475569;border-radius:6px;font-size:11px;padding:3px 5px;cursor:pointer}.refund-column-filter-menu{position:absolute;z-index:80;width:260px;max-height:360px;overflow:auto;background:#fff;border:1px solid #dbe2ea;border-radius:12px;box-shadow:0 18px 45px rgba(15,23,42,.16);padding:12px}.refund-column-filter-menu input[type=text]{width:100%;height:38px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px;margin-bottom:10px}.refund-column-filter-actions{display:flex;justify-content:space-between;gap:8px;margin-bottom:8px}.refund-column-filter-actions button,.refund-column-filter-apply{border:0;border-radius:8px;padding:7px 10px;font-weight:700;cursor:pointer}.refund-column-filter-actions button{background:#eef2f7;color:#334155}.refund-column-filter-values{display:grid;gap:6px;max-height:210px;overflow:auto}.refund-column-filter-values label{font-size:13px;color:#0f172a;display:flex;align-items:center;gap:7px}.refund-column-filter-apply{width:100%;margin-top:10px;background:#2563eb;color:#fff}@media(max-width:1300px){.refund-create-two-line-grid{grid-template-columns:repeat(2,minmax(180px,1fr))}.refund-lookup-field{grid-column:span 2}.refund-search-grid{grid-template-columns:repeat(2,minmax(160px,1fr))}.refund-keyword-field{grid-column:span 2}}@media(max-width:760px){.refund-create-two-line-grid,.refund-search-grid{grid-template-columns:1fr}.refund-lookup-field,.refund-keyword-field{grid-column:auto}.refund-create-bottom-row{display:block}.refund-total-box-inline{min-width:0;justify-content:space-between;margin-bottom:12px}.refund-search-actions{justify-content:flex-start;flex-wrap:wrap}}
+
+
+/* Phase6-v5: spot-sales aligned buttons and compact lookup display */
+.refund-lookup-search-button,
+.refund-submit-button{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:58px;
+    height:42px;
+    padding:0 16px;
+    border:0;
+    border-radius:10px;
+    background:#2563eb;
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+    text-decoration:none;
+}
+.refund-submit-button{
+    min-width:104px;
+}
+.refund-lookup-search-button:hover,
+.refund-submit-button:hover{
+    background:#1d4ed8;
+}
+.refund-submit-button:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+}
+.refund-lookup-row input{
+    min-width:0;
+}
+.refund-lookup-results{
+    top:48px;
+}
+.refund-lookup-results strong{
+    display:block;
+    line-height:1.5;
+}
+.refund-search-actions{
+    align-self:end;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:0;
+}
+.refund-search-actions .tuition-search-button,
+.refund-search-actions .tuition-clear-button,
+.refund-search-actions .tuition-export-button,
+.refund-search-actions .tuition-column-setting-button{
+    height:38px;
+    min-width:74px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    font-weight:700;
+    text-decoration:none;
+    box-sizing:border-box;
+}
+.refund-search-actions .tuition-search-button{
+    border:0;
+    background:#2563eb;
+    color:#fff;
+}
+.refund-search-actions .tuition-clear-button{
+    border:1px solid #dbe2ea;
+    background:#fff;
+    color:#334155;
+}
+.refund-search-actions .tuition-export-button{
+    border:1px solid #16a34a;
+    background:#fff;
+    color:#16a34a;
+}
+.refund-search-actions .tuition-column-setting-button{
+    border:1px solid #dbe2ea;
+    background:#fff;
+    color:#0f172a;
+}
+
+
+/* Phase6-v6 fixes */
+.refund-lookup-row input:disabled{background:#f1f5f9;color:#94a3b8;cursor:not-allowed;}
+.refund-lookup-search-button:disabled{opacity:.45;cursor:not-allowed;}
+.refund-summary-chart-box{min-height:280px;}
+.refund-summary-chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;height:calc(100% - 32px);align-content:center;}
+.refund-summary-chart-grid div{border:1px solid #e2e8f0;border-radius:14px;background:#f8fafc;padding:18px 16px;}
+.refund-summary-chart-grid span{display:block;font-size:13px;color:#64748b;margin-bottom:8px;}
+.refund-summary-chart-grid strong{display:block;font-size:22px;color:#dc2626;}
+@media(max-width:900px){.refund-summary-chart-grid{grid-template-columns:1fr}.refund-summary-chart-box{min-height:0}}
+
+/* Phase6-v7 fixes */
+.refund-table th:nth-child(7),
+.refund-table td:nth-child(7){
+    width:120px;
+    min-width:120px;
+    max-width:120px;
+    white-space:nowrap;
+}
+.refund-table th:nth-child(8),
+.refund-table td:nth-child(8){
+    width:320px;
+    min-width:320px;
+}
+.refund-table th:last-child,
+.refund-table td:last-child{
+    position:sticky;
+    right:0;
+    z-index:5;
+    background:#fff;
+    box-shadow:-8px 0 16px rgba(15,23,42,.06);
+}
+.refund-table thead th:last-child{
+    z-index:8;
+    background:#f8fafc;
+}
+.refund-table tr.is-editing td:last-child{
+    background:#fff;
+}
+.refund-table .tuition-edit-input{
+    width:100%;
+    min-width:96px;
+    height:30px;
+    border:1px solid #cbd5e1;
+    border-radius:8px;
+    padding:0 8px;
+    background:#fff;
+    font-size:12px;
+    box-sizing:border-box;
+}
+.refund-table .tuition-save-button,
+.refund-table .tuition-cancel-button{
+    border:0;
+    border-radius:8px;
+    padding:6px 9px;
+    font-weight:700;
+    cursor:pointer;
+    margin-left:4px;
+}
+.refund-table .tuition-save-button{background:#2563eb;color:#fff;}
+.refund-table .tuition-cancel-button{background:#fee2e2;color:#b91c1c;}
+.refund-summary-chart-grid em{
+    display:block;
+    margin-top:5px;
+    color:#64748b;
+    font-size:13px;
+    font-style:normal;
+    font-weight:700;
+}
+.refund-summary-chart-grid strong{
+    line-height:1.25;
+}
+
+/* Phase6-v8 refinements */
+.refund-target-clear-button{
+    height:42px;
+    min-width:72px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid #dbe2ea;
+    border-radius:10px;
+    background:#fff;
+    color:#334155;
+    font-weight:700;
+    cursor:pointer;
+    white-space:nowrap;
+}
+.refund-target-clear-button:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+}
+.refund-lookup-modal{
+    position:fixed;
+    inset:0;
+    z-index:120;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(15,23,42,.42);
+    padding:24px;
+}
+.refund-lookup-modal.is-open{
+    display:flex;
+}
+.refund-lookup-modal-content{
+    width:min(980px,96vw);
+    max-height:84vh;
+    overflow:hidden;
+    background:#fff;
+    border-radius:18px;
+    box-shadow:0 24px 70px rgba(15,23,42,.24);
+    border:1px solid #dbe2ea;
+}
+.refund-lookup-modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    padding:18px 20px;
+    border-bottom:1px solid #e2e8f0;
+}
+.refund-lookup-modal-header h3{
+    margin:0 0 6px;
+    font-size:18px;
+    color:#0f172a;
+}
+.refund-lookup-modal-header p{
+    margin:0;
+    color:#64748b;
+    font-size:13px;
+}
+.refund-lookup-modal-header button{
+    width:34px;
+    height:34px;
+    border:1px solid #dbe2ea;
+    border-radius:999px;
+    background:#fff;
+    color:#334155;
+    font-size:18px;
+    cursor:pointer;
+}
+.refund-lookup-table-wrap{
+    max-height:62vh;
+    overflow:auto;
+    padding:0 20px 20px;
+}
+.refund-lookup-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+}
+.refund-lookup-table th,
+.refund-lookup-table td{
+    border-bottom:1px solid #e2e8f0;
+    padding:11px 10px;
+    text-align:left;
+    white-space:nowrap;
+}
+.refund-lookup-table th{
+    position:sticky;
+    top:0;
+    z-index:2;
+    background:#f8fafc;
+    color:#334155;
+    font-weight:700;
+}
+.refund-lookup-select-row{
+    cursor:pointer;
+}
+.refund-lookup-select-row:hover{
+    background:#eff6ff;
+}
+.refund-lookup-select-button{
+    height:30px;
+    min-width:54px;
+    border-radius:8px;
+    font-size:12px;
+}
+.refund-lookup-empty{
+    text-align:center!important;
+    color:#64748b;
+    padding:24px!important;
+}
+.refund-toast{
+    position:fixed;
+    top:22px;
+    right:22px;
+    z-index:200;
+    padding:13px 18px;
+    border-radius:12px;
+    background:#2563eb;
+    color:#fff;
+    font-weight:700;
+    box-shadow:0 14px 36px rgba(37,99,235,.28);
+    opacity:0;
+    transform:translateY(-8px);
+    transition:opacity .2s ease, transform .2s ease;
+}
+.refund-toast.is-visible{
+    opacity:1;
+    transform:translateY(0);
+}
+.refund-table tbody tr.is-editing td{
+    background:#fff8db!important;
+}
+.refund-table tbody tr.is-saved-highlight td{
+    animation:refundSavedFlash 1.2s ease;
+}
+@keyframes refundSavedFlash{
+    0%{background:#dcfce7;}
+    100%{background:transparent;}
+}
+.refund-summary-chart-grid em + em{
+    color:#2563eb;
+    font-size:12px;
+}
