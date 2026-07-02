@@ -1,574 +1,253 @@
 @extends('layouts.admin')
 
-@section('title', '授業料・入会金売上')
+@section('title', 'ポイント商品費用')
 
 @section('content')
 
+@once
+    <link rel="stylesheet" href="{{ asset('css/admin/tuition-enrollment-sales.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/shop-sales.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/event-sales.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/spot-sales.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/refunds.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/point-product-costs.css') }}">
+@endonce
+
 @php
     use Illuminate\Support\Facades\Route;
-
+    use Illuminate\Support\Str;
     $sortLink = function (string $key) use ($sort, $direction) {
         $nextDirection = ($sort === $key && $direction === 'asc') ? 'desc' : 'asc';
-
-        return request()->fullUrlWithQuery([
-            'sort' => $key,
-            'direction' => $nextDirection,
-            'page' => null,
-        ]);
+        return request()->fullUrlWithQuery(['sort' => $key, 'direction' => $nextDirection, 'page' => null]);
     };
-
     $sortMark = function (string $key) use ($sort, $direction) {
-        if ($sort !== $key) {
-            return '↕';
-        }
-
+        if ($sort !== $key) return '↕';
         return $direction === 'asc' ? '↑' : '↓';
     };
-
+    $yoyText = function ($rate, string $suffix = '%') {
+        if ($rate === null) return '前月比 -';
+        $prefix = $rate > 0 ? '+' : '';
+        return '前月比 ' . $prefix . $rate . $suffix;
+    };
     $exportRouteExists = Route::has('admin.operations.classroom-accounting.point-product-costs.export');
     $updateRouteBase = url('/admin/operations/classroom-accounting/point-product-costs');
 @endphp
 
-<div class="tuition-sales-page" data-update-base="{{ $updateRouteBase }}">
-
+<div class="tuition-sales-page shop-sales-page event-sales-page spot-sales-page refund-page point-cost-page" data-update-base="{{ $updateRouteBase }}" data-student-search-url="{{ route('admin.operations.classroom-accounting.point-product-costs.students.search') }}">
     <div class="page-header">
         <div>
             <h1>ポイント商品費用</h1>
-            <p>ポイント商品費用の発生日、支払日、支払方法、内容を確認します。</p>
+            <p>商品交換所で受け渡し済みになった商品の原価を、会計上の費用として確認します。</p>
         </div>
     </div>
 
-    <section class="tuition-create-card">
-        <div class="tuition-create-header">
-            <h3>新規取引登録</h3>
-            <p>ポイント商品費用を簡単に登録します。</p>
+    @if (session('success'))
+        <div class="tuition-alert-success">{{ session('success') }}</div>
+        <div id="pointCostToastMessage" data-message="{{ session('success') }}"></div>
+    @endif
+
+    @if ($errors->any())
+        <div class="tuition-alert-error">
+            <strong>入力内容を確認してください。</strong>
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <section class="shop-sale-create-card event-sale-create-card spot-sale-create-card refund-create-card point-cost-create-card shop-sale-create-card-compact">
+        <div class="shop-sale-create-header refund-create-header">
+            <div>
+                <h3>新規ポイント商品費用登録</h3>
+                <p>生徒とポイント商品を選択し、受け渡し済みの場合は会計台帳へ費用計上します。</p>
+            </div>
         </div>
 
-        <form method="POST" action="{{ route('admin.operations.classroom-accounting.point-product-costs.store') }}">
+        <form method="POST" action="{{ route('admin.operations.classroom-accounting.point-product-costs.store') }}" id="pointCostCreateForm" class="event-sale-create-form refund-create-form refund-create-form-compact point-cost-create-form">
             @csrf
+            <input type="hidden" name="student_id" id="pointCostStudentId">
 
-            <div class="tuition-create-row tuition-create-row-main">
-                <label class="tuition-student-lookup">
-                    生徒
-                    <input
-                        type="text"
-                        id="tuitionStudentLookupInput"
-                        placeholder="生徒コード・氏名で検索"
-                        autocomplete="off"
-                    >
-                    <input type="hidden" name="student_id" id="tuitionStudentId" required>
-                    <div class="tuition-student-lookup-results" id="tuitionStudentLookupResults"></div>
+            <div class="refund-create-two-line-grid point-cost-create-grid">
+                <label class="shop-sale-field point-cost-student-field">
+                    <span>生徒</span>
+                    <input type="text" id="pointCostStudentLookupInput" placeholder="生徒コード・氏名で検索" autocomplete="off" required>
+                    <div class="event-student-search-results" id="pointCostStudentResults"></div>
                 </label>
 
-                <label>
-                    会計区分
-                    <select name="account_category_id" required>
-                        @foreach ($accountCategories as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                <label class="shop-sale-field point-cost-item-field">
+                    <span>商品</span>
+                    <input type="text" id="pointCostRewardItemLookupInput" placeholder="商品名・カテゴリで検索" autocomplete="off" required>
+                    <input type="hidden" name="reward_item_id" id="pointCostRewardItem" required>
+                    <div class="event-student-search-results point-cost-item-results" id="pointCostRewardItemResults"></div>
+                </label>
+
+                <label class="shop-sale-field">
+                    <span>状態</span>
+                    <select name="status" id="pointCostStatus" required>
+                        @foreach ($statuses as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
                     </select>
                 </label>
 
-                <label>
-                    取引予定日
-                    <input type="date" name="scheduled_date" required>
+                <label class="shop-sale-field">
+                    <span>申請日</span>
+                    <input type="date" name="requested_at" id="pointCostRequestedAt" value="{{ now()->toDateString() }}" required>
                 </label>
 
-                <label>
-                    取引日
-                    <input type="date" name="transaction_date">
+                <label class="shop-sale-field">
+                    <span>受け渡し日</span>
+                    <input type="date" name="delivered_at" id="pointCostDeliveredAt">
                 </label>
 
-                <label>
-                    入出金方法
-                    <select name="payment_method_id">
-                        <option value="">未設定</option>
-                        @foreach ($paymentMethods as $method)
-                            <option value="{{ $method->id }}">{{ $method->name }}</option>
-                        @endforeach
-                    </select>
-                </label>
-
-                <label>
-                    入金状態
-                    <select name="payment_status" required>
-                        <option value="unpaid">未入金</option>
-                        <option value="paid">入金済</option>
-                        <option value="cancelled">取消</option>
-                    </select>
+                <label class="shop-sale-field point-cost-memo-field">
+                    <span>メモ</span>
+                    <input type="text" name="note" placeholder="例：教室で受け渡し済み">
                 </label>
             </div>
 
-            <div class="tuition-create-row tuition-create-row-sub">
-                <label>
-                    割引前金額
-                    <input type="number" name="before_discount_amount" min="0" value="0" required>
-                </label>
-
-                <label>
-                    割引額
-                    <input type="number" name="discount_amount" min="0" value="0" required>
-                </label>
-
-                <label>
-                    取引メモ
-                    <input type="text" name="memo" placeholder="取引全体の補足メモ">
-                </label>
-
-                <label>
-                    割引メモ
-                    <input type="text" name="discount_note" placeholder="割引理由・適用根拠">
-                </label>
-
-                <div class="tuition-create-actions">
-                    <button type="submit">登録</button>
+            <div class="refund-create-bottom-row">
+                <div class="refund-total-box refund-total-box-inline point-cost-total-box">
+                    <div><span>カテゴリ</span><strong id="pointCostCategoryText">未選択</strong></div>
+                    <div><span>使用ポイント</span><strong id="pointCostPointsText">0pt</strong></div>
+                    <div><span>商品原価</span><strong id="pointCostAmountText">¥0</strong></div>
+                    <div><span>在庫数</span><strong id="pointCostStockText">0個</strong></div>
+                    <div><span>現在ポイント</span><strong id="pointCostCurrentPointsText">未選択</strong></div>
+                    <div><span>累計獲得</span><strong id="pointCostTotalEarnedText">未選択</strong></div>
                 </div>
+                <button type="submit" class="tuition-search-button refund-submit-button" id="pointCostSubmitButton">ポイント商品費用を登録</button>
             </div>
         </form>
     </section>
 
-    <section class="tuition-search-area">
-        <form method="GET" action="{{ route('admin.operations.classroom-accounting.point-product-costs.index') }}">
-            <div class="tuition-search-row">
-                <label>
-                    取引予定日 From
-                    <input type="date" name="scheduled_from" value="{{ $filters['scheduled_from'] ?? '' }}">
-                </label>
+    <section class="tuition-filter-card shop-filter-card event-filter-card spot-filter-card refund-filter-card point-cost-filter-card">
+        <form method="GET" action="{{ route('admin.operations.classroom-accounting.point-product-costs.index') }}" class="spot-sale-search-form refund-search-form point-cost-search-form">
+            <div class="spot-sale-search-grid refund-search-grid point-cost-search-grid">
+                <label>申請日 From<input type="date" name="requested_from" value="{{ $filters['requested_from'] ?? '' }}"></label>
+                <label>申請日 To<input type="date" name="requested_to" value="{{ $filters['requested_to'] ?? '' }}"></label>
+                <label>受け渡し日 From<input type="date" name="delivered_from" value="{{ $filters['delivered_from'] ?? '' }}"></label>
+                <label>受け渡し日 To<input type="date" name="delivered_to" value="{{ $filters['delivered_to'] ?? '' }}"></label>
+                <label>教室<select name="school_id"><option value="">すべて</option>@foreach ($schools as $school)<option value="{{ $school->id }}" @selected(($filters['school_id'] ?? '') == $school->id)>{{ $school->name }}</option>@endforeach</select></label>
 
-                <label>
-                    取引予定日 To
-                    <input type="date" name="scheduled_to" value="{{ $filters['scheduled_to'] ?? '' }}">
-                </label>
+                <label>カテゴリ<select name="reward_category_id"><option value="">すべて</option>@foreach ($rewardCategories as $category)<option value="{{ $category->id }}" @selected(($filters['reward_category_id'] ?? '') == $category->id)>{{ $category->name }}</option>@endforeach</select></label>
+                <label>商品<select name="reward_item_id"><option value="">すべて</option>@foreach ($rewardItems as $item)<option value="{{ $item->id }}" @selected(($filters['reward_item_id'] ?? '') == $item->id)>{{ $item->name }}</option>@endforeach</select></label>
+                <label>状態<select name="status"><option value="">すべて</option>@foreach ($statuses as $value => $label)<option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>@endforeach</select></label>
+                <label>会計反映<select name="account_sync_status"><option value="">すべて</option><option value="synced" @selected(($filters['account_sync_status'] ?? '') === 'synced')>反映済み</option><option value="unsynced" @selected(($filters['account_sync_status'] ?? '') === 'unsynced')>未反映</option></select></label>
+                <label class="refund-keyword-field">キーワード<input type="text" name="keyword" value="{{ $filters['keyword'] ?? '' }}" placeholder="生徒・商品名・カテゴリ・メモ"></label>
 
-                <label>
-                    取引日 From
-                    <input type="date" name="transaction_from" value="{{ $filters['transaction_from'] ?? '' }}">
-                </label>
-
-                <label>
-                    取引日 To
-                    <input type="date" name="transaction_to" value="{{ $filters['transaction_to'] ?? '' }}">
-                </label>
-            </div>
-
-            <div class="tuition-search-row">
-                <label class="tuition-search-school">
-                    教室
-                    <select name="school_id">
-                        <option value="">すべて</option>
-                        @foreach ($schools as $school)
-                            <option value="{{ $school->id }}" @selected(($filters['school_id'] ?? '') == $school->id)>
-                                {{ $school->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </label>
-
-                <label>
-                    会計区分
-                    <select name="account_category_id">
-                        <option value="">すべて</option>
-                        @foreach ($accountCategories as $category)
-                            <option value="{{ $category->id }}" @selected(($filters['account_category_id'] ?? '') == $category->id)>
-                                {{ $category->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </label>
-
-                <label>
-                    コース名
-                    <select name="course_name">
-                        <option value="">すべて</option>
-                        @foreach ($courseNames as $courseName)
-                            <option value="{{ $courseName }}" @selected(($filters['course_name'] ?? '') === $courseName)>
-                                {{ $courseName }}
-                            </option>
-                        @endforeach
-                    </select>
-                </label>
-
-                <label>
-                    通塾種別
-                    <select name="attendance_type">
-                        <option value="">すべて</option>
-                        @foreach ($attendanceTypes as $attendanceType)
-                            <option value="{{ $attendanceType }}" @selected(($filters['attendance_type'] ?? '') === $attendanceType)>
-                                {{ $attendanceType }}
-                            </option>
-                        @endforeach
-                    </select>
-                </label>
-
-                <label>
-                    入出金方法
-                    <select name="payment_method_id">
-                        <option value="">すべて</option>
-                        @foreach ($paymentMethods as $method)
-                            <option value="{{ $method->id }}" @selected(($filters['payment_method_id'] ?? '') == $method->id)>
-                                {{ $method->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </label>
-            </div>
-
-            <div class="tuition-search-row tuition-search-row-last">
-                <label>
-                    入金状態
-                    <select name="payment_status">
-                        <option value="">すべて</option>
-                        <option value="paid" @selected(($filters['payment_status'] ?? '') === 'paid')>入金済</option>
-                        <option value="unpaid" @selected(($filters['payment_status'] ?? '') === 'unpaid')>未入金</option>
-                        <option value="cancelled" @selected(($filters['payment_status'] ?? '') === 'cancelled')>取消</option>
-                    </select>
-                </label>
-
-                <label>
-                    割引種別
-                    <select name="discount_type_id">
-                        <option value="">すべて</option>
-                        @foreach ($discounts as $discount)
-                            <option value="{{ $discount->id }}" @selected(($filters['discount_type_id'] ?? '') == $discount->id)>
-                                {{ $discount->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </label>
-
-                <label class="tuition-search-keyword">
-                    キーワード
-                    <input type="text" name="keyword" value="{{ $filters['keyword'] ?? '' }}" placeholder="生徒名・生徒コード・取引名・コース名・割引メモ">
-                </label>
-
-                <div class="tuition-search-actions">
+                <div class="tuition-search-buttons event-sale-search-buttons refund-search-actions point-cost-search-actions">
                     <button type="submit" class="tuition-search-button">検索</button>
-
-                    <a href="{{ route('admin.operations.classroom-accounting.point-product-costs.index') }}" class="tuition-clear-button">
-                        クリア
-                    </a>
-
+                    <a href="{{ route('admin.operations.classroom-accounting.point-product-costs.index') }}" class="tuition-clear-button">クリア</a>
                     @if ($exportRouteExists)
-                        <a href="{{ route('admin.operations.classroom-accounting.point-product-costs.export', request()->query()) }}" class="tuition-export-button">
-                            CSV出力
-                        </a>
+                        <a href="{{ route('admin.operations.classroom-accounting.point-product-costs.export', request()->query()) }}" class="tuition-export-button">CSV出力</a>
                     @endif
-
-                    <button type="button" class="tuition-column-setting-button" id="tuitionColumnSettingButton">
-                        <i class="fas fa-gear"></i>
-                        表示項目
-                    </button>
+                    <button type="button" id="tuitionColumnButton" class="tuition-column-setting-button"><i class="fas fa-gear"></i> 表示項目</button>
                 </div>
             </div>
         </form>
     </section>
 
-    <script>
-        window.tuitionSalesChartData = @json($tuitionSalesChartData);
-        window.courseCompositionData = @json($courseCompositionData);
-        window.tuitionPaymentMethods = @json($paymentMethods->map(fn($method) => [
-            'id' => $method->id,
-            'name' => $method->name,
-        ])->values());
-    </script>
+    <section class="tuition-table-card shop-table-card event-table-card spot-table-card refund-table-card point-cost-table-card">
+        <div class="tuition-table-header point-cost-table-header-count-only">
+            <div>
+                <p>表示中 {{ number_format($costs->count()) }}件 / 全 {{ number_format($costs->total()) }}件</p>
+            </div>
+        </div>
 
-    <section class="tuition-table-card">
-        <div class="tuition-table-scroll">
-            <table class="tuition-sales-table">
+        <div class="tuition-table-scroll point-cost-table-scroll">
+            <table class="tuition-table event-sales-table refund-table point-cost-table" id="pointCostTable">
                 <thead>
                     <tr>
-                        <th class="tuition-check-column">
-                            <input type="checkbox" id="tuitionCheckAll">
-                        </th>
-
-                        <th>
-                            <a href="{{ $sortLink('id') }}" class="tuition-sort-link">
-                                ID <span>{{ $sortMark('id') }}</span>
-                            </a>
-                        </th>
-
-                        <th>
-                            <div class="tuition-filter-header">
-                                <a href="{{ $sortLink('school') }}" class="tuition-sort-link">
-                                    教室 <span>{{ $sortMark('school') }}</span>
-                                </a>
-                                <button type="button" class="tuition-filter-button" data-filter="school">▼</button>
-                            </div>
-                        </th>
-
-                        <th>
-                            <div class="tuition-filter-header">
-                                <a href="{{ $sortLink('student') }}" class="tuition-sort-link">
-                                    生徒 <span>{{ $sortMark('student') }}</span>
-                                </a>
-                                <button type="button" class="tuition-filter-button" data-filter="student">▼</button>
-                            </div>
-                        </th>
-
-                        <th>
-                            <a href="{{ $sortLink('student_code') }}" class="tuition-sort-link">
-                                生徒コード <span>{{ $sortMark('student_code') }}</span>
-                            </a>
-                        </th>
-
-                        <th>
-                            <div class="tuition-filter-header">
-                                <a href="{{ $sortLink('course_name') }}" class="tuition-sort-link">
-                                    コース名 <span>{{ $sortMark('course_name') }}</span>
-                                </a>
-                                <button type="button" class="tuition-filter-button" data-filter="course_name">▼</button>
-                            </div>
-                        </th>
-
-                        <th>
-                            <div class="tuition-filter-header">
-                                <a href="{{ $sortLink('attendance_type') }}" class="tuition-sort-link">
-                                    通塾種別 <span>{{ $sortMark('attendance_type') }}</span>
-                                </a>
-                                <button type="button" class="tuition-filter-button" data-filter="attendance_type">▼</button>
-                            </div>
-                        </th>
-
-                        <th>
-                            <div class="tuition-filter-header">
-                                <a href="{{ $sortLink('account_category') }}" class="tuition-sort-link">
-                                    会計区分 <span>{{ $sortMark('account_category') }}</span>
-                                </a>
-                                <button type="button" class="tuition-filter-button" data-filter="account_category">▼</button>
-                            </div>
-                        </th>
-
-                        <th>
-                            <a href="{{ $sortLink('scheduled_date') }}" class="tuition-sort-link">
-                                取引予定日 <span>{{ $sortMark('scheduled_date') }}</span>
-                            </a>
-                        </th>
-
-                        <th>
-                            <div class="tuition-filter-header">
-                                <a href="{{ $sortLink('payment_method') }}" class="tuition-sort-link">
-                                    入出金方法 <span>{{ $sortMark('payment_method') }}</span>
-                                </a>
-                                <button type="button" class="tuition-filter-button" data-filter="payment_method">▼</button>
-                            </div>
-                        </th>
-
-                        <th>
-                            <a href="{{ $sortLink('transaction_date') }}" class="tuition-sort-link">
-                                取引日 <span>{{ $sortMark('transaction_date') }}</span>
-                            </a>
-                        </th>
-
-                        <th>
-                            <div class="tuition-filter-header">
-                                <span>割引種別</span>
-                                <button type="button" class="tuition-filter-button" data-filter="discount_type">▼</button>
-                            </div>
-                        </th>
-
-                        <th>
-                            <a href="{{ $sortLink('before_discount_amount') }}" class="tuition-sort-link">
-                                割引前金額 <span>{{ $sortMark('before_discount_amount') }}</span>
-                            </a>
-                        </th>
-
-                        <th>
-                            <a href="{{ $sortLink('discount_amount') }}" class="tuition-sort-link">
-                                割引額 <span>{{ $sortMark('discount_amount') }}</span>
-                            </a>
-                        </th>
-
-                        <th>
-                            <a href="{{ $sortLink('amount') }}" class="tuition-sort-link">
-                                取引額(税込) <span>{{ $sortMark('amount') }}</span>
-                            </a>
-                        </th>
-
-                        <th>
-                            <div class="tuition-filter-header">
-                                <a href="{{ $sortLink('payment_status') }}" class="tuition-sort-link">
-                                    入金状態 <span>{{ $sortMark('payment_status') }}</span>
-                                </a>
-                                <button type="button" class="tuition-filter-button" data-filter="payment_status">▼</button>
-                            </div>
-                        </th>
-
-                        <th>取引メモ</th>
-                        <th>割引メモ</th>
-
+                        <th><input type="checkbox" id="tuitionCheckAll"></th>
+                        <th><a href="{{ $sortLink('id') }}">ID {{ $sortMark('id') }}</a></th>
+                        <th><a href="{{ $sortLink('school') }}">教室 {{ $sortMark('school') }}</a><button type="button" class="refund-column-filter-button" data-filter-col="school">▼</button></th>
+                        <th><a href="{{ $sortLink('student') }}">生徒 {{ $sortMark('student') }}</a><button type="button" class="refund-column-filter-button" data-filter-col="student">▼</button></th>
+                        <th><a href="{{ $sortLink('student_code') }}">生徒コード {{ $sortMark('student_code') }}</a></th>
+                        <th><a href="{{ $sortLink('category') }}">カテゴリ {{ $sortMark('category') }}</a><button type="button" class="refund-column-filter-button" data-filter-col="category">▼</button></th>
+                        <th><a href="{{ $sortLink('item') }}">商品名 {{ $sortMark('item') }}</a></th>
+                        <th><a href="{{ $sortLink('points') }}">使用Pt {{ $sortMark('points') }}</a></th>
+                        <th><a href="{{ $sortLink('cost') }}">原価 {{ $sortMark('cost') }}</a></th>
+                        <th><a href="{{ $sortLink('status') }}">状態 {{ $sortMark('status') }}</a><button type="button" class="refund-column-filter-button" data-filter-col="status">▼</button></th>
+                        <th><a href="{{ $sortLink('requested_at') }}">申請日 {{ $sortMark('requested_at') }}</a></th>
+                        <th><a href="{{ $sortLink('delivered_at') }}">受け渡し日 {{ $sortMark('delivered_at') }}</a></th>
+                        <th><a href="{{ $sortLink('account_sync') }}">会計反映 {{ $sortMark('account_sync') }}</a><button type="button" class="refund-column-filter-button" data-filter-col="account">▼</button></th>
+                        <th>メモ</th>
                         <th>操作</th>
                     </tr>
                 </thead>
-
                 <tbody>
-                    @forelse ($sales as $sale)
-                        <tr data-row-id="{{ $sale->id }}">
-                            <td class="tuition-check-column">
-                                <input type="checkbox" class="tuition-row-check" value="{{ $sale->id }}">
-                            </td>
-
-                            <td>{{ $sale->id }}</td>
-                            <td>{{ $sale->school_name }}</td>
-                            <td>{{ $sale->student_name }}</td>
-                            <td>{{ $sale->student_code }}</td>
-                            <td>{{ $sale->course_name }}</td>
-                            <td>{{ $sale->attendance_type }}</td>
-                            <td>{{ $sale->account_category_name }}</td>
-
-                            <td data-edit-field="scheduled_date" data-value="{{ $sale->scheduled_date }}">
-                                <span class="display-value">
-                                    {{ $sale->scheduled_date ? \Carbon\Carbon::parse($sale->scheduled_date)->format('Y/m/d') : '-' }}
-                                </span>
-                            </td>
-
-                            <td data-edit-field="payment_method_id" data-value="{{ $sale->payment_method_id }}">
-                                <span class="display-value">{{ $sale->payment_method_name }}</span>
-                            </td>
-
-                            <td data-edit-field="transaction_date" data-value="{{ $sale->transaction_date ? \Carbon\Carbon::parse($sale->transaction_date)->format('Y-m-d') : '' }}">
-                                <span class="display-value">
-                                    {{ $sale->transaction_date ? \Carbon\Carbon::parse($sale->transaction_date)->format('Y/m/d') : '-' }}
-                                </span>
-                            </td>
-
-                            <td class="tuition-discount-cell">{{ $sale->discount_type_name }}</td>
-
-                            <td class="tuition-amount-cell" data-edit-field="before_discount_amount" data-value="{{ $sale->before_discount_amount }}">
-                                <span class="display-value">¥{{ number_format($sale->before_discount_amount) }}</span>
-                            </td>
-
-                            <td class="tuition-amount-cell tuition-discount-amount" data-edit-field="discount_amount" data-value="{{ $sale->discount_amount }}">
-                                <span class="display-value">¥{{ number_format($sale->discount_amount) }}</span>
-                            </td>
-
-                            <td class="tuition-amount-cell tuition-final-amount">¥{{ number_format($sale->amount) }}</td>
-
-                            <td data-edit-field="payment_status" data-value="{{ $sale->payment_status }}">
-                                <span class="display-value tuition-status-badge {{ $sale->payment_status }}">
-                                    {{ $sale->payment_status_label }}
-                                </span>
-                            </td>
-
-                            <td data-edit-field="memo" data-value="{{ $sale->transaction_note }}">
-                                <span class="display-value">{{ $sale->transaction_note }}</span>
-                            </td>
-
-                            <td data-edit-field="discount_note" data-value="{{ $sale->discount_note }}">
-                                <span class="display-value">{{ $sale->discount_note }}</span>
-                            </td>
-
-                            <td class="tuition-action-cell">
-                                <button
-                                    type="button"
-                                    class="tuition-detail-button"
-                                    data-id="{{ $sale->id }}"
-                                    data-school="{{ $sale->school_name }}"
-                                    data-student="{{ $sale->student_name }}"
-                                    data-student-code="{{ $sale->student_code }}"
-                                    data-course="{{ $sale->course_name }}"
-                                    data-attendance="{{ $sale->attendance_type }}"
-                                    data-category="{{ $sale->account_category_name }}"
-                                    data-scheduled-date="{{ $sale->scheduled_date ? \Carbon\Carbon::parse($sale->scheduled_date)->format('Y/m/d') : '-' }}"
-                                    data-payment-method="{{ $sale->payment_method_name }}"
-                                    data-transaction-date="{{ $sale->transaction_date ? \Carbon\Carbon::parse($sale->transaction_date)->format('Y/m/d') : '-' }}"
-                                    data-discount-type="{{ $sale->discount_type_name }}"
-                                    data-before-discount="{{ number_format($sale->before_discount_amount) }}"
-                                    data-discount-amount="{{ number_format($sale->discount_amount) }}"
-                                    data-amount="{{ number_format($sale->amount) }}"
-                                    data-payment-status="{{ $sale->payment_status_label }}"
-                                    data-invoice-id="{{ $sale->invoice_id }}"
-                                    data-invoice-item-id="{{ $sale->id }}"
-                                    data-account-transaction-id="{{ $sale->account_transaction_id }}"
-                                    data-created-by="{{ $sale->created_by_name }}"
-                                    data-updated-by="{{ $sale->updated_by_name }}"
-                                    data-created-at="{{ $sale->created_at ? \Carbon\Carbon::parse($sale->created_at)->format('Y/m/d H:i') : '-' }}"
-                                    data-updated-at="{{ $sale->updated_at ? \Carbon\Carbon::parse($sale->updated_at)->format('Y/m/d H:i') : '-' }}"
-                                    data-transaction-note="{{ $sale->transaction_note }}"
-                                    data-discount-note="{{ $sale->discount_note }}"
-                                >
-                                    詳細
-                                </button>
-
-                                <button type="button" class="tuition-edit-button">編集</button>
-                                <button type="button" class="tuition-save-button" style="display:none;">保存</button>
-                                <button type="button" class="tuition-cancel-button" style="display:none;">取消</button>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="18">授業料・入会金売上データがありません。</td>
-                        </tr>
-                    @endforelse
+                @forelse ($costs as $cost)
+                    <tr data-row-id="{{ $cost->id }}">
+                        <td><input type="checkbox" class="tuition-row-check" value="{{ $cost->id }}"></td>
+                        <td>{{ $cost->id }}</td>
+                        <td class="lf-tooltip point-cost-school-cell" data-filter-school="{{ $cost->school_name }}" data-tooltip="{{ $cost->school_name }}" title="{{ $cost->school_name }}"><span class="point-cost-ellipsis">{{ $cost->school_name }}</span></td>
+                        <td data-filter-student="{{ $cost->student_name }}">{{ $cost->student_name }}</td>
+                        <td>{{ $cost->student_code }}</td>
+                        <td class="lf-tooltip point-cost-category-cell" data-filter-category="{{ $cost->reward_category_name }}" data-tooltip="{{ $cost->reward_category_name }}" title="{{ $cost->reward_category_name }}"><span class="point-cost-ellipsis">{{ $cost->reward_category_name }}</span></td>
+                        <td class="point-cost-item-cell lf-tooltip" data-tooltip="{{ $cost->reward_item_name }}" title="{{ $cost->reward_item_name }}"><span class="point-cost-ellipsis">{{ $cost->reward_item_name }}</span></td>
+                        <td class="tuition-amount-cell">{{ number_format($cost->request_points) }}pt</td>
+                        <td class="tuition-amount-cell">¥{{ number_format($cost->cost_price) }}</td>
+                        <td data-filter-status="{{ $cost->status_label }}" data-edit-field="status" data-value="{{ $cost->status }}"><span class="display-value tuition-status-badge {{ $cost->status_class }}">{{ $cost->status_label }}</span></td>
+                        <td data-edit-field="requested_at" data-value="{{ $cost->requested_at }}"><span class="display-value">{{ $cost->requested_at ? \Carbon\Carbon::parse($cost->requested_at)->format('Y/m/d') : '-' }}</span></td>
+                        <td data-edit-field="delivered_at" data-value="{{ $cost->delivered_at }}"><span class="display-value">{{ $cost->delivered_at ? \Carbon\Carbon::parse($cost->delivered_at)->format('Y/m/d') : '-' }}</span></td>
+                        <td data-filter-account="{{ $cost->account_sync_label }}"><span class="tuition-status-badge {{ $cost->account_sync_class }}">{{ $cost->account_sync_label }}</span></td>
+                        <td data-edit-field="note" data-value="{{ $cost->note === '-' ? '' : $cost->note }}" class="lf-tooltip event-memo-cell" data-tooltip="{{ $cost->note }}" title="{{ $cost->note }}"><span class="display-value">{{ Str::limit($cost->note, 20) }}</span></td>
+                        <td class="tuition-action-cell">
+                            <button type="button" class="tuition-detail-button"
+                                data-id="{{ $cost->id }}" data-school="{{ $cost->school_name }}" data-student="{{ $cost->student_name }}" data-student-code="{{ $cost->student_code }}" data-category="{{ $cost->reward_category_name }}" data-item="{{ $cost->reward_item_name }}" data-points="{{ number_format($cost->request_points) }}" data-cost="{{ number_format($cost->cost_price) }}" data-status="{{ $cost->status_label }}" data-requested-at="{{ $cost->requested_at ? \Carbon\Carbon::parse($cost->requested_at)->format('Y/m/d') : '-' }}" data-approved-at="{{ $cost->approved_at ? \Carbon\Carbon::parse($cost->approved_at)->format('Y/m/d') : '-' }}" data-delivered-at="{{ $cost->delivered_at ? \Carbon\Carbon::parse($cost->delivered_at)->format('Y/m/d') : '-' }}" data-rejected-at="{{ $cost->rejected_at ? \Carbon\Carbon::parse($cost->rejected_at)->format('Y/m/d') : '-' }}" data-account-sync="{{ $cost->account_sync_label }}" data-note="{{ $cost->note }}" data-created-at="{{ $cost->created_at_display ?? '-' }}" data-updated-at="{{ $cost->updated_at_display ?? '-' }}" data-account-transaction-id="{{ $cost->account_transaction_id ?? '-' }}" data-account-created-at="{{ $cost->account_created_at_display ?? '-' }}" data-account-updated-at="{{ $cost->account_updated_at_display ?? '-' }}" data-source-table="point_exchange" data-source-id="{{ $cost->id }}">詳細</button>
+                            <button type="button" class="tuition-edit-button">編集</button>
+                            <button type="button" class="tuition-save-button" style="display:none;">保存</button>
+                            <button type="button" class="tuition-cancel-button" style="display:none;">取消</button>
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="15">ポイント商品費用データがありません。</td></tr>
+                @endforelse
                 </tbody>
             </table>
         </div>
-
-        <div class="tuition-pagination">
-            {{ $sales->links() }}
-        </div>
+        <div class="tuition-pagination">{{ $costs->links() }}</div>
     </section>
 
-    <section class="tuition-chart-card">
-        <div class="tuition-chart-header">
-            <div>
-                <h3>授業料売上推移</h3>
-                <p>コース別の授業料売上と人数推移を確認できます。</p>
-            </div>
-
-            <div class="tuition-chart-actions">
-                <div class="tuition-chart-periods">
-                    <a href="{{ request()->fullUrlWithQuery(['chart_period' => 'all']) }}" class="{{ $chartPeriod === 'all' ? 'active' : '' }}">全期間</a>
-                    <a href="{{ request()->fullUrlWithQuery(['chart_period' => '5years']) }}" class="{{ $chartPeriod === '5years' ? 'active' : '' }}">直近5年</a>
-                    <a href="{{ request()->fullUrlWithQuery(['chart_period' => '3years']) }}" class="{{ $chartPeriod === '3years' ? 'active' : '' }}">直近3年</a>
-                    <a href="{{ request()->fullUrlWithQuery(['chart_period' => '1year']) }}" class="{{ $chartPeriod === '1year' ? 'active' : '' }}">直近1年</a>
-                </div>
-
-                <button type="button" id="tuitionSalesChartToggle" class="tuition-chart-collapse-button" title="グラフを折りたたむ">
-                    <i class="fas fa-minus"></i>
-                </button>
-            </div>
-        </div>
-
-        <div class="tuition-chart-wrapper" id="tuitionSalesChartBody">
-            <canvas id="tuitionSalesChart"></canvas>
+    <section class="tuition-chart-card shop-chart-card event-chart-card spot-chart-card refund-chart-card point-cost-chart-card">
+        <div class="tuition-chart-header"><div><h3>ポイント商品費用グラフ</h3><p>表示中データに連動して費用推移・件数推移・商品カテゴリを確認します。</p></div><div class="tuition-chart-actions"><div class="tuition-chart-periods"><a href="{{ request()->fullUrlWithQuery(['chart_period' => 'all']) }}" class="{{ $chartPeriod === 'all' ? 'active' : '' }}">全期間</a><a href="{{ request()->fullUrlWithQuery(['chart_period' => '5years']) }}" class="{{ $chartPeriod === '5years' ? 'active' : '' }}">直近5年</a><a href="{{ request()->fullUrlWithQuery(['chart_period' => '3years']) }}" class="{{ $chartPeriod === '3years' ? 'active' : '' }}">直近3年</a><a href="{{ request()->fullUrlWithQuery(['chart_period' => '1year']) }}" class="{{ $chartPeriod === '1year' ? 'active' : '' }}">直近1年</a></div><button type="button" id="eventChartToggle" class="tuition-chart-collapse-button">−</button></div></div>
+        <div class="shop-chart-grid refund-chart-grid" id="eventChartBody">
+            <div class="shop-chart-box"><h4>費用額推移</h4><div class="shop-chart-canvas-wrap"><canvas id="pointCostAmountChart"></canvas><div class="event-chart-empty" id="pointCostAmountEmpty">該当する費用データがありません。</div></div></div>
+            <div class="shop-chart-box"><h4>件数推移</h4><div class="shop-chart-canvas-wrap"><canvas id="pointCostCountChart"></canvas><div class="event-chart-empty" id="pointCostCountEmpty">該当する件数データがありません。</div></div></div>
         </div>
     </section>
-
 </div>
 
-<div class="tuition-detail-modal" id="tuitionDetailModal">
-    <div class="tuition-detail-content">
-        <div class="tuition-detail-header">
-            <h3>売上詳細</h3>
-            <button type="button" id="tuitionDetailClose">×</button>
-        </div>
+<div class="tuition-detail-modal" id="tuitionDetailModal"><div class="tuition-detail-content refund-detail-content"><div class="tuition-detail-header"><h3>ポイント商品費用詳細</h3><button type="button" id="tuitionDetailClose">×</button></div><div id="tuitionDetailBody"></div></div></div>
 
-        <div id="tuitionDetailBody"></div>
-    </div>
-</div>
+<div class="tuition-column-modal" id="tuitionColumnModal"><div class="tuition-column-content"><div class="tuition-column-header"><h3>表示項目設定</h3><button type="button" id="tuitionColumnClose">×</button></div><div class="tuition-column-list"><label><input type="checkbox" data-column="2" checked> 教室</label><label><input type="checkbox" data-column="3" checked> 生徒</label><label><input type="checkbox" data-column="4" checked> 生徒コード</label><label><input type="checkbox" data-column="5" checked> カテゴリ</label><label><input type="checkbox" data-column="6" checked> 商品名</label><label><input type="checkbox" data-column="7" checked> 使用Pt</label><label><input type="checkbox" data-column="8" checked> 原価</label><label><input type="checkbox" data-column="12" checked> 会計反映</label><label><input type="checkbox" data-column="13"> メモ</label></div></div></div>
 
-<div class="tuition-column-modal" id="tuitionColumnModal">
-    <div class="tuition-column-content">
-        <div class="tuition-column-header">
-            <h3>表示項目設定</h3>
-            <button type="button" id="tuitionColumnClose">×</button>
-        </div>
+<script>
+    window.pointCostAmountChartData = @json($costAmountChartData);
+    window.pointCostCountChartData = @json($costCountChartData);
+    window.pointCostCategoryChartData = @json($categoryChartData);
+    window.pointCostStatuses = @json(collect($statuses)->map(fn($label, $value) => ['value' => $value, 'label' => $label])->values());
+    window.pointCostRewardItems = {!! json_encode(
+        $rewardItems->map(function ($item) use ($rewardCategories) {
+            $categoryName = optional($rewardCategories->firstWhere('id', $item->reward_category_id))->name ?? '未分類';
 
-        <div class="tuition-column-list">
-            <label><input type="checkbox" data-column="2" checked> 教室</label>
-            <label><input type="checkbox" data-column="3" checked> 生徒</label>
-            <label><input type="checkbox" data-column="4" checked> 生徒コード</label>
-            <label><input type="checkbox" data-column="5" checked> コース名</label>
-            <label><input type="checkbox" data-column="6" checked> 通塾種別</label>
-            <label><input type="checkbox" data-column="7" checked> 会計区分</label>
-            <label><input type="checkbox" data-column="10" checked> 入出金方法</label>
-            <label><input type="checkbox" data-column="12" checked> 割引種別</label>
-            <label><input type="checkbox" data-column="13" checked> 割引前金額</label>
-            <label><input type="checkbox" data-column="14" checked> 割引額</label>
-            <label><input type="checkbox" data-column="16">取引メモ</label>
-            <label><input type="checkbox" data-column="17">割引メモ</label>
-        </div>
-    </div>
-</div>
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'category' => $categoryName,
+                'required_points' => (int) $item->required_points,
+                'cost_price' => (int) ($item->cost_price ?? 0),
+                'stock_quantity' => (int) ($item->stock_quantity ?? 0),
+            ];
+        })->values(),
+        JSON_UNESCAPED_UNICODE
+    ) !!};
+</script>
+
+@once
+    <script src="{{ asset('js/admin/point-product-costs.js') }}" defer></script>
+@endonce
 
 @endsection

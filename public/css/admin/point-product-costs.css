@@ -1,0 +1,657 @@
+.point-cost-page .point-cost-create-grid {
+    grid-template-columns: 1.35fr 1.7fr .9fr .9fr .9fr 1.4fr;
+}
+.point-cost-page .point-cost-search-grid {
+    grid-template-columns: repeat(5, minmax(140px, 1fr));
+}
+.point-cost-page .point-cost-total-box strong {
+    color: #0f766e;
+}
+.point-cost-page .point-cost-table th,
+.point-cost-page .point-cost-table td {
+    white-space: nowrap;
+}
+.point-cost-page .point-cost-student-field,
+.point-cost-page .point-cost-item-field,
+.point-cost-page .point-cost-memo-field {
+    min-width: 220px;
+}
+.point-cost-page .event-student-search-results button span {
+    display: block;
+    font-size: 11px;
+    color: #64748b;
+}
+.point-cost-page .status-completed { background:#dcfce7; color:#166534; }
+.point-cost-page .status-paid { background:#dbeafe; color:#1d4ed8; }
+.point-cost-page .status-pending { background:#fef3c7; color:#92400e; }
+.point-cost-page .status-cancelled { background:#fee2e2; color:#991b1b; }
+@media (max-width: 1200px) {
+    .point-cost-page .point-cost-create-grid,
+    .point-cost-page .point-cost-search-grid {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+    }
+}
+
+/* Phase7: refund-based point product cost refinements */
+.point-cost-total-box {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(120px, 1fr));
+    gap: 8px;
+    width: 100%;
+}
+
+.point-cost-total-box div {
+    min-height: 54px;
+}
+
+.point-cost-table th:nth-child(7),
+.point-cost-table td:nth-child(7) {
+    min-width: 170px;
+    max-width: 240px;
+}
+
+.point-cost-table th:nth-child(14),
+.point-cost-table td:nth-child(14) {
+    min-width: 120px;
+    max-width: 170px;
+}
+
+.point-cost-table th:nth-child(8),
+.point-cost-table td:nth-child(8),
+.point-cost-table th:nth-child(9),
+.point-cost-table td:nth-child(9) {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.point-cost-table .tuition-action-cell {
+    white-space: nowrap;
+}
+
+.point-cost-table .lf-tooltip {
+    cursor: help;
+}
+
+.event-chart-empty.is-visible {
+    display: flex;
+}
+
+.point-cost-create-grid .point-cost-item-field {
+    min-width: 260px;
+}
+
+.point-cost-create-grid .point-cost-memo-field {
+    min-width: 240px;
+}
+
+@media (max-width: 1200px) {
+    .point-cost-total-box {
+        grid-template-columns: repeat(3, minmax(120px, 1fr));
+    }
+}
+
+/* Phase7追加修正：返金画面ベースへの寄せ込み */
+.point-cost-page .point-cost-search-grid {
+    grid-template-columns: repeat(5, minmax(170px, 1fr));
+    align-items: end;
+    row-gap: 12px;
+}
+
+.point-cost-page .point-cost-search-actions {
+    grid-column: 4 / 6;
+    justify-content: flex-end;
+    align-self: end;
+    margin-top: 0;
+}
+
+.point-cost-page .point-cost-table-card .tuition-table-wrapper {
+    overflow-x: auto;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.point-cost-page .point-cost-table {
+    min-width: 1480px;
+    table-layout: fixed;
+}
+
+.point-cost-page .point-cost-table th:nth-child(1),
+.point-cost-page .point-cost-table td:nth-child(1) { width: 34px; }
+.point-cost-page .point-cost-table th:nth-child(2),
+.point-cost-page .point-cost-table td:nth-child(2) { width: 56px; }
+.point-cost-page .point-cost-table th:nth-child(3),
+.point-cost-page .point-cost-table td:nth-child(3) { width: 120px; }
+.point-cost-page .point-cost-table th:nth-child(4),
+.point-cost-page .point-cost-table td:nth-child(4) { width: 110px; }
+.point-cost-page .point-cost-table th:nth-child(5),
+.point-cost-page .point-cost-table td:nth-child(5) { width: 100px; }
+.point-cost-page .point-cost-table th:nth-child(6),
+.point-cost-page .point-cost-table td:nth-child(6) { width: 110px; }
+.point-cost-page .point-cost-table th:nth-child(7),
+.point-cost-page .point-cost-table td:nth-child(7) { width: 220px; }
+.point-cost-page .point-cost-table th:nth-child(8),
+.point-cost-page .point-cost-table td:nth-child(8) { width: 90px; }
+.point-cost-page .point-cost-table th:nth-child(9),
+.point-cost-page .point-cost-table td:nth-child(9) { width: 90px; }
+.point-cost-page .point-cost-table th:nth-child(10),
+.point-cost-page .point-cost-table td:nth-child(10) { width: 96px; }
+.point-cost-page .point-cost-table th:nth-child(11),
+.point-cost-page .point-cost-table td:nth-child(11) { width: 105px; }
+.point-cost-page .point-cost-table th:nth-child(12),
+.point-cost-page .point-cost-table td:nth-child(12) { width: 110px; }
+.point-cost-page .point-cost-table th:nth-child(13),
+.point-cost-page .point-cost-table td:nth-child(13) { width: 100px; }
+.point-cost-page .point-cost-table th:nth-child(14),
+.point-cost-page .point-cost-table td:nth-child(14) { width: 170px; }
+.point-cost-page .point-cost-table th:nth-child(15),
+.point-cost-page .point-cost-table td:nth-child(15) { width: 120px; }
+
+.point-cost-page .point-cost-table th,
+.point-cost-page .point-cost-table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.point-cost-page .point-cost-item-results {
+    z-index: 50;
+}
+
+.point-cost-page .point-cost-item-results button strong {
+    display: block;
+    font-size: 12px;
+    color: #0f172a;
+}
+
+.point-cost-page .point-cost-category-layout {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) 260px;
+    gap: 16px;
+    align-items: center;
+    height: 100%;
+}
+
+.point-cost-page .point-cost-category-canvas-wrap {
+    min-height: 260px;
+}
+
+.point-cost-page .point-cost-category-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.point-cost-page .point-cost-category-legend-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    font-size: 12px;
+}
+
+.point-cost-page .point-cost-category-legend-row span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.point-cost-page .point-cost-category-legend-row strong {
+    color: #ef4444;
+    white-space: nowrap;
+}
+
+.point-cost-page .point-cost-category-legend-row em {
+    color: #2563eb;
+    font-style: normal;
+    white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+    .point-cost-page .point-cost-search-grid {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+    }
+    .point-cost-page .point-cost-search-actions {
+        grid-column: 1 / -1;
+    }
+    .point-cost-page .point-cost-category-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Phase7 table alignment fix: refund tableと同じテーブルCSSに確実に乗せる */
+.point-cost-page .point-cost-table-scroll {
+    overflow: auto;
+    max-height: 700px;
+}
+
+.point-cost-page .point-cost-table {
+    width: 100%;
+    min-width: 1580px;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.point-cost-page .point-cost-table th,
+.point-cost-page .point-cost-table td {
+    padding: 12px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+}
+
+.point-cost-page .point-cost-table th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #f8fafc;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.point-cost-page .point-cost-table tbody tr:hover td {
+    background: #f8fafc;
+}
+
+.point-cost-page .point-cost-table th:nth-child(1),
+.point-cost-page .point-cost-table td:nth-child(1) {
+    width: 44px;
+    min-width: 44px;
+    text-align: center;
+}
+
+.point-cost-page .point-cost-table th:nth-child(2),
+.point-cost-page .point-cost-table td:nth-child(2) { width: 64px; }
+.point-cost-page .point-cost-table th:nth-child(3),
+.point-cost-page .point-cost-table td:nth-child(3) { width: 130px; }
+.point-cost-page .point-cost-table th:nth-child(4),
+.point-cost-page .point-cost-table td:nth-child(4) { width: 110px; }
+.point-cost-page .point-cost-table th:nth-child(5),
+.point-cost-page .point-cost-table td:nth-child(5) { width: 110px; }
+.point-cost-page .point-cost-table th:nth-child(6),
+.point-cost-page .point-cost-table td:nth-child(6) { width: 110px; }
+.point-cost-page .point-cost-table th:nth-child(7),
+.point-cost-page .point-cost-table td:nth-child(7) { width: 240px; }
+.point-cost-page .point-cost-table th:nth-child(8),
+.point-cost-page .point-cost-table td:nth-child(8) { width: 100px; text-align: right; }
+.point-cost-page .point-cost-table th:nth-child(9),
+.point-cost-page .point-cost-table td:nth-child(9) { width: 100px; text-align: right; }
+.point-cost-page .point-cost-table th:nth-child(10),
+.point-cost-page .point-cost-table td:nth-child(10) { width: 110px; }
+.point-cost-page .point-cost-table th:nth-child(11),
+.point-cost-page .point-cost-table td:nth-child(11) { width: 118px; }
+.point-cost-page .point-cost-table th:nth-child(12),
+.point-cost-page .point-cost-table td:nth-child(12) { width: 118px; }
+.point-cost-page .point-cost-table th:nth-child(13),
+.point-cost-page .point-cost-table td:nth-child(13) { width: 110px; }
+.point-cost-page .point-cost-table th:nth-child(14),
+.point-cost-page .point-cost-table td:nth-child(14) { width: 210px; }
+.point-cost-page .point-cost-table th:nth-child(15),
+.point-cost-page .point-cost-table td:nth-child(15) { width: 120px; }
+
+.point-cost-page .point-cost-table th:last-child,
+.point-cost-page .point-cost-table td:last-child {
+    position: sticky;
+    right: 0;
+    z-index: 5;
+    background: #fff;
+    box-shadow: -8px 0 16px rgba(15, 23, 42, .06);
+}
+
+.point-cost-page .point-cost-table thead th:last-child {
+    z-index: 25;
+    background: #f8fafc;
+}
+
+.point-cost-page .point-cost-table .tuition-detail-button,
+.point-cost-page .point-cost-table .tuition-edit-button,
+.point-cost-page .point-cost-table .tuition-save-button,
+.point-cost-page .point-cost-table .tuition-cancel-button {
+    min-width: 44px;
+    height: 30px;
+    padding: 0 9px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.point-cost-page .point-cost-table .tuition-action-cell {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.point-cost-page .point-cost-table .tuition-status-badge {
+    min-width: 68px;
+    padding: 4px 9px;
+    font-size: 12px;
+}
+
+.point-cost-page .point-cost-table .refund-column-filter-button {
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+.point-cost-page .point-cost-table-card {
+    overflow: hidden;
+}
+
+/* Phase7 table polish: 返金画面の表に合わせた最終調整 */
+.point-cost-page .point-cost-table-header-count-only {
+    padding: 0 0 8px;
+    margin: 0;
+    border-bottom: none;
+}
+
+.point-cost-page .point-cost-table-header-count-only p {
+    margin: 0;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.point-cost-page .point-cost-table-scroll {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 620px;
+}
+
+.point-cost-page .point-cost-table {
+    min-width: 1450px;
+    table-layout: fixed;
+}
+
+.point-cost-page .point-cost-table th,
+.point-cost-page .point-cost-table td {
+    height: 40px;
+    padding: 9px 10px;
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.point-cost-page .point-cost-table th {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.point-cost-page .point-cost-table th a {
+    color: #1e293b;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.point-cost-page .point-cost-table th a:hover {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.point-cost-page .point-cost-table .refund-column-filter-button {
+    width: 22px;
+    height: 22px;
+    margin-left: 4px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: #e2e8f0;
+    color: #475569;
+    font-size: 10px;
+    line-height: 22px;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+.point-cost-page .point-cost-table th:nth-child(1),
+.point-cost-page .point-cost-table td:nth-child(1) { width: 38px; min-width: 38px; text-align: center; }
+.point-cost-page .point-cost-table th:nth-child(2),
+.point-cost-page .point-cost-table td:nth-child(2) { width: 52px; }
+.point-cost-page .point-cost-table th:nth-child(3),
+.point-cost-page .point-cost-table td:nth-child(3) { width: 110px; }
+.point-cost-page .point-cost-table th:nth-child(4),
+.point-cost-page .point-cost-table td:nth-child(4) { width: 95px; }
+.point-cost-page .point-cost-table th:nth-child(5),
+.point-cost-page .point-cost-table td:nth-child(5) { width: 100px; }
+.point-cost-page .point-cost-table th:nth-child(6),
+.point-cost-page .point-cost-table td:nth-child(6) { width: 90px; }
+.point-cost-page .point-cost-table th:nth-child(7),
+.point-cost-page .point-cost-table td:nth-child(7) { width: 170px; }
+.point-cost-page .point-cost-table th:nth-child(8),
+.point-cost-page .point-cost-table td:nth-child(8) { width: 80px; text-align: right; }
+.point-cost-page .point-cost-table th:nth-child(9),
+.point-cost-page .point-cost-table td:nth-child(9) { width: 80px; text-align: right; }
+.point-cost-page .point-cost-table th:nth-child(10),
+.point-cost-page .point-cost-table td:nth-child(10) { width: 86px; text-align: center; }
+.point-cost-page .point-cost-table th:nth-child(11),
+.point-cost-page .point-cost-table td:nth-child(11) { width: 105px; }
+.point-cost-page .point-cost-table th:nth-child(12),
+.point-cost-page .point-cost-table td:nth-child(12) { width: 105px; }
+.point-cost-page .point-cost-table th:nth-child(13),
+.point-cost-page .point-cost-table td:nth-child(13) { width: 92px; text-align: center; }
+.point-cost-page .point-cost-table th:nth-child(14),
+.point-cost-page .point-cost-table td:nth-child(14) { width: 150px; }
+.point-cost-page .point-cost-table th:nth-child(15),
+.point-cost-page .point-cost-table td:nth-child(15) { width: 96px; }
+
+.point-cost-page .point-cost-table .tuition-status-badge {
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.point-cost-page .point-cost-item-cell {
+    position: relative;
+    overflow: visible !important;
+}
+
+.point-cost-page .point-cost-item-cell .point-cost-ellipsis {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.point-cost-page .point-cost-item-cell:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 8px;
+    top: calc(100% - 2px);
+    z-index: 80;
+    max-width: 360px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: normal;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .22);
+    pointer-events: none;
+}
+
+
+/* Phase7追加修正：検索2行化・下段グラフ削除後の調整 */
+.point-cost-page .point-cost-search-grid {
+    grid-template-columns: repeat(6, minmax(130px, 1fr));
+    align-items: end;
+    gap: 12px;
+}
+
+.point-cost-page .point-cost-search-actions {
+    grid-column: 5 / 7;
+    justify-content: flex-end;
+    align-self: end;
+    margin-top: 0;
+}
+
+.point-cost-page .refund-keyword-field {
+    grid-column: auto;
+}
+
+.point-cost-page .refund-chart-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.point-cost-page .point-cost-chart-card .shop-chart-box {
+    min-height: 260px;
+}
+
+@media (max-width: 1200px) {
+    .point-cost-page .point-cost-search-grid {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+    }
+    .point-cost-page .point-cost-search-actions {
+        grid-column: 1 / -1;
+    }
+    .point-cost-page .refund-chart-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Phase7 final table width adjustment: 2026-07-02
+   商品名120px、Pt/原価/日付列を圧縮。教室・カテゴリ・商品名は全文ホバー対応。 */
+.point-cost-page .point-cost-table {
+    min-width: 1345px;
+}
+
+.point-cost-page .point-cost-table th:nth-child(7),
+.point-cost-page .point-cost-table td:nth-child(7) {
+    width: 120px;
+    min-width: 120px;
+    max-width: 120px;
+}
+
+.point-cost-page .point-cost-table th:nth-child(8),
+.point-cost-page .point-cost-table td:nth-child(8),
+.point-cost-page .point-cost-table th:nth-child(9),
+.point-cost-page .point-cost-table td:nth-child(9) {
+    width: 70px;
+    min-width: 70px;
+    max-width: 70px;
+    text-align: right;
+}
+
+.point-cost-page .point-cost-table th:nth-child(11),
+.point-cost-page .point-cost-table td:nth-child(11),
+.point-cost-page .point-cost-table th:nth-child(12),
+.point-cost-page .point-cost-table td:nth-child(12) {
+    width: 88px;
+    min-width: 88px;
+    max-width: 88px;
+}
+
+.point-cost-page .point-cost-school-cell,
+.point-cost-page .point-cost-category-cell,
+.point-cost-page .point-cost-item-cell {
+    position: relative;
+    overflow: visible !important;
+    cursor: help;
+}
+
+.point-cost-page .point-cost-school-cell .point-cost-ellipsis,
+.point-cost-page .point-cost-category-cell .point-cost-ellipsis,
+.point-cost-page .point-cost-item-cell .point-cost-ellipsis {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.point-cost-page .point-cost-school-cell:hover::after,
+.point-cost-page .point-cost-category-cell:hover::after,
+.point-cost-page .point-cost-item-cell:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 8px;
+    top: calc(100% - 2px);
+    z-index: 90;
+    max-width: 360px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: normal;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .22);
+    pointer-events: none;
+}
+
+/* ポイント商品費用：列幅最終調整 */
+.point-cost-page .point-cost-table {
+    table-layout: fixed !important;
+}
+
+/* 商品名 */
+.point-cost-page .point-cost-table th:nth-child(7),
+.point-cost-page .point-cost-table td:nth-child(7) {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+}
+
+/* 使用Pt */
+.point-cost-page .point-cost-table th:nth-child(8),
+.point-cost-page .point-cost-table td:nth-child(8) {
+    width: 64px !important;
+    min-width: 64px !important;
+    max-width: 64px !important;
+}
+
+/* 原価 */
+.point-cost-page .point-cost-table th:nth-child(9),
+.point-cost-page .point-cost-table td:nth-child(9) {
+    width: 68px !important;
+    min-width: 68px !important;
+    max-width: 68px !important;
+}
+
+/* 申請日 */
+.point-cost-page .point-cost-table th:nth-child(11),
+.point-cost-page .point-cost-table td:nth-child(11) {
+    width: 86px !important;
+    min-width: 86px !important;
+    max-width: 86px !important;
+}
+
+/* 受け渡し日 */
+.point-cost-page .point-cost-table th:nth-child(12),
+.point-cost-page .point-cost-table td:nth-child(12) {
+    width: 86px !important;
+    min-width: 86px !important;
+    max-width: 86px !important;
+}
+
+.point-cost-page .point-cost-table td:nth-child(7) {
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+}
+
