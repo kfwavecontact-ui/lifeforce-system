@@ -353,16 +353,13 @@ Route::prefix('admin')
             Route::get('/expenses', [ExpenseController::class, 'index'])
                 ->name('expenses.index');
 
-            Route::get('/expenses/students/search', [ExpenseController::class, 'searchStudents'])
-                ->name('expenses.students.search');
-
             Route::get('/expenses/export', [ExpenseController::class, 'export'])
                 ->name('expenses.export');
 
             Route::post('/expenses', [ExpenseController::class, 'store'])
                 ->name('expenses.store');
 
-            Route::put('/expenses/{invoiceItemId}', [ExpenseController::class, 'update'])
+            Route::put('/expenses/{expenseId}', [ExpenseController::class, 'update'])
                 ->name('expenses.update');
         });
 

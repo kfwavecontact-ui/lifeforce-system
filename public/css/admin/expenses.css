@@ -1,0 +1,394 @@
+.expense-page .page-header{margin-bottom:20px}.expense-page .page-header h1{font-size:26px;margin:0 0 8px}.expense-page .page-header p{margin:0;color:#64748b}.expense-create-card,.expense-filter-card,.expense-table-card,.expense-chart-card{margin-bottom:28px}.expense-create-grid{display:grid;grid-template-columns:1fr 1fr 1.35fr 1fr;gap:14px}.expense-create-grid .shop-sale-field{min-width:0}.expense-title-field{grid-column:auto}.expense-memo-field{grid-column:span 2}.expense-create-bottom-row{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px}.expense-total-box{flex:1}.expense-total-box div{min-width:120px}.expense-search-grid{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:14px}.expense-search-grid label{min-width:0}.expense-keyword-field{grid-column:span 2}.expense-search-actions{align-self:end;justify-content:flex-end}.expense-table-header-count-only{justify-content:flex-start!important}.expense-table-header-count-only p{margin:0;color:#64748b;font-weight:700}.expense-table-scroll{overflow-x:auto;overflow-y:visible}.expense-table{min-width:1980px;table-layout:fixed}.expense-table th,.expense-table td{white-space:nowrap;vertical-align:middle}.expense-table th:nth-child(1),.expense-table td:nth-child(1){width:44px}.expense-table th:nth-child(2),.expense-table td:nth-child(2){width:64px}.expense-table th:nth-child(3),.expense-table td:nth-child(3){width:150px}.expense-table th:nth-child(4),.expense-table td:nth-child(4){width:150px}.expense-table th:nth-child(5),.expense-table td:nth-child(5){width:210px}.expense-table th:nth-child(6),.expense-table td:nth-child(6){width:180px}.expense-table th:nth-child(7),.expense-table td:nth-child(7){width:150px}.expense-table th:nth-child(8),.expense-table td:nth-child(8){width:150px}.expense-table th:nth-child(9),.expense-table td:nth-child(9){width:170px}.expense-table th:nth-child(10),.expense-table td:nth-child(10){width:125px}.expense-table th:nth-child(11),.expense-table td:nth-child(11){width:125px}.expense-table th:nth-child(12),.expense-table td:nth-child(12){width:130px}.expense-table th:nth-child(13),.expense-table td:nth-child(13){width:82px}.expense-table th:nth-child(14),.expense-table td:nth-child(14){width:110px}.expense-table th:nth-child(15),.expense-table td:nth-child(15){width:220px}.expense-table th:nth-child(16),.expense-table td:nth-child(16){width:150px}.expense-ellipsis{display:inline-block;max-width:190px;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}.expense-vendor-cell .expense-ellipsis{max-width:160px}.expense-memo-cell .display-value{display:inline-block;max-width:200px;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}.expense-category-badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:800;background:#eef6ff;color:#1e40af}.expense-status-badge{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800;min-width:52px}.expense-status-unpaid{background:#fff7ed;color:#c2410c}.expense-status-paid{background:#dcfce7;color:#15803d}.expense-status-cancelled{background:#f1f5f9;color:#475569}.expense-actions-cell{display:flex;gap:6px;align-items:center;justify-content:flex-start}.expense-inline-input,.expense-inline-select{box-sizing:border-box;width:100%;height:30px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;padding:0 8px;font-size:12px;line-height:30px;min-width:0;max-width:100%}.expense-inline-input[type="number"]{text-align:right}.expense-inline-memo{min-width:0}.expense-editing{background:#fffaf0}.expense-editing td{height:42px}.expense-save-button,.expense-cancel-button{height:28px;min-width:48px;padding:0 10px;border-radius:8px;font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;line-height:1;border:1px solid transparent;cursor:pointer}.expense-save-button{background:#2563eb!important;color:#fff!important;border-color:#2563eb!important}.expense-cancel-button{background:#f1f5f9!important;color:#334155!important;border-color:#cbd5e1!important}.expense-chart-card .shop-chart-grid{grid-template-columns:1fr 1fr}.expense-chart-card .shop-chart-canvas-wrap{height:260px;position:relative}.expense-chart-card .event-chart-empty{display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:#94a3b8;font-weight:700;background:rgba(255,255,255,.75)}.expense-chart-card .event-chart-empty.is-visible{display:flex}.expense-modal{position:fixed;inset:0;display:none;z-index:1000}.expense-modal.is-open{display:block}.expense-modal-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.45)}.expense-modal-panel{position:relative;background:#fff;width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 48px);overflow:auto;margin:24px auto;border-radius:18px;box-shadow:0 24px 80px rgba(15,23,42,.28);padding:18px}.expense-modal-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e2e8f0;padding-bottom:12px;margin-bottom:14px}.expense-modal-header h3{margin:0}.expense-modal-header button{border:0;background:#f1f5f9;border-radius:999px;width:34px;height:34px;font-size:20px;cursor:pointer}.expense-detail-list{display:grid;grid-template-columns:160px 1fr;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden}.expense-detail-list dt,.expense-detail-list dd{padding:11px 12px;border-bottom:1px solid #e2e8f0;margin:0}.expense-detail-list dt{background:#f8fafc;font-weight:800;color:#475569}.expense-detail-list dd{background:#fff}.expense-detail-list dt:last-of-type,.expense-detail-list dd:last-of-type{border-bottom:0}@media(max-width:1280px){.expense-create-grid{grid-template-columns:repeat(3,1fr)}.expense-search-grid{grid-template-columns:repeat(4,1fr)}}@media(max-width:900px){.expense-create-grid,.expense-search-grid{grid-template-columns:repeat(2,1fr)}.expense-keyword-field,.expense-memo-field{grid-column:span 2}.expense-chart-card .shop-chart-grid{grid-template-columns:1fr}}@media(max-width:640px){.expense-create-grid,.expense-search-grid{grid-template-columns:1fr}.expense-keyword-field,.expense-memo-field{grid-column:auto}.expense-create-bottom-row{flex-direction:column;align-items:stretch}.expense-detail-list{grid-template-columns:1fr}.expense-detail-list dt{border-bottom:0}}
+
+
+/* Phase7 re-fix: explicit column widths */
+.expense-table{min-width:1900px!important;table-layout:fixed!important;}
+.expense-table th,.expense-table td{box-sizing:border-box;}
+.expense-table .expense-col-check{width:44px!important;min-width:44px!important;max-width:44px!important;}
+.expense-table .expense-col-id{width:64px!important;min-width:64px!important;max-width:64px!important;}
+.expense-table .expense-col-school{width:150px!important;min-width:150px!important;max-width:150px!important;}
+.expense-table .expense-col-category{width:150px!important;min-width:150px!important;max-width:150px!important;}
+.expense-table .expense-col-title{width:210px!important;min-width:210px!important;max-width:210px!important;}
+.expense-table .expense-col-vendor{width:180px!important;min-width:180px!important;max-width:180px!important;}
+.expense-table .expense-col-scheduled{width:150px!important;min-width:150px!important;max-width:150px!important;}
+.expense-table .expense-col-paid{width:150px!important;min-width:150px!important;max-width:150px!important;}
+.expense-table .expense-col-method{width:190px!important;min-width:190px!important;max-width:190px!important;}
+.expense-table .expense-col-amount{width:125px!important;min-width:125px!important;max-width:125px!important;}
+.expense-table .expense-col-tax{width:125px!important;min-width:125px!important;max-width:125px!important;}
+.expense-table .expense-col-total{width:130px!important;min-width:130px!important;max-width:130px!important;}
+.expense-table .expense-col-status{width:74px!important;min-width:74px!important;max-width:74px!important;text-align:center;}
+.expense-table .expense-col-creator{width:110px!important;min-width:110px!important;max-width:110px!important;}
+.expense-table .expense-col-memo{width:220px!important;min-width:220px!important;max-width:220px!important;}
+.expense-table .expense-col-actions{width:150px!important;min-width:150px!important;max-width:150px!important;}
+.expense-table .expense-col-method .expense-inline-select{min-width:160px;}
+.expense-table .expense-col-paid .expense-inline-input,
+.expense-table .expense-col-scheduled .expense-inline-input{min-width:128px;}
+.expense-table .expense-col-status .expense-status-badge{min-width:52px;padding-left:7px;padding-right:7px;}
+.expense-table .expense-col-status .expense-inline-select{min-width:62px;padding-left:6px;padding-right:6px;}
+
+/* Phase7 targeted fix: align table controls with point product cost screen */
+.expense-page .expense-filter-card{margin-bottom:14px!important;}
+.expense-page .expense-table-card{margin-top:0!important;}
+.expense-page .expense-table .refund-column-filter-button{
+    width:22px;
+    height:22px;
+    margin-left:4px;
+    padding:0;
+    border:0;
+    border-radius:999px;
+    background:#e2e8f0;
+    color:#475569;
+    font-size:10px;
+    line-height:22px;
+    vertical-align:middle;
+    cursor:pointer;
+}
+.expense-table{min-width:2060px!important;table-layout:fixed!important;}
+.expense-table th,.expense-table td{box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;}
+.expense-table .expense-col-check{width:44px!important;min-width:44px!important;max-width:44px!important;}
+.expense-table .expense-col-id{width:64px!important;min-width:64px!important;max-width:64px!important;}
+.expense-table .expense-col-school{width:150px!important;min-width:150px!important;max-width:150px!important;}
+.expense-table .expense-col-category{width:150px!important;min-width:150px!important;max-width:150px!important;}
+.expense-table .expense-col-title{width:210px!important;min-width:210px!important;max-width:210px!important;}
+.expense-table .expense-col-vendor{width:180px!important;min-width:180px!important;max-width:180px!important;}
+.expense-table .expense-col-scheduled{width:165px!important;min-width:165px!important;max-width:165px!important;}
+.expense-table .expense-col-paid{width:165px!important;min-width:165px!important;max-width:165px!important;}
+.expense-table .expense-col-method{width:220px!important;min-width:220px!important;max-width:220px!important;}
+.expense-table .expense-col-amount{width:125px!important;min-width:125px!important;max-width:125px!important;}
+.expense-table .expense-col-tax{width:125px!important;min-width:125px!important;max-width:125px!important;}
+.expense-table .expense-col-total{width:130px!important;min-width:130px!important;max-width:130px!important;}
+.expense-table .expense-col-status{width:90px!important;min-width:90px!important;max-width:90px!important;text-align:center;}
+.expense-table .expense-col-creator{width:110px!important;min-width:110px!important;max-width:110px!important;}
+.expense-table .expense-col-memo{width:220px!important;min-width:220px!important;max-width:220px!important;}
+.expense-table .expense-col-actions{width:140px!important;min-width:140px!important;max-width:140px!important;}
+.expense-table tr.expense-editing .expense-col-paid .expense-inline-input,
+.expense-table tr.expense-editing .expense-col-scheduled .expense-inline-input{
+    width:145px!important;
+    min-width:145px!important;
+    max-width:145px!important;
+}
+.expense-table tr.expense-editing .expense-col-method .expense-inline-select{
+    width:200px!important;
+    min-width:200px!important;
+    max-width:200px!important;
+}
+.expense-table tr.expense-editing .expense-col-status .expense-inline-select{
+    width:72px!important;
+    min-width:72px!important;
+    max-width:72px!important;
+    padding-left:5px;
+    padding-right:5px;
+}
+.expense-table .expense-actions-cell{
+    display:flex;
+    gap:6px;
+    align-items:center;
+    justify-content:flex-start;
+    overflow:visible;
+}
+.expense-table .expense-detail-button,
+.expense-table .expense-edit-button,
+.expense-table .expense-save-button,
+.expense-table .expense-cancel-button{
+    min-width:44px;
+    height:30px;
+    padding:0 9px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:700;
+    line-height:1;
+    align-items:center;
+    justify-content:center;
+}
+.expense-table tr.expense-editing .expense-actions-cell .expense-save-button,
+.expense-table tr.expense-editing .expense-actions-cell .expense-cancel-button{display:inline-flex!important;}
+.expense-table tr.expense-editing .expense-actions-cell .expense-detail-button,
+.expense-table tr.expense-editing .expense-actions-cell .expense-edit-button{display:none!important;}
+.refund-column-filter-menu{
+    position:absolute;
+    z-index:2000;
+    min-width:260px;
+    max-width:280px;
+    padding:12px;
+    border:1px solid rgba(148,163,184,.32);
+    border-radius:12px;
+    background:#fff;
+    box-shadow:0 18px 45px rgba(15,23,42,.18);
+}
+.refund-column-filter-menu input[type="text"]{width:100%;height:34px;margin-bottom:8px;padding:0 10px;border:1px solid #dbe2ea;border-radius:8px;box-sizing:border-box;}
+.refund-column-filter-actions{display:flex;gap:8px;margin:8px 0;}
+.refund-column-filter-actions button,.refund-column-filter-apply{border:0;border-radius:8px;padding:6px 10px;cursor:pointer;background:#e2e8f0;color:#334155;font-weight:700;}
+.refund-column-filter-apply{width:100%;margin-top:8px;background:#2563eb;color:#fff;}
+.refund-column-filter-values{max-height:220px;overflow:auto;display:grid;gap:6px;}
+.refund-column-filter-values label{font-size:13px;color:#334155;display:flex;align-items:center;gap:6px;}
+
+/* Phase7 final targeted polish: point-product-cost alignment for inline edit */
+.expense-page .expense-table tr.expense-editing,
+.expense-page .expense-table tr.expense-editing td {
+    background: #fff7dd !important;
+}
+
+.expense-page .expense-table tr.expense-editing td {
+    overflow: visible !important;
+}
+
+.expense-page .expense-table .expense-col-scheduled,
+.expense-page .expense-table .expense-col-paid {
+    width: 190px !important;
+    min-width: 190px !important;
+    max-width: 190px !important;
+}
+
+.expense-page .expense-table tr.expense-editing .expense-col-scheduled .expense-inline-input,
+.expense-page .expense-table tr.expense-editing .expense-col-paid .expense-inline-input {
+    width: 168px !important;
+    min-width: 168px !important;
+    max-width: 168px !important;
+    box-sizing: border-box !important;
+}
+
+.expense-page .expense-table .expense-col-method {
+    width: 245px !important;
+    min-width: 245px !important;
+    max-width: 245px !important;
+}
+
+.expense-page .expense-table tr.expense-editing .expense-col-method .expense-inline-select {
+    width: 220px !important;
+    min-width: 220px !important;
+    max-width: 220px !important;
+    box-sizing: border-box !important;
+}
+
+.expense-page .expense-table .expense-cancel-button,
+.expense-page .expense-table tr.expense-editing .expense-actions-cell .expense-cancel-button {
+    background: #fee2e2 !important;
+    color: #b91c1c !important;
+    border-color: #fecaca !important;
+}
+
+.expense-page .expense-table .expense-save-button,
+.expense-page .expense-table tr.expense-editing .expense-actions-cell .expense-save-button {
+    background: #2563eb !important;
+    color: #fff !important;
+    border-color: #2563eb !important;
+}
+
+/* Phase7 overlap fix: enforce table columns so inline edit controls do not collide */
+.expense-page .expense-table {
+    min-width: 2290px !important;
+    table-layout: fixed !important;
+}
+.expense-page .expense-table col.expense-col-check,
+.expense-page .expense-table th.expense-col-check,
+.expense-page .expense-table td.expense-col-check { width:44px !important; min-width:44px !important; max-width:44px !important; }
+.expense-page .expense-table col.expense-col-id,
+.expense-page .expense-table th.expense-col-id,
+.expense-page .expense-table td.expense-col-id { width:64px !important; min-width:64px !important; max-width:64px !important; }
+.expense-page .expense-table col.expense-col-school,
+.expense-page .expense-table th.expense-col-school,
+.expense-page .expense-table td.expense-col-school { width:150px !important; min-width:150px !important; max-width:150px !important; }
+.expense-page .expense-table col.expense-col-category,
+.expense-page .expense-table th.expense-col-category,
+.expense-page .expense-table td.expense-col-category { width:150px !important; min-width:150px !important; max-width:150px !important; }
+.expense-page .expense-table col.expense-col-title,
+.expense-page .expense-table th.expense-col-title,
+.expense-page .expense-table td.expense-col-title { width:210px !important; min-width:210px !important; max-width:210px !important; }
+.expense-page .expense-table col.expense-col-vendor,
+.expense-page .expense-table th.expense-col-vendor,
+.expense-page .expense-table td.expense-col-vendor { width:200px !important; min-width:200px !important; max-width:200px !important; }
+.expense-page .expense-table col.expense-col-scheduled,
+.expense-page .expense-table th.expense-col-scheduled,
+.expense-page .expense-table td.expense-col-scheduled { width:190px !important; min-width:190px !important; max-width:190px !important; }
+.expense-page .expense-table col.expense-col-paid,
+.expense-page .expense-table th.expense-col-paid,
+.expense-page .expense-table td.expense-col-paid { width:190px !important; min-width:190px !important; max-width:190px !important; }
+.expense-page .expense-table col.expense-col-method,
+.expense-page .expense-table th.expense-col-method,
+.expense-page .expense-table td.expense-col-method { width:270px !important; min-width:270px !important; max-width:270px !important; }
+.expense-page .expense-table col.expense-col-amount,
+.expense-page .expense-table th.expense-col-amount,
+.expense-page .expense-table td.expense-col-amount { width:180px !important; min-width:180px !important; max-width:180px !important; }
+.expense-page .expense-table col.expense-col-tax,
+.expense-page .expense-table th.expense-col-tax,
+.expense-page .expense-table td.expense-col-tax { width:150px !important; min-width:150px !important; max-width:150px !important; }
+.expense-page .expense-table col.expense-col-total,
+.expense-page .expense-table th.expense-col-total,
+.expense-page .expense-table td.expense-col-total { width:130px !important; min-width:130px !important; max-width:130px !important; }
+.expense-page .expense-table col.expense-col-status,
+.expense-page .expense-table th.expense-col-status,
+.expense-page .expense-table td.expense-col-status { width:90px !important; min-width:90px !important; max-width:90px !important; }
+.expense-page .expense-table col.expense-col-creator,
+.expense-page .expense-table th.expense-col-creator,
+.expense-page .expense-table td.expense-col-creator { width:110px !important; min-width:110px !important; max-width:110px !important; }
+.expense-page .expense-table col.expense-col-memo,
+.expense-page .expense-table th.expense-col-memo,
+.expense-page .expense-table td.expense-col-memo { width:220px !important; min-width:220px !important; max-width:220px !important; }
+.expense-page .expense-table col.expense-col-actions,
+.expense-page .expense-table th.expense-col-actions,
+.expense-page .expense-table td.expense-col-actions { width:152px !important; min-width:152px !important; max-width:152px !important; }
+
+.expense-page .expense-table tr.expense-editing td {
+    overflow: hidden !important;
+}
+.expense-page .expense-table tr.expense-editing .expense-inline-input,
+.expense-page .expense-table tr.expense-editing .expense-inline-select {
+    display: block !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+}
+.expense-page .expense-table tr.expense-editing .expense-col-scheduled .expense-inline-input,
+.expense-page .expense-table tr.expense-editing .expense-col-paid .expense-inline-input {
+    width: 168px !important;
+    min-width: 168px !important;
+}
+.expense-page .expense-table tr.expense-editing .expense-col-method .expense-inline-select {
+    width: 248px !important;
+    min-width: 248px !important;
+}
+.expense-page .expense-table tr.expense-editing .expense-col-amount .expense-inline-input {
+    width: 158px !important;
+    min-width: 158px !important;
+}
+.expense-page .expense-table tr.expense-editing .expense-col-tax .expense-inline-input {
+    width: 128px !important;
+    min-width: 128px !important;
+}
+
+/* Phase7 table alignment and compact column width fix */
+.expense-page .expense-table {
+    min-width: 2043px !important;
+    table-layout: fixed !important;
+}
+.expense-page .expense-table th,
+.expense-page .expense-table td {
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+.expense-page .expense-table col.expense-col-check,
+.expense-page .expense-table th.expense-col-check,
+.expense-page .expense-table td.expense-col-check { width:44px !important; min-width:44px !important; max-width:44px !important; text-align:center !important; }
+.expense-page .expense-table col.expense-col-id,
+.expense-page .expense-table th.expense-col-id,
+.expense-page .expense-table td.expense-col-id { width:60px !important; min-width:60px !important; max-width:60px !important; text-align:center !important; }
+.expense-page .expense-table col.expense-col-school,
+.expense-page .expense-table th.expense-col-school,
+.expense-page .expense-table td.expense-col-school { width:150px !important; min-width:150px !important; max-width:150px !important; text-align:center !important; }
+.expense-page .expense-table col.expense-col-category,
+.expense-page .expense-table th.expense-col-category,
+.expense-page .expense-table td.expense-col-category { width:140px !important; min-width:140px !important; max-width:140px !important; text-align:center !important; }
+.expense-page .expense-table col.expense-col-title,
+.expense-page .expense-table th.expense-col-title,
+.expense-page .expense-table td.expense-col-title { width:190px !important; min-width:190px !important; max-width:190px !important; text-align:left !important; }
+.expense-page .expense-table col.expense-col-vendor,
+.expense-page .expense-table th.expense-col-vendor,
+.expense-page .expense-table td.expense-col-vendor { width:190px !important; min-width:190px !important; max-width:190px !important; text-align:left !important; }
+.expense-page .expense-table col.expense-col-scheduled,
+.expense-page .expense-table th.expense-col-scheduled,
+.expense-page .expense-table td.expense-col-scheduled { width:130px !important; min-width:130px !important; max-width:130px !important; text-align:center !important; }
+.expense-page .expense-table col.expense-col-paid,
+.expense-page .expense-table th.expense-col-paid,
+.expense-page .expense-table td.expense-col-paid { width:130px !important; min-width:130px !important; max-width:130px !important; text-align:center !important; }
+.expense-page .expense-table col.expense-col-method,
+.expense-page .expense-table th.expense-col-method,
+.expense-page .expense-table td.expense-col-method { width:150px !important; min-width:150px !important; max-width:150px !important; text-align:left !important; }
+.expense-page .expense-table col.expense-col-amount,
+.expense-page .expense-table th.expense-col-amount,
+.expense-page .expense-table td.expense-col-amount { width:120px !important; min-width:120px !important; max-width:120px !important; text-align:right !important; }
+.expense-page .expense-table col.expense-col-tax,
+.expense-page .expense-table th.expense-col-tax,
+.expense-page .expense-table td.expense-col-tax { width:110px !important; min-width:110px !important; max-width:110px !important; text-align:right !important; }
+.expense-page .expense-table col.expense-col-total,
+.expense-page .expense-table th.expense-col-total,
+.expense-page .expense-table td.expense-col-total { width:120px !important; min-width:120px !important; max-width:120px !important; text-align:right !important; }
+.expense-page .expense-table col.expense-col-status,
+.expense-page .expense-table th.expense-col-status,
+.expense-page .expense-table td.expense-col-status { width:86px !important; min-width:86px !important; max-width:86px !important; text-align:center !important; }
+.expense-page .expense-table col.expense-col-creator,
+.expense-page .expense-table th.expense-col-creator,
+.expense-page .expense-table td.expense-col-creator { width:95px !important; min-width:95px !important; max-width:95px !important; text-align:center !important; }
+.expense-page .expense-table col.expense-col-memo,
+.expense-page .expense-table th.expense-col-memo,
+.expense-page .expense-table td.expense-col-memo { width:200px !important; min-width:200px !important; max-width:200px !important; text-align:left !important; }
+.expense-page .expense-table col.expense-col-actions,
+.expense-page .expense-table th.expense-col-actions,
+.expense-page .expense-table td.expense-col-actions { width:128px !important; min-width:128px !important; max-width:128px !important; text-align:center !important; }
+
+.expense-page .expense-table .expense-col-check,
+.expense-page .expense-table .expense-col-id,
+.expense-page .expense-table .expense-col-school,
+.expense-page .expense-table .expense-col-category,
+.expense-page .expense-table .expense-col-scheduled,
+.expense-page .expense-table .expense-col-paid,
+.expense-page .expense-table .expense-col-status,
+.expense-page .expense-table .expense-col-creator,
+.expense-page .expense-table .expense-col-actions {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+}
+.expense-page .expense-table .expense-col-method,
+.expense-page .expense-table .expense-col-amount,
+.expense-page .expense-table .expense-col-tax,
+.expense-page .expense-table .expense-col-total {
+    padding-left: 7px !important;
+    padding-right: 7px !important;
+}
+
+.expense-page .expense-table tr.expense-editing .expense-inline-input,
+.expense-page .expense-table tr.expense-editing .expense-inline-select {
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    margin: 0 !important;
+}
+.expense-page .expense-table tr.expense-editing .expense-col-scheduled .expense-inline-input,
+.expense-page .expense-table tr.expense-editing .expense-col-paid .expense-inline-input {
+    width: 118px !important;
+    min-width: 0 !important;
+    max-width: 118px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 6px !important;
+    padding-right: 4px !important;
+}
+.expense-page .expense-table tr.expense-editing .expense-col-method .expense-inline-select {
+    width: 136px !important;
+    min-width: 0 !important;
+    max-width: 136px !important;
+    padding-left: 6px !important;
+    padding-right: 4px !important;
+}
+.expense-page .expense-table tr.expense-editing .expense-col-amount .expense-inline-input {
+    width: 106px !important;
+    min-width: 0 !important;
+    max-width: 106px !important;
+    margin-left: auto !important;
+    text-align: right !important;
+}
+.expense-page .expense-table tr.expense-editing .expense-col-tax .expense-inline-input {
+    width: 96px !important;
+    min-width: 0 !important;
+    max-width: 96px !important;
+    margin-left: auto !important;
+    text-align: right !important;
+}
+.expense-page .expense-table tr.expense-editing .expense-col-title .expense-inline-input,
+.expense-page .expense-table tr.expense-editing .expense-col-vendor .expense-inline-input,
+.expense-page .expense-table tr.expense-editing .expense-col-memo .expense-inline-input {
+    text-align: left !important;
+}
+.expense-page .expense-table tr.expense-editing .expense-col-school .expense-inline-select,
+.expense-page .expense-table tr.expense-editing .expense-col-category .expense-inline-select,
+.expense-page .expense-table tr.expense-editing .expense-col-status .expense-inline-select {
+    text-align: center !important;
+}
+.expense-page .expense-table .expense-actions-cell {
+    justify-content: center !important;
+}
