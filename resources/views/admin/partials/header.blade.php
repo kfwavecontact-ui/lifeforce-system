@@ -1,15 +1,5 @@
 <header class="admin-header">
     <div class="admin-header-left">
-        <nav class="admin-breadcrumb">
-            <a href="#">ホーム</a>
-            <span>＞</span>
-            <a href="#">会員管理</a>
-            <span>＞</span>
-            <a href="#">生徒一覧</a>
-            <span>＞</span>
-            <strong>生徒カルテ</strong>
-        </nav>
-
         <div class="header-global-search">
             <i class="fas fa-search"></i>
             <input

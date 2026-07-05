@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\System\ChallengeManagementController;
 use App\Http\Controllers\Admin\System\BadgeManagementController;
 use App\Http\Controllers\Admin\System\TitleManagementController;
 use App\Http\Controllers\Admin\System\PermissionController;
+use App\Http\Controllers\Admin\System\RoutineManagementController;
 use App\Http\Controllers\Admin\Account\AccountTransactionController;
 use App\Http\Controllers\Admin\Account\TuitionEnrollmentSaleController;
 use App\Http\Controllers\Admin\Account\ShopSaleController;
@@ -219,6 +220,22 @@ Route::prefix('admin')
 
         Route::get('/system/titles', [TitleManagementController::class, 'index'])
             ->name('system.titles');
+
+
+        Route::get('/system/routine-management', [RoutineManagementController::class, 'index'])
+            ->name('system.routines');
+
+        Route::put('/system/routine-management/items/{routineContentId}', [RoutineManagementController::class, 'updateItem'])
+            ->name('system.routines.items.update');
+
+        Route::post('/system/routine-management/items/{routineContentId}/duplicate', [RoutineManagementController::class, 'duplicateItem'])
+            ->name('system.routines.items.duplicate');
+
+        Route::put('/system/routine-management/packages/{routinePackageId}', [RoutineManagementController::class, 'updateRoutine'])
+            ->name('system.routines.packages.update');
+
+        Route::post('/system/routine-management/packages/{routinePackageId}/duplicate', [RoutineManagementController::class, 'duplicateRoutine'])
+            ->name('system.routines.packages.duplicate');
 
         Route::get('/system/permissions', [PermissionController::class, 'index'])
             ->name('system.permissions');

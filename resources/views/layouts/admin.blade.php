@@ -52,6 +52,10 @@
     <link rel="stylesheet" href="{{ asset('css/admin/permission-management.css') }}">
 @endif
 
+@if(request()->routeIs('admin.system.routines*'))
+    <link rel="stylesheet" href="{{ asset('css/admin/routine-management.css') }}">
+@endif
+
 <body data-sidebar-key="{{ $sidebarPageKey ?? '' }}">
 
 <div class="layout">
@@ -247,6 +251,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
 @if(request()->routeIs('admin.system.titles*'))
     <script src="{{ asset('js/admin/title-management.js') }}"></script>
+@endif
+
+@if(request()->routeIs('admin.system.routines*'))
+    <script src="{{ asset('js/admin/routine-management.js') }}"></script>
 @endif
 
 @if(request()->routeIs('admin.operations.classroom-accounting.transactions.*'))

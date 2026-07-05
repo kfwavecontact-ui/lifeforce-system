@@ -33,7 +33,7 @@
                     <span class="sidebar-search-muted">人 ＞ フォロー ＞ </span><span class="sidebar-search-strong">フォロー一覧</span>
                 </a>
                 <a href="#" class="sidebar-search-row">
-                    <span class="sidebar-search-muted">教育 ＞ ルーティン ＞ </span><span class="sidebar-search-strong">ルーティン作成</span>
+                    <span class="sidebar-search-muted">教育 ＞ ルーティン ＞ </span><span class="sidebar-search-strong">ルーティン割当</span>
                 </a>
                 <a href="#" class="sidebar-search-row">
                     <span class="sidebar-search-muted">運営 ＞ 会計 ＞ </span><span class="sidebar-search-strong">請求情報</span>
@@ -133,20 +133,25 @@
         </button>
 
         <div class="sidebar-submenu">
-            <a href="#" class="sidebar-subitem" data-search-name="教育 ＞ ルーティン ＞ 教室の取組状況" data-info="教室全体の実施状況を確認します">
-                <span>教室の取組状況</span><i class="fas fa-circle-info sidebar-info"></i>
+            <a href="#" class="sidebar-subitem"
+                data-search-name="教育 ＞ ルーティン ＞ 教室の取組状況"
+                data-info="教室全体の実施状況を確認します">
+                <span>教室の取組状況</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
             </a>
-            <a href="#" class="sidebar-subitem" data-search-name="教育 ＞ ルーティン ＞ ルーティン履歴" data-info="過去の取組履歴を確認します">
-                <span>ルーティン履歴</span><i class="fas fa-circle-info sidebar-info"></i>
+
+            <a href="#" class="sidebar-subitem"
+                data-search-name="教育 ＞ ルーティン ＞ ルーティン履歴"
+                data-info="過去の取組履歴を確認します">
+                <span>ルーティン履歴</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
             </a>
-            <a href="#" class="sidebar-subitem" data-search-name="教育 ＞ ルーティン ＞ ルーティン作成" data-info="ルーティンを作成します">
-                <span>ルーティン作成</span><i class="fas fa-circle-info sidebar-info"></i>
-            </a>
-            <a href="#" class="sidebar-subitem" data-search-name="教育 ＞ ルーティン ＞ 共通ルーティンアイテム作成" data-info="共通教材を作成します">
-                <span>共通ルーティンアイテム作成</span><i class="fas fa-circle-info sidebar-info"></i>
-            </a>
-            <a href="#" class="sidebar-subitem" data-search-name="教育 ＞ ルーティン ＞ 個別ルーティンアイテム作成" data-info="個別アイテムを作成します">
-                <span>個別ルーティンアイテム作成</span><i class="fas fa-circle-info sidebar-info"></i>
+
+            <a href="#" class="sidebar-subitem"
+                data-search-name="教育 ＞ ルーティン ＞ ルーティン割当"
+                data-info="生徒へルーティンを割り当てます">
+                <span>ルーティン割当</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
             </a>
         </div>
 
@@ -421,6 +426,8 @@
             </a>
 
             <a href="{{ route('admin.system.challenges') }}" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ チャレンジ管理" data-info="チャレンジ試験を管理します"><span>チャレンジ管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
+            <a href="#" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ ルーティン管理" data-info="共通ルーティン・ルーティンアイテムを管理します"><span>ルーティン管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
+            
             <a href="{{ route('admin.system.badges') }}" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ バッジ管理" data-info="バッジ情報を管理します"><span>バッジ管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
 
 
