@@ -228,6 +228,16 @@ Route::prefix('admin')
         Route::put('/system/routine-management/items/{routineContentId}', [RoutineManagementController::class, 'updateItem'])
             ->name('system.routines.items.update');
 
+        Route::post('/system/routine-management/items', [RoutineManagementController::class, 'storeItem'])
+            ->name('system.routines.items.store');
+        
+        Route::post('/system/routine-management/items/{routineContentId}/favorite-toggle', [RoutineManagementController::class, 'toggleFavorite'])
+        ->name('system.routines.items.favorite-toggle');
+
+        Route::post('/system/routine-management/items/{routineContentId}/frequently-used-toggle', [RoutineManagementController::class, 'toggleFrequentlyUsed'])
+            ->name('system.routines.items.frequently-used-toggle');
+
+
         Route::post('/system/routine-management/items/{routineContentId}/duplicate', [RoutineManagementController::class, 'duplicateItem'])
             ->name('system.routines.items.duplicate');
 
@@ -236,6 +246,9 @@ Route::prefix('admin')
 
         Route::post('/system/routine-management/packages/{routinePackageId}/duplicate', [RoutineManagementController::class, 'duplicateRoutine'])
             ->name('system.routines.packages.duplicate');
+
+        Route::post('/system/routine-management/routines', [RoutineManagementController::class, 'storeRoutine'])
+            ->name('system.routines.store');
 
         Route::get('/system/permissions', [PermissionController::class, 'index'])
             ->name('system.permissions');

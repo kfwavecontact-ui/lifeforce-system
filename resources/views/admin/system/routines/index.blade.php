@@ -25,16 +25,15 @@
 <div class="routine-page"
      data-csrf-token="{{ csrf_token() }}"
      data-item-update-url-base="{{ url('/admin/system/routine-management/items') }}"
+     data-item-store-url="{{ route('admin.system.routines.items.store') }}"
+     data-routine-store-url="{{ route('admin.system.routines.store') }}"
      data-routine-update-url-base="{{ url('/admin/system/routine-management/packages') }}">
     <div class="routine-header">
         <div>
             <h1>ルーティン管理</h1>
             <p>共通ルーティンアイテムとルーティンを管理します。</p>
         </div>
-        <div class="routine-header-note">
-            <span>i</span>
-            <p>この画面はシステム設定系の一覧画面です。<br>サマリーは表示せず、検索・一覧・操作に特化した設計です。</p>
-        </div>
+
     </div>
 
     @if(session('status'))
@@ -54,4 +53,8 @@
 
     @include('admin.system.routines.modals.detail')
 </div>
+
+{{-- ルーティン管理専用JS（キャッシュ回避のため画面側でも明示読込） --}}
+<script src="{{ asset('js/admin/routine-management.js') }}?v=36"></script>
+
 @endsection

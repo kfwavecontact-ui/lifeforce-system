@@ -35,14 +35,64 @@ class RoutineManagementController extends Controller
     {
         $tab = $request->query('tab', 'items') === 'routines' ? 'routines' : 'items';
 
+        $grades = DB::table('grades')
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->get(['id', 'name']);
+
         return view('admin.system.routines.index', [
             'tab' => $tab,
             'items' => $tab === 'items' ? $this->routineItems($request) : collect(),
             'routines' => $tab === 'routines' ? $this->routines($request) : collect(),
             'gradeOptions' => $this->gradeOptions(),
             'categoryOptions' => $this->categoryOptions(),
+            'grades' => $grades,
             'difficultyOptions' => [1, 2, 3, 4, 5],
             'learningPageStatuses' => ['未作成', '作成中', '作成済', '不要'],
+        ]);
+    }
+
+    public function storeItem(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'target_grade' => ['nullable', 'string', 'max:255'],
+            'difficulty' => ['nullable', 'integer', 'min:1', 'max:5'],
+            'estimated_days' => ['nullable', 'integer', 'min:0', 'max:9999'],
+            'daily_learning_minutes' => ['nullable', 'integer', 'min:0', 'max:9999'],
+            'learning_page_status' => ['nullable', 'string', 'max:255'],
+            'search_tags' => ['nullable', 'string', 'max:255'],
+            'is_active' => ['required', 'boolean'],
+            'is_favorite' => ['nullable', 'boolean'],
+            'is_frequently_used' => ['nullable', 'boolean'],
+        ]);
+
+        $payload = $this->onlyExistingColumns('routine_contents', [
+            'content_code' => $this->nextCode('routine_contents', 'content_code', 'CONT-'),
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'target_grade' => $data['target_grade'] ?? null,
+            'target_level' => $data['target_grade'] ?? null,
+            'difficulty' => $data['difficulty'] ?? 1,
+            'estimated_days' => $data['estimated_days'] ?? 0,
+            'daily_learning_minutes' => $data['daily_learning_minutes'] ?? 0,
+            'learning_page_status' => $data['learning_page_status'] ?? '未作成',
+            'search_tags' => $data['search_tags'] ?? null,
+            'is_active' => (bool) $data['is_active'],
+            'created_by' => Auth::id(),
+            'updated_by' => Auth::id(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $id = DB::table('routine_contents')->insertGetId($payload);
+
+        $this->upsertRoutineItemMark($id, $data);
+
+        return response()->json([
+            'message' => '新規ルーティンアイテムを作成しました。',
+            'id' => $id,
         ]);
     }
 
@@ -55,8 +105,11 @@ class RoutineManagementController extends Controller
             'difficulty' => ['nullable', 'integer', 'min:1', 'max:5'],
             'estimated_days' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'daily_learning_minutes' => ['nullable', 'integer', 'min:0', 'max:9999'],
+            'learning_page_status' => ['nullable', 'string', 'max:255'],
             'search_tags' => ['nullable', 'string', 'max:255'],
             'is_active' => ['required', 'boolean'],
+            'is_favorite' => ['nullable', 'boolean'],
+            'is_frequently_used' => ['nullable', 'boolean'],
         ]);
 
         $payload = $this->onlyExistingColumns('routine_contents', [
@@ -67,6 +120,7 @@ class RoutineManagementController extends Controller
             'difficulty' => $data['difficulty'] ?? null,
             'estimated_days' => $data['estimated_days'] ?? null,
             'daily_learning_minutes' => $data['daily_learning_minutes'] ?? null,
+            'learning_page_status' => $data['learning_page_status'] ?? null,
             'search_tags' => $data['search_tags'] ?? null,
             'is_active' => (bool) $data['is_active'],
             'updated_by' => Auth::id(),
@@ -75,7 +129,85 @@ class RoutineManagementController extends Controller
 
         DB::table('routine_contents')->where('id', $routineContentId)->update($payload);
 
+        if (Schema::hasTable('learning_pages') && isset($data['learning_page_status'])) {
+            DB::table('learning_pages')
+                ->where('routine_content_id', $routineContentId)
+                ->update([
+                    'status' => $data['learning_page_status'],
+                    'updated_at' => now(),
+                ]);
+        }
+
+        $this->upsertRoutineItemMark($routineContentId, $data);
+
+        if (Schema::hasTable('routine_package_items')
+            && Schema::hasColumn('routine_package_items', 'routine_content_id')) {
+
+            $packageItemPayload = [];
+
+            if (Schema::hasColumn('routine_package_items', 'item_name')) {
+                $packageItemPayload['item_name'] = $data['name'];
+            }
+
+            if (Schema::hasColumn('routine_package_items', 'target_grade')) {
+                $packageItemPayload['target_grade'] = $data['target_grade'] ?? null;
+            }
+
+            if (Schema::hasColumn('routine_package_items', 'target_level')) {
+                $packageItemPayload['target_level'] = $data['difficulty'] ?? null;
+            }
+
+            if (Schema::hasColumn('routine_package_items', 'required_days')) {
+                $packageItemPayload['required_days'] = $data['estimated_days'] ?? null;
+            }
+
+            if (Schema::hasColumn('routine_package_items', 'estimated_minutes')) {
+                $packageItemPayload['estimated_minutes'] = $data['daily_learning_minutes'] ?? null;
+            }
+
+            if (Schema::hasColumn('routine_package_items', 'updated_at')) {
+                $packageItemPayload['updated_at'] = now();
+            }
+
+            if (! empty($packageItemPayload)) {
+                DB::table('routine_package_items')
+                    ->where('routine_content_id', $routineContentId)
+                    ->update($packageItemPayload);
+            }
+        }
+
         return response()->json(['message' => '保存しました。']);
+    }
+
+    public function storeRoutine(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'target_grade' => ['nullable', 'string', 'max:255'],
+            'estimated_days' => ['nullable', 'integer', 'min:0'],
+            'is_active' => ['required', 'boolean'],
+        ]);
+
+        $payload = $this->onlyExistingColumns('routine_packages', [
+            'package_code' => $this->nextCode('routine_packages', 'package_code', 'PACK-'),
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'target_grade' => $data['target_grade'] ?? null,
+            'estimated_days' => $data['estimated_days'] ?? 0,
+            'is_active' => (bool) $data['is_active'],
+            'created_by' => Auth::id(),
+            'updated_by' => Auth::id(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $id = DB::table('routine_packages')->insertGetId($payload);
+
+        return response()->json([
+            'message' => '新規ルーティンを作成しました。',
+            'id' => $id,
+        ]);
     }
 
     public function updateRoutine(Request $request, int $routinePackageId)
@@ -108,28 +240,42 @@ class RoutineManagementController extends Controller
     public function duplicateItem(int $routineContentId)
     {
         DB::transaction(function () use ($routineContentId) {
-            $source = (array) DB::table('routine_contents')->where('id', $routineContentId)->first();
+            $source = DB::table('routine_contents')->where('id', $routineContentId)->first();
             abort_if(empty($source), 404);
 
-            unset($source['id']);
-            $source['name'] = trim(($source['name'] ?? 'ルーティンアイテム') . ' コピー');
-            if (array_key_exists('content_code', $source)) {
-                $source['content_code'] = $this->nextCode('routine_contents', 'content_code', 'CONT-');
+            $sourceArray = collect((array) $source)
+                ->reject(fn ($value, $key) => trim((string) $key) === 'id')
+                ->all();
+
+            $baseName = DB::table('routine_package_items')
+                ->where('routine_content_id', $routineContentId)
+                ->whereNotNull('item_name')
+                ->where('item_name', '<>', '')
+                ->orderBy('order_no')
+                ->value('item_name');
+
+            $displayBaseName = trim((string) ($baseName ?: $source->name ?: 'ルーティンアイテム'));
+            $duplicatedName = $displayBaseName . '（複製）';
+
+            $sourceArray['name'] = $duplicatedName;
+
+            if (array_key_exists('content_code', $sourceArray)) {
+                $sourceArray['content_code'] = $this->nextCode('routine_contents', 'content_code', 'CONT-');
             }
-            if (array_key_exists('created_by', $source)) {
-                $source['created_by'] = Auth::id();
+            if (array_key_exists('created_by', $sourceArray)) {
+                $sourceArray['created_by'] = Auth::id() ?? 1;
             }
-            if (array_key_exists('updated_by', $source)) {
-                $source['updated_by'] = Auth::id();
+            if (array_key_exists('updated_by', $sourceArray)) {
+                $sourceArray['updated_by'] = Auth::id() ?? 1;
             }
-            if (array_key_exists('created_at', $source)) {
-                $source['created_at'] = now();
+            if (array_key_exists('created_at', $sourceArray)) {
+                $sourceArray['created_at'] = now();
             }
-            if (array_key_exists('updated_at', $source)) {
-                $source['updated_at'] = now();
+            if (array_key_exists('updated_at', $sourceArray)) {
+                $sourceArray['updated_at'] = now();
             }
 
-            DB::table('routine_contents')->insert($source);
+            DB::table('routine_contents')->insert($sourceArray);
         });
 
         return back()->with('status', 'ルーティンアイテムを複製しました。');
@@ -138,29 +284,35 @@ class RoutineManagementController extends Controller
     public function duplicateRoutine(int $routinePackageId)
     {
         DB::transaction(function () use ($routinePackageId) {
-            $source = (array) DB::table('routine_packages')->where('id', $routinePackageId)->first();
+            $source = DB::table('routine_packages')->where('id', $routinePackageId)->first();
             abort_if(empty($source), 404);
 
-            $oldId = $source['id'];
-            unset($source['id']);
-            $source['name'] = trim(($source['name'] ?? 'ルーティン') . ' コピー');
-            if (array_key_exists('package_code', $source)) {
-                $source['package_code'] = $this->nextCode('routine_packages', 'package_code', 'PKG-');
+            $oldId = $source->id;
+
+            $sourceArray = collect((array) $source)
+                ->reject(fn ($value, $key) => trim((string) $key) === 'id')
+                ->all();
+
+            $sourceArray['name'] = trim(($source->name ?? 'ルーティン') . ' コピー');
+
+            if (array_key_exists('package_code', $sourceArray)) {
+                $sourceArray['package_code'] = $this->nextCode('routine_packages', 'package_code', 'PKG-');
             }
-            if (array_key_exists('created_by', $source)) {
-                $source['created_by'] = Auth::id();
+            if (array_key_exists('created_by', $sourceArray)) {
+                $sourceArray['created_by'] = Auth::id() ?? 1;
             }
-            if (array_key_exists('updated_by', $source)) {
-                $source['updated_by'] = Auth::id();
+            if (array_key_exists('updated_by', $sourceArray)) {
+                $sourceArray['updated_by'] = Auth::id() ?? 1;
             }
-            if (array_key_exists('created_at', $source)) {
-                $source['created_at'] = now();
+            if (array_key_exists('created_at', $sourceArray)) {
+                $sourceArray['created_at'] = now();
             }
-            if (array_key_exists('updated_at', $source)) {
-                $source['updated_at'] = now();
+            if (array_key_exists('updated_at', $sourceArray)) {
+                $sourceArray['updated_at'] = now();
             }
 
-            $newId = DB::table('routine_packages')->insertGetId($source);
+
+            $newId = DB::table('routine_packages')->insertGetId($sourceArray);
 
             if (Schema::hasTable('routine_package_items')) {
                 DB::table('routine_package_items')
@@ -168,21 +320,147 @@ class RoutineManagementController extends Controller
                     ->orderBy('order_no')
                     ->get()
                     ->each(function ($item) use ($newId) {
-                        $copy = (array) $item;
-                        unset($copy['id']);
+                        $copy = collect((array) $item)
+                            ->reject(fn ($value, $key) => trim((string) $key) === 'id')
+                            ->all();
+
                         $copy['routine_package_id'] = $newId;
+
                         if (array_key_exists('created_at', $copy)) {
                             $copy['created_at'] = now();
                         }
                         if (array_key_exists('updated_at', $copy)) {
                             $copy['updated_at'] = now();
                         }
+
                         DB::table('routine_package_items')->insert($copy);
                     });
             }
         });
 
         return back()->with('status', 'ルーティンを複製しました。');
+    }
+
+    public function toggleFavorite(int $routineContentId)
+    {
+        $userId = Auth::id() ?? 1;
+
+        $mark = DB::table('user_routine_item_marks')
+            ->where('user_id', $userId)
+            ->where('routine_content_id', $routineContentId)
+            ->first();
+
+        $value = !($mark->is_favorite ?? false);
+
+        DB::table('user_routine_item_marks')->updateOrInsert(
+            [
+                'user_id' => $userId,
+                'routine_content_id' => $routineContentId,
+            ],
+            [
+                'is_favorite' => $value,
+                'is_frequently_used' => $mark->is_frequently_used ?? false,
+                'updated_at' => now(),
+                'created_at' => $mark ? $mark->created_at : now(),
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'value' => $value,
+        ]);
+    }
+
+    public function toggleFrequentlyUsed(int $routineContentId)
+    {
+        $userId = Auth::id() ?? 1;
+
+        $mark = DB::table('user_routine_item_marks')
+            ->where('user_id', $userId)
+            ->where('routine_content_id', $routineContentId)
+            ->first();
+
+        $value = !($mark->is_frequently_used ?? false);
+
+        DB::table('user_routine_item_marks')->updateOrInsert(
+            [
+                'user_id' => $userId,
+                'routine_content_id' => $routineContentId,
+            ],
+            [
+                'is_favorite' => $mark->is_favorite ?? false,
+                'is_frequently_used' => $value,
+                'updated_at' => now(),
+                'created_at' => $mark ? $mark->created_at : now(),
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'value' => $value,
+        ]);
+    }
+
+
+
+    private function toBooleanValue(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_int($value)) {
+            return $value === 1;
+        }
+
+        if (is_string($value)) {
+            return in_array(strtolower(trim($value)), ['1', 'true', 't', 'yes', 'on'], true);
+        }
+
+        return false;
+    }
+
+    private function upsertRoutineItemMark(int $routineContentId, array $data): array
+    {
+        if (! Schema::hasTable('user_routine_item_marks')) {
+            return [
+                'is_favorite' => false,
+                'is_frequently_used' => false,
+            ];
+        }
+
+        $userId = Auth::id() ?? 1;
+
+        $existing = DB::table('user_routine_item_marks')
+            ->where('user_id', $userId)
+            ->where('routine_content_id', $routineContentId)
+            ->first();
+
+        $isFavorite = array_key_exists('is_favorite', $data)
+            ? $this->toBooleanValue($data['is_favorite'])
+            : $this->toBooleanValue($existing->is_favorite ?? false);
+
+        $isFrequentlyUsed = array_key_exists('is_frequently_used', $data)
+            ? $this->toBooleanValue($data['is_frequently_used'])
+            : $this->toBooleanValue($existing->is_frequently_used ?? false);
+
+        DB::table('user_routine_item_marks')->updateOrInsert(
+            [
+                'user_id' => $userId,
+                'routine_content_id' => $routineContentId,
+            ],
+            [
+                'is_favorite' => $isFavorite,
+                'is_frequently_used' => $isFrequentlyUsed,
+                'created_at' => $existing->created_at ?? now(),
+                'updated_at' => now(),
+            ]
+        );
+
+        return [
+            'is_favorite' => $isFavorite,
+            'is_frequently_used' => $isFrequentlyUsed,
+        ];
     }
 
     private function routineItems(Request $request)
@@ -212,10 +490,10 @@ class RoutineManagementController extends Controller
 
         $query->select('rc.*')
             ->addSelect([
-                'is_favorite' => $hasMarks ? DB::raw('COALESCE(marks.is_favorite, false)') : DB::raw('false'),
-                'is_frequently_used' => $hasMarks ? DB::raw('COALESCE(marks.is_frequently_used, false)') : DB::raw('false'),
-                'created_by_name' => $hasCreator ? DB::raw('creator.name') : DB::raw('NULL'),
-                'updated_by_name' => $hasUpdater ? DB::raw('updater.name') : DB::raw('NULL'),
+                'is_favorite' => $hasMarks ? DB::raw('CASE WHEN marks.is_favorite IS TRUE THEN 1 ELSE 0 END') : DB::raw('0'),
+                'is_frequently_used' => $hasMarks ? DB::raw('CASE WHEN marks.is_frequently_used IS TRUE THEN 1 ELSE 0 END') : DB::raw('0'),
+                'created_by_name' => $hasCreator ? DB::raw('creator.name as created_by_name') : DB::raw('NULL as created_by_name'),
+                'updated_by_name' => $hasUpdater ? DB::raw('updater.name as updated_by_name') : DB::raw('NULL as updated_by_name'),
                 'learning_page_status_label' => $this->learningStatusSelectSql($hasLearningPages),
             ]);
 
@@ -227,7 +505,7 @@ class RoutineManagementController extends Controller
                 $q->from('routine_package_items')
                     ->selectRaw("MIN(NULLIF(item_name, ''))")
                     ->whereColumn('routine_package_items.routine_content_id', 'rc.id');
-            }, 'package_item_name')
+            }, 'display_item_name')
             ->selectSub(function ($q) {
                 $q->from('routine_package_items')
                     ->selectRaw("STRING_AGG(DISTINCT NULLIF(target_grade, ''), '、')")
@@ -236,7 +514,7 @@ class RoutineManagementController extends Controller
         } else {
             $query->addSelect([
                 'used_routine_count' => DB::raw('0'),
-                'package_item_name' => DB::raw('NULL'),
+                'display_item_name' => DB::raw('NULL'),
                 'package_item_target_grades' => DB::raw('NULL'),
             ]);
         }
@@ -307,14 +585,30 @@ class RoutineManagementController extends Controller
             ->paginate(20)
             ->withQueryString();
 
+        $userId = Auth::id() ?? 1;
+
+        $marks = DB::table('user_routine_item_marks')
+            ->where('user_id', $userId)
+            ->whereIn('routine_content_id', $items->pluck('id'))
+            ->get()
+            ->keyBy('routine_content_id');
+
         $contentIds = $items->pluck('id')->all();
         $usedRoutineNames = $this->usedRoutineNamesByContentIds($contentIds);
-        $items->getCollection()->transform(function ($item) use ($usedRoutineNames) {
-            $item->display_name = $this->fallbackName($item->name ?? null, $item->package_item_name ?? null, '名称未設定');
+        $items->getCollection()->transform(function ($item) use ($usedRoutineNames, $marks) {
+            $item->display_name = $this->fallbackName(
+                $item->name ?? null,
+                $item->display_item_name ?? null,
+                '名称未設定'
+            );
             $item->display_grade = $this->fallbackName($item->target_grade ?? null, $item->package_item_target_grades ?? null, '-');
             $item->learning_page_status_label = $this->normalizeLearningStatus($item->learning_page_status_label ?? $item->learning_page_status ?? null);
             $item->used_routine_names = $usedRoutineNames[$item->id] ?? [];
             $item->search_tags = $item->search_tags ?? '';
+            $mark = $marks[$item->id] ?? null;
+
+            $item->is_favorite = (bool) ($mark->is_favorite ?? false);
+            $item->is_frequently_used = (bool) ($mark->is_frequently_used ?? false);
             return $item;
         });
 
@@ -357,8 +651,8 @@ class RoutineManagementController extends Controller
         }
 
         $query->select('rp.*')->addSelect([
-            'created_by_name' => $hasPackageCreator ? DB::raw('creator.name') : DB::raw('NULL'),
-            'updated_by_name' => $hasPackageUpdater ? DB::raw('updater.name') : DB::raw('NULL'),
+            $hasPackageCreator ? DB::raw('creator.name as created_by_name') : DB::raw('NULL as created_by_name'),
+            $hasPackageUpdater ? DB::raw('updater.name as updated_by_name') : DB::raw('NULL as updated_by_name'),
             'item_count' => $itemSummary ? DB::raw('COALESCE(item_summary.item_count, 0)') : DB::raw('0'),
             'total_learning_minutes' => $itemSummary ? DB::raw('COALESCE(item_summary.total_learning_minutes, 0)') : DB::raw('0'),
             'assigned_student_count' => $studentSummary ? DB::raw('COALESCE(student_summary.assigned_student_count, 0)') : DB::raw('0'),

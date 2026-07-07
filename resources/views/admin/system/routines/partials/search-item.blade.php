@@ -1,5 +1,8 @@
 <form class="routine-search" method="GET" action="{{ route('admin.system.routines') }}">
     <input type="hidden" name="tab" value="items">
+    <div class="search-card-header">
+        <h3>検索条件</h3>
+    </div>
     <div class="routine-search-grid item-grid">
         <label class="routine-keyword">
             <span>キーワード</span>
