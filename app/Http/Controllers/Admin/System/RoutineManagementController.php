@@ -44,6 +44,7 @@ class RoutineManagementController extends Controller
             'tab' => $tab,
             'items' => $tab === 'items' ? $this->routineItems($request) : collect(),
             'routines' => $tab === 'routines' ? $this->routines($request) : collect(),
+            'routineItemOptions' => $tab === 'routines' ? $this->routineItemOptions() : collect(),
             'gradeOptions' => $this->gradeOptions(),
             'categoryOptions' => $this->categoryOptions(),
             'grades' => $grades,
@@ -235,6 +236,78 @@ class RoutineManagementController extends Controller
         DB::table('routine_packages')->where('id', $routinePackageId)->update($payload);
 
         return response()->json(['message' => '保存しました。']);
+    }
+
+
+    public function syncRoutinePackageItems(Request $request, int $routinePackageId)
+    {
+        abort_unless(Schema::hasTable('routine_packages') && Schema::hasTable('routine_package_items') && Schema::hasTable('routine_contents'), 404);
+        abort_if(DB::table('routine_packages')->where('id', $routinePackageId)->doesntExist(), 404);
+
+        $data = $request->validate([
+            'items' => ['present', 'array'],
+            'items.*.routine_content_id' => ['required', 'integer'],
+            'items.*.order_no' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $contentIds = collect($data['items'])
+            ->pluck('routine_content_id')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values();
+
+        $contents = $contentIds->isEmpty()
+            ? collect()
+            : DB::table('routine_contents')
+                ->whereIn('id', $contentIds)
+                ->get()
+                ->keyBy('id');
+
+        DB::transaction(function () use ($routinePackageId, $data, $contents) {
+            DB::table('routine_package_items')
+                ->where('routine_package_id', $routinePackageId)
+                ->delete();
+
+            $this->resetPostgresSequenceIfNeeded('routine_package_items', 'id');
+
+            $order = 1;
+            foreach ($data['items'] as $item) {
+                $contentId = (int) ($item['routine_content_id'] ?? 0);
+                $content = $contents->get($contentId);
+                if (! $content) {
+                    continue;
+                }
+
+                $completionTypeId = $this->resolveRoutineCompletionTypeId($content);
+
+                $payload = $this->onlyExistingColumns('routine_package_items', [
+                    'routine_package_id' => $routinePackageId,
+                    'routine_content_id' => $contentId,
+                    'package_item_code' => 'RPI-' . $routinePackageId . '-' . $contentId . '-' . $order,
+                    'code' => 'RPI-' . $routinePackageId . '-' . $contentId . '-' . $order,
+                    'item_name' => $content->name ?? null,
+                    'order_no' => $order,
+                    'sort_order' => $order,
+                    'required_days' => $content->estimated_days ?? null,
+                    'estimated_minutes' => $content->daily_learning_minutes ?? null,
+                    'completion_type_id' => $completionTypeId,
+                    'target_grade' => $content->target_grade ?? ($content->target_level ?? null),
+                    'target_level' => $content->target_level ?? null,
+                    'is_required' => true,
+                    'is_active' => true,
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                DB::table('routine_package_items')->insert($payload);
+                $order++;
+            }
+        });
+
+        return response()->json(['message' => 'ルーティンアイテムを保存しました。']);
     }
 
     public function duplicateItem(int $routineContentId)
@@ -709,6 +782,18 @@ class RoutineManagementController extends Controller
         $items = $this->routinePackageItemsByPackageIds($ids);
         $routines->getCollection()->transform(function ($routine) use ($items) {
             $routine->items = $items[$routine->id] ?? collect();
+
+            // 一覧の「ルーティンアイテム数」と「総学習時間」は、
+            // 有効な routine_contents に紐づく構成アイテムのみを運用上の件数として扱う。
+            // 無効アイテムはDB上の構成としては残すが、一覧集計・ホバー・時間内訳からは除外する。
+            $routine->active_items = $routine->items->filter(function ($item) {
+                return (bool) ($item->content_is_active ?? true);
+            })->values();
+            $routine->item_count = $routine->active_items->count();
+            $routine->total_learning_minutes = $routine->active_items->sum(function ($item) {
+                return (int) ($item->required_days ?? 0) * (int) ($item->estimated_minutes ?? 0);
+            });
+
             $routine->display_name = $this->routinePackageDisplayName($routine);
             $routine->display_grade = $routine->target_grade ?? '-';
             $routine->display_level = $this->normalizeDifficultyLabel($routine->target_level ?? null);
@@ -717,6 +802,39 @@ class RoutineManagementController extends Controller
         });
 
         return $routines;
+    }
+
+
+    private function routineItemOptions()
+    {
+        if (! Schema::hasTable('routine_contents')) {
+            return collect();
+        }
+
+        $query = DB::table('routine_contents')
+            ->orderBy(Schema::hasColumn('routine_contents', 'sort_order') ? 'sort_order' : 'id')
+            ->orderBy('id');
+
+        if (Schema::hasColumn('routine_contents', 'is_active')) {
+            $query->where('is_active', true);
+        }
+
+        return $query->get()->map(function ($item) {
+            $item->display_name = $this->fallbackName($item->name ?? null, $item->content_code ?? null, '名称未設定');
+            $item->display_grade = $this->fallbackName($item->target_grade ?? null, $item->target_level ?? null, '-');
+            $item->difficulty_value = (int) ($item->difficulty ?? 1);
+            $item->daily_learning_minutes = (int) ($item->daily_learning_minutes ?? 0);
+            $item->estimated_days = (int) ($item->estimated_days ?? 0);
+            $item->search_text = trim(implode(' ', array_filter([
+                (string) ($item->id ?? ''),
+                $item->display_name,
+                $item->description ?? null,
+                $item->display_grade,
+                $item->category_name ?? null,
+                $item->search_tags ?? null,
+            ])));
+            return $item;
+        });
     }
 
     private function usedRoutineNamesByContentIds(array $contentIds): array
@@ -750,11 +868,16 @@ class RoutineManagementController extends Controller
             ->orderBy('rpi.routine_package_id')
             ->orderBy('rpi.order_no')
             ->get([
+                'rpi.id',
                 'rpi.routine_package_id',
+                'rpi.routine_content_id',
                 'rpi.item_name',
                 'rpi.required_days',
                 'rpi.estimated_minutes',
                 DB::raw(Schema::hasTable('routine_contents') ? 'rc.name as content_name' : 'NULL as content_name'),
+                DB::raw(Schema::hasTable('routine_contents') ? 'rc.target_grade as content_target_grade' : 'NULL as content_target_grade'),
+                DB::raw(Schema::hasTable('routine_contents') ? 'rc.difficulty as content_difficulty' : 'NULL as content_difficulty'),
+                DB::raw(Schema::hasTable('routine_contents') && Schema::hasColumn('routine_contents', 'is_active') ? 'rc.is_active as content_is_active' : 'TRUE as content_is_active'),
             ])
             ->groupBy('routine_package_id');
     }
@@ -823,6 +946,46 @@ class RoutineManagementController extends Controller
     {
         $table = $alias === 'rc' ? 'routine_contents' : 'routine_packages';
         return Schema::hasColumn($table, $column) ? "{$alias}.{$column} ASC NULLS LAST" : "{$alias}.id ASC";
+    }
+
+
+    private function resolveRoutineCompletionTypeId(object $content): ?int
+    {
+        if (! Schema::hasColumn('routine_package_items', 'completion_type_id')) {
+            return null;
+        }
+
+        if (isset($content->completion_type_id) && (int) $content->completion_type_id > 0) {
+            return (int) $content->completion_type_id;
+        }
+
+        if (Schema::hasTable('routine_completion_types')) {
+            $query = DB::table('routine_completion_types')->orderBy('id');
+
+            if (Schema::hasColumn('routine_completion_types', 'is_active')) {
+                $query->where('is_active', true);
+            }
+
+            $id = $query->value('id');
+            if ($id) {
+                return (int) $id;
+            }
+        }
+
+        return 1;
+    }
+
+    private function resetPostgresSequenceIfNeeded(string $table, string $column = 'id'): void
+    {
+        if (DB::getDriverName() !== 'pgsql' || ! Schema::hasColumn($table, $column)) {
+            return;
+        }
+
+        try {
+            DB::statement("SELECT setval(pg_get_serial_sequence('{$table}', '{$column}'), COALESCE((SELECT MAX({$column}) FROM {$table}), 1), true)");
+        } catch (\Throwable $e) {
+            // シーケンスが存在しない環境では何もしない。
+        }
     }
 
     private function onlyExistingColumns(string $table, array $payload): array

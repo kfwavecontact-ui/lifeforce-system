@@ -247,6 +247,9 @@ Route::prefix('admin')
         Route::post('/system/routine-management/packages/{routinePackageId}/duplicate', [RoutineManagementController::class, 'duplicateRoutine'])
             ->name('system.routines.packages.duplicate');
 
+        Route::match(['put', 'post'], '/system/routine-management/packages/{routinePackageId}/items', [RoutineManagementController::class, 'syncRoutinePackageItems'])
+            ->name('system.routines.packages.items.sync');
+
         Route::post('/system/routine-management/routines', [RoutineManagementController::class, 'storeRoutine'])
             ->name('system.routines.store');
 

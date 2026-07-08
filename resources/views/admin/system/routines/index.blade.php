@@ -27,7 +27,8 @@
      data-item-update-url-base="{{ url('/admin/system/routine-management/items') }}"
      data-item-store-url="{{ route('admin.system.routines.items.store') }}"
      data-routine-store-url="{{ route('admin.system.routines.store') }}"
-     data-routine-update-url-base="{{ url('/admin/system/routine-management/packages') }}">
+     data-routine-update-url-base="{{ url('/admin/system/routine-management/packages') }}"
+     data-routine-items-sync-url-base="{{ url('/admin/system/routine-management/packages') }}">
     <div class="routine-header">
         <div>
             <h1>ルーティン管理</h1>
@@ -52,9 +53,10 @@
     @endif
 
     @include('admin.system.routines.modals.detail')
+    @include('admin.system.routines.modals.package-items')
 </div>
 
 {{-- ルーティン管理専用JS（キャッシュ回避のため画面側でも明示読込） --}}
-<script src="{{ asset('js/admin/routine-management.js') }}?v=36"></script>
+<script src="{{ asset('js/admin/routine-management.js') }}?v=38"></script>
 
 @endsection

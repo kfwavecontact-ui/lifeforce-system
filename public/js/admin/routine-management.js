@@ -12,8 +12,8 @@
     ready(function () {
         const page = document.querySelector('.routine-page');
         if (!page) return;
-        if (page.dataset.routineJsBound === '36') return;
-        page.dataset.routineJsBound = '36';
+        if (page.dataset.routineJsBound === '40') return;
+        page.dataset.routineJsBound = '40';
 
         const csrf = page.dataset.csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
@@ -329,7 +329,7 @@
                         ['説明', data.description ? esc(data.description) : '<span class="muted">-</span>'],
                         ['対象学年', esc(data.target_grade || '-')],
                         ['難易度', esc(data.target_level || '-')],
-                        ['アイテム数', esc(data.item_count || 0)],
+                        ['ルーティンアイテム数', esc(data.item_count || 0)],
                         ['総学習時間（自動集計）', minutes(data.total_learning_minutes || 0)],
                         ['使用中フラグ', useFlag(data.student_routine_count)],
                         ['割当生徒数', esc(data.assigned_student_count || 0)],
@@ -362,7 +362,273 @@
             document.body.classList.remove('routine-modal-open');
         }
 
+
+        let packageItemsState = {
+            routineId: null,
+            selected: []
+        };
+
+        function candidateData(button) {
+            return {
+                routine_content_id: Number(button.dataset.id || 0),
+                id: Number(button.dataset.id || 0),
+                name: button.dataset.name || '名称未設定',
+                target_grade: button.dataset.grade || '-',
+                difficulty: Number(button.dataset.difficulty || 1),
+                estimated_minutes: Number(button.dataset.minutes || 0),
+                required_days: Number(button.dataset.days || 0),
+                is_active: true
+            };
+        }
+
+        function normalizeCurrentItems(items) {
+            return Array.isArray(items) ? items.map(function (item) {
+                return {
+                    routine_content_id: Number(item.routine_content_id || item.id || 0),
+                    id: Number(item.routine_content_id || item.id || 0),
+                    name: item.name || item.item_name || item.content_name || '名称未設定',
+                    target_grade: item.target_grade || item.grade || '-',
+                    difficulty: Number(item.difficulty || 1),
+                    estimated_minutes: Number(item.estimated_minutes || item.daily_learning_minutes || 0),
+                    required_days: Number(item.required_days || item.estimated_days || 0),
+                    is_active: item.is_active !== false && item.is_active !== 0 && item.is_active !== '0'
+                };
+            }).filter(function (item) {
+                return item.routine_content_id > 0;
+            }) : [];
+        }
+
+        function parseCurrentItems(raw) {
+            try {
+                return normalizeCurrentItems(JSON.parse(raw || '[]'));
+            } catch (error) {
+                try {
+                    return normalizeCurrentItems(JSON.parse(decodeHtml(raw || '[]')));
+                } catch (secondError) {
+                    return [];
+                }
+            }
+        }
+
+        function refreshCandidateStates() {
+            const selectedIds = new Set(packageItemsState.selected.map(function (item) {
+                return Number(item.routine_content_id);
+            }));
+
+            document.querySelectorAll('[data-package-item-candidate]').forEach(function (button) {
+                const selected = selectedIds.has(Number(button.dataset.id || 0));
+                button.classList.toggle('is-selected', selected);
+                button.disabled = selected;
+            });
+        }
+
+        function renderSelectedPackageItems() {
+            const list = document.querySelector('[data-selected-package-items]');
+            const count = document.querySelector('[data-selected-item-count]');
+            if (!list) return;
+
+            if (count) count.textContent = String(packageItemsState.selected.length);
+
+            if (packageItemsState.selected.length === 0) {
+                list.innerHTML = '<p class="package-items-empty">構成ルーティンアイテムがありません。左側から追加してください。</p>';
+                refreshCandidateStates();
+                return;
+            }
+
+            list.innerHTML = packageItemsState.selected.map(function (item, index) {
+                const inactiveLabel = item.is_active === false ? ' <span class="selected-package-item-inactive">無効</span>' : '';
+                return '<div class="selected-package-item' + (item.is_active === false ? ' is-inactive' : '') + '" data-selected-package-item data-index="' + index + '">' +
+                    '<span class="selected-package-item-order">' + (index + 1) + '</span>' +
+                    '<div>' +
+                        '<span class="selected-package-item-name">' + esc(item.name) + ' (ID:' + esc(item.routine_content_id || item.id || '') + ')' + inactiveLabel + '</span>' +
+                        '<span class="selected-package-item-meta">対象学年：' + esc(item.target_grade || '-') + ' ／ 難易度：' + esc(item.difficulty || 1) + ' ／ 学習想定日数：' + esc(item.required_days || 0) + '日 ／ 1日の推奨学習時間：' + esc(item.estimated_minutes || 0) + '分</span>' +
+                    '</div>' +
+                    '<div class="selected-package-item-actions">' +
+                        '<button type="button" data-package-item-up>↑</button>' +
+                        '<button type="button" data-package-item-down>↓</button>' +
+                        '<button type="button" class="remove" data-package-item-remove>削除</button>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+
+            refreshCandidateStates();
+        }
+
+        function openPackageItemsModal(button) {
+            const modal = document.getElementById('routinePackageItemsModal');
+            if (!modal) return;
+
+            packageItemsState.routineId = button.dataset.routineId || null;
+            packageItemsState.selected = parseCurrentItems(button.getAttribute('data-current-items') || '[]');
+
+            const title = document.getElementById('routinePackageItemsModalTitle');
+            const subtitle = document.getElementById('routinePackageItemsModalSubtitle');
+            const search = document.querySelector('[data-package-item-search]');
+
+            if (title) title.textContent = 'ルーティンアイテム管理';
+            if (subtitle) subtitle.textContent = button.dataset.routineName || '対象ルーティン';
+            if (search) search.value = '';
+
+            filterPackageItemCandidates('');
+
+            document.querySelectorAll('[data-package-item-candidate]').forEach(function (candidate) {
+                candidate.hidden = false;
+            });
+
+            renderSelectedPackageItems();
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('routine-modal-open');
+        }
+
+        function closePackageItemsModal() {
+            const modal = document.getElementById('routinePackageItemsModal');
+            if (!modal) return;
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('routine-modal-open');
+        }
+
+        async function savePackageItems() {
+            if (!packageItemsState.routineId) {
+                alert('保存対象のルーティンが取得できません。');
+                return;
+            }
+
+            const base = page.dataset.routineItemsSyncUrlBase;
+            if (!base) {
+                alert('保存先URLが取得できません。');
+                return;
+            }
+
+            const payload = {
+                items: packageItemsState.selected.map(function (item, index) {
+                    return {
+                        routine_content_id: Number(item.routine_content_id),
+                        order_no: index + 1
+                    };
+                })
+            };
+
+            try {
+                const response = await fetch(base + '/' + encodeURIComponent(packageItemsState.routineId) + '/items', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    let message = '保存に失敗しました。';
+                    try {
+                        const data = await response.json();
+                        message = data.message || message;
+                    } catch (jsonError) {
+                        try {
+                            const text = await response.text();
+                            message = text || message;
+                        } catch (textError) {}
+                    }
+                    throw new Error(message);
+                }
+
+                location.reload();
+            } catch (error) {
+                alert('ルーティンアイテムの保存に失敗しました。' + (error && error.message ? '\n' + error.message : ''));
+            }
+        }
+
+        function moveSelectedPackageItem(index, direction) {
+            const nextIndex = index + direction;
+            if (nextIndex < 0 || nextIndex >= packageItemsState.selected.length) return;
+            const temp = packageItemsState.selected[index];
+            packageItemsState.selected[index] = packageItemsState.selected[nextIndex];
+            packageItemsState.selected[nextIndex] = temp;
+            renderSelectedPackageItems();
+        }
+
+        function normalizePackageSearchText(value) {
+            return String(value || '')
+                .normalize('NFKC')
+                .toLowerCase()
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function filterPackageItemCandidates(keyword) {
+            const words = normalizePackageSearchText(keyword).split(' ').filter(Boolean);
+            document.querySelectorAll('[data-package-item-candidate]').forEach(function (button) {
+                const text = normalizePackageSearchText([
+                    button.dataset.id,
+                    button.dataset.search,
+                    button.dataset.name,
+                    button.dataset.grade,
+                    button.textContent
+                ].join(' '));
+                const matched = words.length === 0 || words.every(function (word) { return text.indexOf(word) !== -1; });
+                button.hidden = !matched;
+                button.classList.toggle('is-filtered-out', !matched);
+            });
+        }
+
         document.addEventListener('click', function (event) {
+
+
+            const managePackageItemsButton = event.target.closest('[data-manage-package-items]');
+            if (managePackageItemsButton) {
+                event.preventDefault();
+                openPackageItemsModal(managePackageItemsButton);
+                return;
+            }
+
+            const candidateButton = event.target.closest('[data-package-item-candidate]');
+            if (candidateButton) {
+                event.preventDefault();
+                if (candidateButton.disabled) return;
+                const item = candidateData(candidateButton);
+                if (item.routine_content_id > 0) {
+                    packageItemsState.selected.push(item);
+                    renderSelectedPackageItems();
+                }
+                return;
+            }
+
+            const selectedItemRow = event.target.closest('[data-selected-package-item]');
+            if (selectedItemRow) {
+                const index = Number(selectedItemRow.dataset.index || 0);
+                if (event.target.closest('[data-package-item-up]')) {
+                    event.preventDefault();
+                    moveSelectedPackageItem(index, -1);
+                    return;
+                }
+                if (event.target.closest('[data-package-item-down]')) {
+                    event.preventDefault();
+                    moveSelectedPackageItem(index, 1);
+                    return;
+                }
+                if (event.target.closest('[data-package-item-remove]')) {
+                    event.preventDefault();
+                    packageItemsState.selected.splice(index, 1);
+                    renderSelectedPackageItems();
+                    return;
+                }
+            }
+
+            const savePackageItemsButton = event.target.closest('[data-save-package-items]');
+            if (savePackageItemsButton) {
+                event.preventDefault();
+                savePackageItems();
+                return;
+            }
+
+            if (event.target.closest('[data-close-package-items-modal]')) {
+                event.preventDefault();
+                closePackageItemsModal();
+                return;
+            }
 
             const createItemButton = event.target.closest('[data-create-item]');
             if (createItemButton) {
@@ -494,11 +760,123 @@
             }
         });
 
+
+        ['input', 'keyup', 'change', 'search'].forEach(function (eventName) {
+            document.addEventListener(eventName, function (event) {
+                if (event.target && event.target.matches('[data-package-item-search]')) {
+                    filterPackageItemCandidates(event.target.value);
+                }
+            });
+        });
+
         document.addEventListener('keydown', function (event) {
             const modal = document.getElementById('routineDetailModal');
+            const packageModal = document.getElementById('routinePackageItemsModal');
+            if (event.key === 'Escape' && packageModal && packageModal.classList.contains('is-open')) {
+                closePackageItemsModal();
+                return;
+            }
             if (event.key === 'Escape' && modal && modal.classList.contains('is-open')) {
                 closeModal();
             }
         });
     });
+})();
+/* v41: fixed-position total learning time breakdown popover */
+(function () {
+    'use strict';
+
+    function removeTotalTimePopover() {
+        const existing = document.querySelector('.routine-total-time-popover');
+        if (existing) existing.remove();
+        document.querySelectorAll('.routine-total-time-button.is-popover-open').forEach(function (button) {
+            button.classList.remove('is-popover-open');
+            button.setAttribute('aria-expanded', 'false');
+        });
+    }
+
+    function placePopover(popover, button) {
+        const rect = button.getBoundingClientRect();
+        const gap = 8;
+        const width = Math.min(360, window.innerWidth - 24);
+
+        popover.style.width = width + 'px';
+        popover.style.left = '0px';
+        popover.style.top = '0px';
+        popover.style.visibility = 'hidden';
+        document.body.appendChild(popover);
+
+        const popRect = popover.getBoundingClientRect();
+        let left = rect.left + (rect.width / 2) - (popRect.width / 2);
+        left = Math.max(12, Math.min(left, window.innerWidth - popRect.width - 12));
+
+        let top = rect.bottom + gap;
+        if (top + popRect.height > window.innerHeight - 12) {
+            top = rect.top - popRect.height - gap;
+        }
+        top = Math.max(12, top);
+
+        popover.style.left = left + 'px';
+        popover.style.top = top + 'px';
+        popover.style.visibility = 'visible';
+    }
+
+    function showTotalTimePopover(button) {
+        if (!button) return;
+        const tooltip = button.querySelector('.total-time-tooltip');
+        if (!tooltip) return;
+
+        removeTotalTimePopover();
+
+        const popover = document.createElement('div');
+        popover.className = 'routine-total-time-popover';
+        popover.innerHTML = tooltip.innerHTML;
+        popover.setAttribute('role', 'tooltip');
+
+        button.classList.add('is-popover-open');
+        button.setAttribute('aria-expanded', 'true');
+        placePopover(popover, button);
+    }
+
+    document.addEventListener('mouseover', function (event) {
+        const button = event.target.closest && event.target.closest('.routine-total-time-button');
+        if (!button) return;
+        showTotalTimePopover(button);
+    });
+
+    document.addEventListener('focusin', function (event) {
+        const button = event.target.closest && event.target.closest('.routine-total-time-button');
+        if (!button) return;
+        showTotalTimePopover(button);
+    });
+
+    document.addEventListener('click', function (event) {
+        const button = event.target.closest && event.target.closest('.routine-total-time-button');
+        if (button) {
+            event.preventDefault();
+            showTotalTimePopover(button);
+            return;
+        }
+        if (!event.target.closest || !event.target.closest('.routine-total-time-popover')) {
+            removeTotalTimePopover();
+        }
+    });
+
+    document.addEventListener('mouseout', function (event) {
+        const button = event.target.closest && event.target.closest('.routine-total-time-button');
+        if (!button) return;
+        const toElement = event.relatedTarget;
+        if (toElement && (button.contains(toElement) || toElement.closest && toElement.closest('.routine-total-time-popover'))) return;
+        window.setTimeout(function () {
+            const hovered = document.querySelector('.routine-total-time-button:hover, .routine-total-time-popover:hover');
+            if (!hovered) removeTotalTimePopover();
+        }, 120);
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') removeTotalTimePopover();
+    });
+
+    window.addEventListener('scroll', removeTotalTimePopover, true);
+    window.addEventListener('resize', removeTotalTimePopover);
 })();
