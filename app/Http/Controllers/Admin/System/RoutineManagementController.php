@@ -53,6 +53,330 @@ class RoutineManagementController extends Controller
         ]);
     }
 
+
+    public function learningPageBuilder(int $routineContentId)
+    {
+        abort_unless(Schema::hasTable('routine_contents'), 404);
+
+        $item = DB::table('routine_contents')->where('id', $routineContentId)->first();
+        abort_if(empty($item), 404);
+
+        $learningPage = $this->ensureLearningPage($item);
+        $dailySessions = $this->learningSessionsForBuilder((int) $learningPage->id, max(1, (int) ($item->estimated_days ?? 1)));
+
+        $status = $this->learningPageStatusLabel($learningPage, $item);
+        $difficulty = max(1, min(5, (int) ($item->difficulty ?? 1)));
+        $formatMinutes = function ($minutes) {
+            $minutes = (int) $minutes;
+            if ($minutes < 60) {
+                return $minutes . '分';
+            }
+            $hours = intdiv($minutes, 60);
+            $rest = $minutes % 60;
+            return $rest > 0 ? $hours . '時間' . $rest . '分' : $hours . '時間';
+        };
+
+        $builder = [
+            'id' => $item->id,
+            'learning_page_id' => $learningPage->id,
+            'name' => $this->fallbackName($item->name ?? null, null, '名称未設定'),
+            'description' => $item->description ?? '',
+            'target_grade' => $this->fallbackName($item->target_grade ?? null, $item->target_level ?? null, '-'),
+            'difficulty' => $difficulty,
+            'difficulty_stars' => str_repeat('★', $difficulty) . str_repeat('☆', 5 - $difficulty),
+            'estimated_days' => (int) ($item->estimated_days ?? 0),
+            'daily_learning_minutes' => (int) ($item->daily_learning_minutes ?? 0),
+            'daily_learning_minutes_label' => $formatMinutes($item->daily_learning_minutes ?? 0),
+            'learning_page_status' => $status,
+            'publication_status' => $learningPage->publication_status ?? 'unpublished',
+            'publish_start_at' => ! empty($learningPage->publish_start_at) ? \Carbon\Carbon::parse($learningPage->publish_start_at)->format('Y/m/d H:i') : '',
+            'publish_end_at' => ! empty($learningPage->publish_end_at) ? \Carbon\Carbon::parse($learningPage->publish_end_at)->format('Y/m/d H:i') : '',
+            'search_tags' => $item->search_tags ?? '',
+            'is_active' => (bool) ($item->is_active ?? true),
+            'time_limit_seconds' => $learningPage->time_limit_seconds ?? null,
+            'attempt_limit' => $learningPage->attempt_limit ?? null,
+            'is_random' => (bool) ($learningPage->is_random ?? false),
+            'allow_resume' => (bool) ($learningPage->allow_resume ?? true),
+            'bgm_enabled' => (bool) ($learningPage->bgm_enabled ?? false),
+            'sound_enabled' => (bool) ($learningPage->sound_enabled ?? true),
+            'save_url' => route('admin.system.routines.items.learning-page.save', ['routineContentId' => $item->id]),
+            'session_edit_url_template' => route('admin.system.routines.items.learning-page.sessions.edit', ['routineContentId' => $item->id, 'learningSessionId' => '__SESSION__']),
+        ];
+
+        return view('admin.system.routines.learning-page-builder', [
+            'item' => $item,
+            'builder' => $builder,
+            'dailySessions' => $dailySessions,
+            'stepTypes' => $this->learningStepTypes(),
+        ]);
+    }
+
+
+    public function learningSessionEditor(int $routineContentId, int $learningSessionId)
+    {
+        abort_unless(Schema::hasTable('routine_contents') && Schema::hasTable('learning_pages') && Schema::hasTable('learning_sessions'), 404);
+
+        $item = DB::table('routine_contents')->where('id', $routineContentId)->first();
+        abort_if(empty($item), 404);
+
+        $learningPage = $this->ensureLearningPage($item);
+        $session = collect($this->learningSessionsForBuilder((int) $learningPage->id, max(1, (int) ($item->estimated_days ?? 1))))
+            ->firstWhere('id', $learningSessionId);
+        abort_if(empty($session), 404);
+
+        $difficulty = max(1, min(5, (int) ($item->difficulty ?? 1)));
+        $minutes = (int) ($item->daily_learning_minutes ?? 0);
+        $minutesLabel = $minutes < 60 ? $minutes . '分' : intdiv($minutes, 60) . '時間' . (($minutes % 60) ? ($minutes % 60) . '分' : '');
+
+        $builder = [
+            'id' => $item->id,
+            'name' => $this->fallbackName($item->name ?? null, null, '名称未設定'),
+            'target_grade' => $this->fallbackName($item->target_grade ?? null, $item->target_level ?? null, '-'),
+            'difficulty_stars' => str_repeat('★', $difficulty) . str_repeat('☆', 5 - $difficulty),
+            'estimated_days' => (int) ($item->estimated_days ?? 0),
+            'daily_learning_minutes_label' => $minutesLabel,
+            'back_url' => route('admin.system.routines.items.learning-page.builder', ['routineContentId' => $item->id]),
+            'save_url' => route('admin.system.routines.items.learning-page.sessions.update', ['routineContentId' => $item->id, 'learningSessionId' => $learningSessionId]),
+        ];
+
+        return view('admin.system.routines.learning-session-editor', [
+            'item' => $item,
+            'builder' => $builder,
+            'session' => $session,
+            'stepTypes' => $this->learningStepTypes(),
+        ]);
+    }
+
+    public function updateLearningSession(Request $request, int $routineContentId, int $learningSessionId)
+    {
+        abort_unless(Schema::hasTable('routine_contents') && Schema::hasTable('learning_pages') && Schema::hasTable('learning_sessions') && Schema::hasTable('learning_steps') && Schema::hasTable('learning_step_contents'), 500, 'LLE用テーブルが未作成です。migrationを実行してください。');
+
+        $item = DB::table('routine_contents')->where('id', $routineContentId)->first();
+        abort_if(empty($item), 404);
+        $page = $this->ensureLearningPage($item);
+        $sessionRow = DB::table('learning_sessions')->where('id', $learningSessionId)->where('learning_page_id', $page->id)->first();
+        abort_if(empty($sessionRow), 404);
+
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'subtitle' => ['nullable', 'string', 'max:255'],
+            'show_subtitle' => ['required', 'boolean'],
+            'developer_note' => ['nullable', 'string'],
+            'is_published' => ['required', 'boolean'],
+            'development_complete' => ['required', 'boolean'],
+            'steps' => ['nullable', 'array'],
+            'steps.*.key' => ['required_with:steps', 'string', 'max:50'],
+            'steps.*.label' => ['nullable', 'string', 'max:255'],
+            'steps.*.content_title' => ['nullable', 'string', 'max:255'],
+            'steps.*.body' => ['nullable', 'string'],
+            'steps.*.media_type' => ['nullable', 'string', 'max:50'],
+            'steps.*.media_path' => ['nullable', 'string', 'max:2048'],
+            'steps.*.settings' => ['nullable', 'array'],
+            'steps.*.questions' => ['nullable', 'array'],
+        ]);
+
+        DB::transaction(function () use ($data, $learningSessionId, $page, $item) {
+            $steps = array_values($data['steps'] ?? []);
+            DB::table('learning_sessions')->where('id', $learningSessionId)->update([
+                'title' => $data['title'],
+                'subtitle' => $data['subtitle'] ?? null,
+                'show_subtitle' => (bool) $data['show_subtitle'],
+                'developer_note' => $data['developer_note'] ?? null,
+                'development_status' => ! empty($data['development_complete']) ? 'completed' : (count($steps) ? 'in_progress' : 'not_started'),
+                'is_published' => (bool) $data['is_published'],
+                'updated_at' => now(),
+            ]);
+
+            $stepIds = DB::table('learning_steps')->where('learning_session_id', $learningSessionId)->pluck('id')->all();
+            if ($stepIds) DB::table('learning_step_contents')->whereIn('learning_step_id', $stepIds)->delete();
+            DB::table('learning_steps')->where('learning_session_id', $learningSessionId)->delete();
+
+            foreach ($steps as $index => $step) {
+                $type = $step['key'];
+                $stepId = DB::table('learning_steps')->insertGetId([
+                    'learning_session_id' => $learningSessionId,
+                    'step_type' => $type,
+                    'title' => $step['label'] ?? $this->learningStepTypeLabel($type),
+                    'sort_order' => $index + 1,
+                    'is_required' => $type === 'complete',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                DB::table('learning_step_contents')->insert([
+                    'learning_step_id' => $stepId,
+                    'content_title' => $step['content_title'] ?? ($step['label'] ?? $this->learningStepTypeLabel($type)),
+                    'body' => $step['body'] ?? null,
+                    'media_type' => $step['media_type'] ?? null,
+                    'media_path' => $step['media_path'] ?? null,
+                    'settings' => json_encode($step['settings'] ?? [], JSON_UNESCAPED_UNICODE),
+                    'questions' => json_encode($step['questions'] ?? [], JSON_UNESCAPED_UNICODE),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            $statuses = DB::table('learning_sessions')->where('learning_page_id', $page->id)->pluck('development_status');
+            $pageStatus = $statuses->isNotEmpty() && $statuses->every(fn($v) => $v === 'completed') ? 'published' : ($statuses->contains(fn($v) => $v !== 'not_started') ? 'draft' : 'not_created');
+            DB::table('learning_pages')->where('id', $page->id)->update(['status' => $pageStatus, 'updated_by' => Auth::id(), 'updated_at' => now()]);
+            if (Schema::hasColumn('routine_contents', 'learning_page_status')) {
+                DB::table('routine_contents')->where('id', $item->id)->update(['learning_page_status' => ['published'=>'作成済','draft'=>'作成中','not_created'=>'未作成'][$pageStatus], 'updated_at' => now()]);
+            }
+        });
+
+        return response()->json(['message' => '学習' . ((int) $sessionRow->session_no) . '日目を保存しました。']);
+    }
+
+    public function saveLearningPageBuilder(Request $request, int $routineContentId)
+    {
+        abort_unless(Schema::hasTable('routine_contents'), 404);
+        abort_unless(Schema::hasTable('learning_pages') && Schema::hasTable('learning_sessions') && Schema::hasTable('learning_steps') && Schema::hasTable('learning_step_contents'), 500, 'LLE用テーブルが未作成です。migrationを実行してください。');
+
+        $item = DB::table('routine_contents')->where('id', $routineContentId)->first();
+        abort_if(empty($item), 404);
+
+        $data = $request->validate([
+            'publication' => ['nullable', 'array'],
+            'publication.status' => ['nullable', 'in:unpublished,published,stopped'],
+            'sessions' => ['required', 'array', 'min:1'],
+            'sessions.*.title' => ['nullable', 'string', 'max:255'],
+            'sessions.*.subtitle' => ['nullable', 'string', 'max:255'],
+            'sessions.*.show_subtitle' => ['nullable', 'boolean'],
+            'sessions.*.memo' => ['nullable', 'string'],
+            'sessions.*.developer_note' => ['nullable', 'string'],
+            'sessions.*.is_published' => ['nullable', 'boolean'],
+            'sessions.*.development_complete' => ['nullable', 'boolean'],
+            'sessions.*.steps' => ['nullable', 'array'],
+            'sessions.*.steps.*.key' => ['required_with:sessions.*.steps', 'string', 'max:50'],
+            'sessions.*.steps.*.label' => ['nullable', 'string', 'max:255'],
+            'sessions.*.steps.*.content_title' => ['nullable', 'string', 'max:255'],
+            'sessions.*.steps.*.body' => ['nullable', 'string'],
+            'sessions.*.steps.*.media_type' => ['nullable', 'string', 'max:50'],
+            'sessions.*.steps.*.media_path' => ['nullable', 'string', 'max:2048'],
+            'sessions.*.steps.*.settings' => ['nullable', 'array'],
+            'sessions.*.steps.*.questions' => ['nullable', 'array'],
+        ]);
+
+        $learningPageId = DB::transaction(function () use ($data, $item) {
+            $page = $this->ensureLearningPage($item);
+            $publication = $data['publication'] ?? [];
+            $previousPublicationStatus = $page->publication_status ?? 'unpublished';
+            $publicationStatus = $publication['status'] ?? 'unpublished';
+            $publishStartAt = $page->publish_start_at ?? null;
+            $publishEndAt = $page->publish_end_at ?? null;
+            $publicationChangedAt = now();
+
+            // 公開期間は手入力させず、公開状態の遷移に合わせて自動設定します。
+            // 非公開／公開停止 → 公開：公開開始を現在日時にし、過去の公開終了を消去します。
+            if ($publicationStatus === 'published' && $previousPublicationStatus !== 'published') {
+                $publishStartAt = $publicationChangedAt;
+                $publishEndAt = null;
+            }
+
+            // 公開 → 非公開／公開停止：公開終了を現在日時にします。
+            if ($previousPublicationStatus === 'published' && in_array($publicationStatus, ['unpublished', 'stopped'], true)) {
+                $publishEndAt = $publicationChangedAt;
+            }
+
+            // 公開中のレコードに公開終了が残らないよう、DB側でも保証します。
+            if ($publicationStatus === 'published') {
+                $publishEndAt = null;
+            }
+
+            $pageUpdate = [
+                'status' => $this->overallLearningPageStatus($data['sessions']),
+                'publication_status' => $publicationStatus,
+                'publish_start_at' => $publishStartAt,
+                'publish_end_at' => $publishEndAt,
+                'updated_by' => Auth::id(),
+                'updated_at' => now(),
+            ];
+
+            // 既存環境ごとのテーブル差異で保存が失敗しないよう、実在する列だけ更新します。
+            $pageUpdate = array_filter(
+                $pageUpdate,
+                static fn ($value, $column) => Schema::hasColumn('learning_pages', $column),
+                ARRAY_FILTER_USE_BOTH
+            );
+
+            DB::table('learning_pages')
+                ->where('id', $page->id)
+                ->update($pageUpdate);
+
+            $sessionIds = DB::table('learning_sessions')->where('learning_page_id', $page->id)->pluck('id')->all();
+            if (! empty($sessionIds)) {
+                $stepIds = DB::table('learning_steps')->whereIn('learning_session_id', $sessionIds)->pluck('id')->all();
+                if (! empty($stepIds)) {
+                    DB::table('learning_step_contents')->whereIn('learning_step_id', $stepIds)->delete();
+                    DB::table('learning_steps')->whereIn('id', $stepIds)->delete();
+                }
+                DB::table('learning_sessions')->whereIn('id', $sessionIds)->delete();
+            }
+
+            foreach (array_values($data['sessions']) as $sessionIndex => $session) {
+                $sessionNo = $sessionIndex + 1;
+                $steps = array_values($session['steps'] ?? []);
+                $developmentStatus = ! empty($session['development_complete'])
+                    ? 'completed'
+                    : (count($steps) > 0 ? 'in_progress' : 'not_started');
+
+                $sessionId = DB::table('learning_sessions')->insertGetId([
+                    'learning_page_id' => $page->id,
+                    'session_no' => $sessionNo,
+                    'title' => $session['title'] ?? ($sessionNo . '日目'),
+                    'subtitle' => $session['subtitle'] ?? null,
+                    'show_subtitle' => (bool) ($session['show_subtitle'] ?? false),
+                    'developer_note' => $session['developer_note'] ?? ($session['memo'] ?? null),
+                    'development_status' => $developmentStatus,
+                    'is_published' => (bool) ($session['is_published'] ?? false),
+                    'sort_order' => $sessionNo,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                foreach ($steps as $stepIndex => $step) {
+                    $stepType = $step['key'];
+                    $stepId = DB::table('learning_steps')->insertGetId([
+                        'learning_session_id' => $sessionId,
+                        'step_type' => $stepType,
+                        'title' => $step['label'] ?? $this->learningStepTypeLabel($stepType),
+                        'sort_order' => $stepIndex + 1,
+                        'is_required' => $stepType === 'complete',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                    DB::table('learning_step_contents')->insert([
+                        'learning_step_id' => $stepId,
+                        'content_title' => $step['content_title'] ?? ($step['label'] ?? $this->learningStepTypeLabel($stepType)),
+                        'body' => $step['body'] ?? null,
+                        'media_type' => $step['media_type'] ?? null,
+                        'media_path' => $step['media_path'] ?? null,
+                        'settings' => json_encode($step['settings'] ?? [], JSON_UNESCAPED_UNICODE),
+                        'questions' => json_encode($step['questions'] ?? [], JSON_UNESCAPED_UNICODE),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+            if (Schema::hasColumn('routine_contents', 'learning_page_status')) {
+                DB::table('routine_contents')
+                    ->where('id', $item->id)
+                    ->update([
+                        'learning_page_status' => $this->overallLearningPageStatusLabel($data['sessions']),
+                        'updated_at' => now(),
+                    ]);
+            }
+
+            return $page->id;
+        });
+
+        return response()->json([
+            'message' => '学習ページを保存しました。',
+            'learning_page_id' => $learningPageId,
+        ]);
+    }
+
     public function storeItem(Request $request)
     {
         $data = $request->validate([
@@ -676,6 +1000,7 @@ class RoutineManagementController extends Controller
             );
             $item->display_grade = $this->fallbackName($item->target_grade ?? null, $item->package_item_target_grades ?? null, '-');
             $item->learning_page_status_label = $this->normalizeLearningStatus($item->learning_page_status_label ?? $item->learning_page_status ?? null);
+            $item->learning_url = route('admin.system.routines.items.learning-page.builder', ['routineContentId' => $item->id]);
             $item->used_routine_names = $usedRoutineNames[$item->id] ?? [];
             $item->search_tags = $item->search_tags ?? '';
             $mark = $marks[$item->id] ?? null;
@@ -880,6 +1205,218 @@ class RoutineManagementController extends Controller
                 DB::raw(Schema::hasTable('routine_contents') && Schema::hasColumn('routine_contents', 'is_active') ? 'rc.is_active as content_is_active' : 'TRUE as content_is_active'),
             ])
             ->groupBy('routine_package_id');
+    }
+
+    private function learningStepTypes(): array
+    {
+        return [
+            ['key' => 'description', 'label' => '説明', 'description' => '学習前の説明・目的・注意事項を表示します。'],
+            ['key' => 'example', 'label' => '例題', 'description' => '操作方法やサンプル問題を表示します。'],
+            ['key' => 'video', 'label' => '動画', 'description' => '動画視聴と視聴完了条件を設定します。'],
+            ['key' => 'material', 'label' => '教材', 'description' => 'PDF・画像・外部教材を表示します。'],
+            ['key' => 'question', 'label' => '問題', 'description' => '問題を連続実行します。Version0.1の中心ステップです。'],
+            ['key' => 'survey', 'label' => 'アンケート', 'description' => '学習後の自己評価や感想を取得します。'],
+            ['key' => 'result', 'label' => '結果', 'description' => '正答数・正答率・学習時間などを表示します。'],
+            ['key' => 'complete', 'label' => '完了', 'description' => '学習履歴保存・達成判定につながる必須ステップです。'],
+        ];
+    }
+
+    private function learningStepTypeLabel(string $key): string
+    {
+        foreach ($this->learningStepTypes() as $type) {
+            if ($type['key'] === $key) {
+                return $type['label'];
+            }
+        }
+        return 'ステップ';
+    }
+
+    private function ensureLearningPage(object $item): object
+    {
+        abort_unless(Schema::hasTable('learning_pages'), 500, 'learning_pagesテーブルが未作成です。migrationを実行してください。');
+
+        $query = DB::table('learning_pages');
+        if (Schema::hasColumn('learning_pages', 'routine_content_id')) {
+            $query->where('routine_content_id', $item->id);
+        } else {
+            $query->where('routine_item_id', $item->id);
+        }
+
+        $page = $query->first();
+        if ($page) {
+            $this->ensureDefaultLearningSessions((int) $page->id, max(1, (int) ($item->estimated_days ?? 1)));
+            return DB::table('learning_pages')->where('id', $page->id)->first();
+        }
+
+        $payload = [
+            'status' => 'draft',
+            'publication_status' => 'unpublished',
+            'publish_start_at' => null,
+            'publish_end_at' => null,
+            'created_by' => Auth::id(),
+            'updated_by' => Auth::id(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        // migration適用状況に左右されないよう、実在する列だけ初期登録します。
+        $payload = array_filter(
+            $payload,
+            static fn ($value, $column) => Schema::hasColumn('learning_pages', $column),
+            ARRAY_FILTER_USE_BOTH
+        );
+        if (Schema::hasColumn('learning_pages', 'routine_content_id')) {
+            $payload['routine_content_id'] = $item->id;
+        } else {
+            $payload['routine_item_id'] = $item->id;
+        }
+
+        $pageId = DB::table('learning_pages')->insertGetId($payload);
+        $this->ensureDefaultLearningSessions($pageId, max(1, (int) ($item->estimated_days ?? 1)));
+
+        return DB::table('learning_pages')->where('id', $pageId)->first();
+    }
+
+    private function ensureDefaultLearningSessions(int $learningPageId, int $estimatedDays): void
+    {
+        if (! Schema::hasTable('learning_sessions')) {
+            return;
+        }
+
+        $existingCount = DB::table('learning_sessions')->where('learning_page_id', $learningPageId)->count();
+        if ($existingCount > 0) {
+            return;
+        }
+
+        for ($i = 1; $i <= max(1, $estimatedDays); $i++) {
+            DB::table('learning_sessions')->insert([
+                'learning_page_id' => $learningPageId,
+                'session_no' => $i,
+                'title' => $i . '日目',
+                'subtitle' => null,
+                'show_subtitle' => false,
+                'developer_note' => null,
+                'development_status' => 'not_started',
+                'is_published' => false,
+                'sort_order' => $i,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+    }
+
+    private function learningSessionsForBuilder(int $learningPageId, int $estimatedDays): array
+    {
+        $sessions = DB::table('learning_sessions')
+            ->where('learning_page_id', $learningPageId)
+            ->orderBy('sort_order')
+            ->orderBy('session_no')
+            ->get();
+
+        if ($sessions->isEmpty()) {
+            $this->ensureDefaultLearningSessions($learningPageId, $estimatedDays);
+            $sessions = DB::table('learning_sessions')
+                ->where('learning_page_id', $learningPageId)
+                ->orderBy('sort_order')
+                ->orderBy('session_no')
+                ->get();
+        }
+
+        $sessionIds = $sessions->pluck('id')->all();
+        $stepsBySession = collect();
+        $contentsByStep = collect();
+        if (! empty($sessionIds)) {
+            $allSteps = DB::table('learning_steps')
+                ->whereIn('learning_session_id', $sessionIds)
+                ->orderBy('sort_order')
+                ->get();
+            $stepsBySession = $allSteps->groupBy('learning_session_id');
+            $stepIds = $allSteps->pluck('id')->all();
+            if (! empty($stepIds)) {
+                $contentsByStep = DB::table('learning_step_contents')
+                    ->whereIn('learning_step_id', $stepIds)
+                    ->get()
+                    ->keyBy('learning_step_id');
+            }
+        }
+
+        return $sessions->values()->map(function ($session, $index) use ($stepsBySession, $contentsByStep) {
+            $steps = ($stepsBySession[$session->id] ?? collect())->map(function ($step) use ($contentsByStep) {
+                $content = $contentsByStep[$step->id] ?? null;
+                $decode = static function ($value, $default) {
+                    if (is_array($value)) return $value;
+                    if ($value === null || $value === '') return $default;
+                    $decoded = json_decode($value, true);
+                    return is_array($decoded) ? $decoded : $default;
+                };
+                return [
+                    'id' => $step->id,
+                    'key' => $step->step_type,
+                    'label' => $step->title ?: $this->learningStepTypeLabel($step->step_type),
+                    'content_title' => $content->content_title ?? '',
+                    'body' => $content->body ?? '',
+                    'media_type' => $content->media_type ?? '',
+                    'media_path' => $content->media_path ?? '',
+                    'settings' => $decode($content->settings ?? null, []),
+                    'questions' => $decode($content->questions ?? null, []),
+                ];
+            })->values()->all();
+
+            return [
+                'id' => $session->id,
+                'session_no' => (int) ($session->session_no ?: ($index + 1)),
+                'title' => (empty($session->title) || preg_match('/^(?:第\d+回学習|学習\d+日目|\d+日目)$/u', (string) $session->title))
+                    ? (($index + 1) . '日目')
+                    : $session->title,
+                'subtitle' => $session->subtitle ?? '',
+                'show_subtitle' => (bool) $session->show_subtitle,
+                'memo' => $session->developer_note ?? '',
+                'developer_note' => $session->developer_note ?? '',
+                'development_status' => $this->developmentStatusLabel($session->development_status ?? 'not_started'),
+                'is_published' => (bool) $session->is_published,
+                'development_complete' => ($session->development_status ?? null) === 'completed',
+                'steps' => $steps,
+            ];
+        })->all();
+    }
+
+    private function developmentStatusLabel(?string $status): string
+    {
+        return [
+            'not_started' => '未着手',
+            'in_progress' => '作成中',
+            'completed' => '完成',
+            '未着手' => '未着手',
+            '作成中' => '作成中',
+            '完成' => '完成',
+        ][$status ?? 'not_started'] ?? '未着手';
+    }
+
+    private function learningPageStatusLabel(object $learningPage, object $item): string
+    {
+        $status = $learningPage->status ?? ($item->learning_page_status ?? null);
+        return [
+            'draft' => '作成中',
+            'published' => '作成済',
+            'stopped' => '不要',
+            'not_created' => '未作成',
+        ][$status] ?? $this->normalizeLearningStatus($status);
+    }
+
+    private function overallLearningPageStatus(array $sessions): string
+    {
+        $total = count($sessions);
+        $completed = collect($sessions)->filter(fn ($session) => ! empty($session['development_complete']))->count();
+        if ($total > 0 && $completed === $total) {
+            return 'published';
+        }
+        return collect($sessions)->contains(fn ($session) => ! empty($session['steps'])) ? 'draft' : 'not_created';
+    }
+
+    private function overallLearningPageStatusLabel(array $sessions): string
+    {
+        $status = $this->overallLearningPageStatus($sessions);
+        return ['published' => '作成済', 'draft' => '作成中', 'not_created' => '未作成'][$status] ?? '作成中';
     }
 
     private function learningStatusSelectSql(bool $hasLearningPages)

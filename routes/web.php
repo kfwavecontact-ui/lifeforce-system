@@ -225,6 +225,21 @@ Route::prefix('admin')
         Route::get('/system/routine-management', [RoutineManagementController::class, 'index'])
             ->name('system.routines');
 
+        Route::get('/system/routine-management/items/{routineContentId}/learning-page', [RoutineManagementController::class, 'learningPageBuilder'])
+            ->name('system.routines.items.learning-page.builder');
+
+        Route::get('/system/routine-management/items/{routineContentId}/learning-page/sessions/{learningSessionId}/edit', [RoutineManagementController::class, 'learningSessionEditor'])
+            ->name('system.routines.items.learning-page.sessions.edit');
+
+        Route::put('/system/routine-management/items/{routineContentId}/learning-page/sessions/{learningSessionId}', [RoutineManagementController::class, 'updateLearningSession'])
+            ->name('system.routines.items.learning-page.sessions.update');
+
+        Route::put('/system/routine-management/items/{routineContentId}/learning-page', [RoutineManagementController::class, 'saveLearningPageBuilder'])
+            ->name('system.routines.items.learning-page.save');
+
+        Route::post('/system/routine-management/items/{routineContentId}/learning-page', [RoutineManagementController::class, 'saveLearningPageBuilder'])
+            ->name('system.routines.items.learning-page.save-post');
+
         Route::put('/system/routine-management/items/{routineContentId}', [RoutineManagementController::class, 'updateItem'])
             ->name('system.routines.items.update');
 

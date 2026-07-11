@@ -57,6 +57,6 @@
 </div>
 
 {{-- ルーティン管理専用JS（キャッシュ回避のため画面側でも明示読込） --}}
-<script src="{{ asset('js/admin/routine-management.js') }}?v=38"></script>
+<script src="{{ asset('js/admin/routine-management.js') }}?v=39"></script>
 
 @endsection
