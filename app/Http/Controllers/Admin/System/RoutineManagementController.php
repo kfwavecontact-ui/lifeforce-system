@@ -366,7 +366,7 @@ class RoutineManagementController extends Controller
                 $components = data_get($settings, 'components', []);
                 if (is_array($components)) {
                     foreach ($components as $componentIndex => $component) {
-                        if (! is_array($component) || ($component['type'] ?? null) !== 'image') {
+                        if (! is_array($component) || ! in_array(($component['type'] ?? null), ['image', 'timed_display'], true)) {
                             continue;
                         }
 
@@ -390,6 +390,82 @@ class RoutineManagementController extends Controller
                             data_set($settings, "components.$componentIndex.path", $incomingPath);
                         } elseif (str_starts_with((string) ($component['path'] ?? ''), 'blob:')) {
                             data_set($settings, "components.$componentIndex.path", '');
+                        }
+                    }
+
+                    // X択問題セット内の問題画像・選択肢画像を再帰的に保存します。
+                    // 各アップロードは component/question/option のIDを含む固有slotを使用し、
+                    // LearningMediaService側でもUUID名になるため同名ファイルで上書きされません。
+                    foreach ($components as $componentIndex => $component) {
+                        if (! is_array($component) || ($component['type'] ?? null) !== 'choice_question_set') {
+                            continue;
+                        }
+
+                        $componentId = preg_replace('/[^A-Za-z0-9_-]/', '', (string) ($component['id'] ?? $componentIndex));
+                        $choiceQuestions = $component['choice_questions'] ?? [];
+                        if (! is_array($choiceQuestions)) {
+                            continue;
+                        }
+
+                        foreach ($choiceQuestions as $questionIndex => $choiceQuestion) {
+                            if (! is_array($choiceQuestion)) {
+                                continue;
+                            }
+
+                            $questionId = preg_replace('/[^A-Za-z0-9_-]/', '', (string) ($choiceQuestion['id'] ?? $questionIndex));
+                            $questionSlot = 'choice_question_' . $componentId . '_' . $questionId;
+                            $questionFile = $request->file("files.$index.$questionSlot");
+                            $questionPath = $mediaService->normalizeKey($choiceQuestion['path'] ?? null);
+
+                            if ($questionFile) {
+                                $storedPath = $mediaService->upload(
+                                    $questionFile,
+                                    (int) $page->id,
+                                    $learningSessionId,
+                                    $stepId,
+                                    'media'
+                                );
+                                $uploadedDuringRequest[] = $storedPath;
+                                data_set($settings, "components.$componentIndex.choice_questions.$questionIndex.path", $storedPath);
+                                data_set($settings, "components.$componentIndex.choice_questions.$questionIndex.upload_slot", null);
+                            } elseif ($questionPath && ! str_starts_with((string) ($choiceQuestion['path'] ?? ''), 'blob:')) {
+                                data_set($settings, "components.$componentIndex.choice_questions.$questionIndex.path", $questionPath);
+                            } elseif (str_starts_with((string) ($choiceQuestion['path'] ?? ''), 'blob:')) {
+                                data_set($settings, "components.$componentIndex.choice_questions.$questionIndex.path", '');
+                            }
+
+                            $options = $choiceQuestion['options'] ?? [];
+                            if (! is_array($options)) {
+                                continue;
+                            }
+
+                            foreach ($options as $optionIndex => $choiceOption) {
+                                if (! is_array($choiceOption)) {
+                                    continue;
+                                }
+
+                                $optionId = preg_replace('/[^A-Za-z0-9_-]/', '', (string) ($choiceOption['id'] ?? $optionIndex));
+                                $optionSlot = 'choice_option_' . $componentId . '_' . $questionId . '_' . $optionId;
+                                $optionFile = $request->file("files.$index.$optionSlot");
+                                $optionPath = $mediaService->normalizeKey($choiceOption['path'] ?? null);
+
+                                if ($optionFile) {
+                                    $storedPath = $mediaService->upload(
+                                        $optionFile,
+                                        (int) $page->id,
+                                        $learningSessionId,
+                                        $stepId,
+                                        'media'
+                                    );
+                                    $uploadedDuringRequest[] = $storedPath;
+                                    data_set($settings, "components.$componentIndex.choice_questions.$questionIndex.options.$optionIndex.path", $storedPath);
+                                    data_set($settings, "components.$componentIndex.choice_questions.$questionIndex.options.$optionIndex.upload_slot", null);
+                                } elseif ($optionPath && ! str_starts_with((string) ($choiceOption['path'] ?? ''), 'blob:')) {
+                                    data_set($settings, "components.$componentIndex.choice_questions.$questionIndex.options.$optionIndex.path", $optionPath);
+                                } elseif (str_starts_with((string) ($choiceOption['path'] ?? ''), 'blob:')) {
+                                    data_set($settings, "components.$componentIndex.choice_questions.$questionIndex.options.$optionIndex.path", '');
+                                }
+                            }
                         }
                     }
                 }
@@ -424,8 +500,40 @@ class RoutineManagementController extends Controller
                 $previewComponents = data_get($previewSettings, 'components', []);
                 if (is_array($previewComponents)) {
                     foreach ($previewComponents as $componentIndex => $component) {
-                        if (($component['type'] ?? null) === 'image' && ! empty($component['path'])) {
+                        if (in_array(($component['type'] ?? null), ['image', 'timed_display'], true) && ! empty($component['path'])) {
                             data_set($previewSettings, "components.$componentIndex.path", $mediaService->previewUrl($component['path']));
+                        }
+
+                        if (($component['type'] ?? null) === 'choice_question_set') {
+                            $choiceQuestions = $component['choice_questions'] ?? [];
+                            if (is_array($choiceQuestions)) {
+                                foreach ($choiceQuestions as $questionIndex => $choiceQuestion) {
+                                    $questionPath = $choiceQuestion['path'] ?? null;
+                                    if ($questionPath) {
+                                        data_set(
+                                            $previewSettings,
+                                            "components.$componentIndex.choice_questions.$questionIndex.path",
+                                            $mediaService->previewUrl($questionPath)
+                                        );
+                                    }
+
+                                    $options = $choiceQuestion['options'] ?? [];
+                                    if (! is_array($options)) {
+                                        continue;
+                                    }
+
+                                    foreach ($options as $optionIndex => $choiceOption) {
+                                        $optionPath = $choiceOption['path'] ?? null;
+                                        if ($optionPath) {
+                                            data_set(
+                                                $previewSettings,
+                                                "components.$componentIndex.choice_questions.$questionIndex.options.$optionIndex.path",
+                                                $mediaService->previewUrl($optionPath)
+                                            );
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -1647,6 +1755,49 @@ class RoutineManagementController extends Controller
                     $storedImageKey = data_get($settings, "specific.$imageSettingKey");
                     if ($storedImageKey) {
                         data_set($settings, "specific.$imageSettingKey", $mediaService->previewUrl($storedImageKey));
+                    }
+                }
+
+                $components = data_get($settings, 'components', []);
+                if (is_array($components)) {
+                    foreach ($components as $componentIndex => $component) {
+                        if (in_array(($component['type'] ?? null), ['image', 'timed_display'], true) && ! empty($component['path'])) {
+                            data_set($settings, "components.$componentIndex.path", $mediaService->previewUrl($component['path']));
+                        }
+
+                        if (($component['type'] ?? null) !== 'choice_question_set') {
+                            continue;
+                        }
+
+                        $choiceQuestions = $component['choice_questions'] ?? [];
+                        if (! is_array($choiceQuestions)) {
+                            continue;
+                        }
+
+                        foreach ($choiceQuestions as $questionIndex => $choiceQuestion) {
+                            if (! empty($choiceQuestion['path'])) {
+                                data_set(
+                                    $settings,
+                                    "components.$componentIndex.choice_questions.$questionIndex.path",
+                                    $mediaService->previewUrl($choiceQuestion['path'])
+                                );
+                            }
+
+                            $options = $choiceQuestion['options'] ?? [];
+                            if (! is_array($options)) {
+                                continue;
+                            }
+
+                            foreach ($options as $optionIndex => $choiceOption) {
+                                if (! empty($choiceOption['path'])) {
+                                    data_set(
+                                        $settings,
+                                        "components.$componentIndex.choice_questions.$questionIndex.options.$optionIndex.path",
+                                        $mediaService->previewUrl($choiceOption['path'])
+                                    );
+                                }
+                            }
+                        }
                     }
                 }
                 return [
