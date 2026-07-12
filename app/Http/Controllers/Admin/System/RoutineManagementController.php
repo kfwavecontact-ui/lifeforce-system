@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Admin\System;
 
 use App\Http\Controllers\Controller;
+use App\Services\LearningMediaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class RoutineManagementController extends Controller
 {
@@ -157,6 +160,12 @@ class RoutineManagementController extends Controller
         $sessionRow = DB::table('learning_sessions')->where('id', $learningSessionId)->where('learning_page_id', $page->id)->first();
         abort_if(empty($sessionRow), 404);
 
+        if ($request->has('payload')) {
+            $decoded = json_decode((string) $request->input('payload'), true);
+            abort_if(! is_array($decoded), 422, '保存データの形式が不正です。');
+            $request->merge($decoded);
+        }
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:255'],
@@ -165,6 +174,7 @@ class RoutineManagementController extends Controller
             'is_published' => ['required', 'boolean'],
             'development_complete' => ['required', 'boolean'],
             'steps' => ['nullable', 'array'],
+            'steps.*.id' => ['nullable', 'integer'],
             'steps.*.key' => ['required_with:steps', 'string', 'max:50'],
             'steps.*.label' => ['nullable', 'string', 'max:255'],
             'steps.*.content_title' => ['nullable', 'string', 'max:255'],
@@ -173,9 +183,20 @@ class RoutineManagementController extends Controller
             'steps.*.media_path' => ['nullable', 'string', 'max:2048'],
             'steps.*.settings' => ['nullable', 'array'],
             'steps.*.questions' => ['nullable', 'array'],
+            'steps.*.media_remove' => ['nullable', 'array'],
+            'steps.*.media_remove.*' => ['nullable', 'boolean'],
+            'files.*.*' => ['nullable', 'file', 'max:20480', 'mimes:jpg,jpeg,png,gif,webp,pdf'],
+            'background_image_file' => ['nullable', 'file', 'max:20480', 'mimes:jpg,jpeg,png,gif,webp'],
+            'background_step_index' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        DB::transaction(function () use ($data, $learningSessionId, $page, $item) {
+        /** @var LearningMediaService $mediaService */
+        $mediaService = app(LearningMediaService::class);
+        $cleanupAfterCommit = [];
+        $uploadedDuringRequest = [];
+
+        try {
+            $savedSteps = DB::transaction(function () use ($data, $request, $learningSessionId, $page, $item, $mediaService, &$cleanupAfterCommit, &$uploadedDuringRequest) {
             $steps = array_values($data['steps'] ?? []);
             DB::table('learning_sessions')->where('id', $learningSessionId)->update([
                 'title' => $data['title'],
@@ -187,32 +208,242 @@ class RoutineManagementController extends Controller
                 'updated_at' => now(),
             ]);
 
-            $stepIds = DB::table('learning_steps')->where('learning_session_id', $learningSessionId)->pluck('id')->all();
-            if ($stepIds) DB::table('learning_step_contents')->whereIn('learning_step_id', $stepIds)->delete();
-            DB::table('learning_steps')->where('learning_session_id', $learningSessionId)->delete();
+            $existing = DB::table('learning_steps')->where('learning_session_id', $learningSessionId)->pluck('id')->map(fn($id)=>(int)$id)->all();
+            $kept = [];
+            $result = [];
+            $backgroundUpload = $request->file('background_image_file');
+            $backgroundStepIndex = max(0, (int) $request->input('background_step_index', 0));
 
             foreach ($steps as $index => $step) {
                 $type = $step['key'];
-                $stepId = DB::table('learning_steps')->insertGetId([
+                $candidate = isset($step['id']) ? (int) $step['id'] : 0;
+                $stepId = in_array($candidate, $existing, true) ? $candidate : 0;
+                $isNewStep = $stepId === 0;
+                $stepPayload = [
                     'learning_session_id' => $learningSessionId,
                     'step_type' => $type,
                     'title' => $step['label'] ?? $this->learningStepTypeLabel($type),
                     'sort_order' => $index + 1,
                     'is_required' => $type === 'complete',
-                    'created_at' => now(),
                     'updated_at' => now(),
-                ]);
-                DB::table('learning_step_contents')->insert([
-                    'learning_step_id' => $stepId,
+                ];
+                if ($stepId) {
+                    DB::table('learning_steps')->where('id', $stepId)->update($stepPayload);
+                } else {
+                    $stepPayload['created_at'] = now();
+                    $stepId = DB::table('learning_steps')->insertGetId($stepPayload);
+                }
+                $kept[] = $stepId;
+
+                $settings = $step['settings'] ?? [];
+                $existingContent = DB::table('learning_step_contents')->where('learning_step_id', $stepId)->first();
+                $existingSettings = [];
+                if ($existingContent && ! empty($existingContent->settings)) {
+                    $decodedExistingSettings = json_decode((string) $existingContent->settings, true);
+                    $existingSettings = is_array($decodedExistingSettings) ? $decodedExistingSettings : [];
+                }
+
+                $incomingBackground = data_get($settings, 'screen_background.image');
+                $existingBackground = data_get($existingSettings, 'screen_background.image');
+                $existingBackgroundKey = $this->isExternalBackgroundUrl($existingBackground)
+                    ? (string) $existingBackground
+                    : ($mediaService->normalizeKey($existingBackground) ?: '');
+                $storedBackgroundPath = null;
+
+                if ($backgroundUpload && $index === $backgroundStepIndex) {
+                    $storedBackgroundPath = $mediaService->upload(
+                        $backgroundUpload,
+                        (int) $page->id,
+                        $learningSessionId,
+                        $stepId,
+                        'background'
+                    );
+                    $uploadedDuringRequest[] = $storedBackgroundPath;
+
+                    $oldBackgroundKey = $this->isExternalBackgroundUrl($existingBackground)
+                        ? null
+                        : $mediaService->normalizeKey($existingBackground);
+                    if ($oldBackgroundKey && $oldBackgroundKey !== $storedBackgroundPath) {
+                        $cleanupAfterCommit[] = $oldBackgroundKey;
+                    }
+                } elseif (is_string($incomingBackground) && str_starts_with($incomingBackground, 'blob:')) {
+                    // Browser blob URLs are preview-only. Preserve the stored value for this step.
+                    $storedBackgroundPath = $existingBackgroundKey;
+                } else {
+                    $incomingBackground = trim((string) $incomingBackground);
+
+                    if ($incomingBackground === '') {
+                        $storedBackgroundPath = '';
+                        if (! $this->isExternalBackgroundUrl($existingBackground)) {
+                            $oldBackgroundKey = $mediaService->normalizeKey($existingBackground);
+                            if ($oldBackgroundKey) {
+                                $cleanupAfterCommit[] = $oldBackgroundKey;
+                            }
+                        }
+                    } elseif ($this->isExternalBackgroundUrl($incomingBackground)) {
+                        $storedBackgroundPath = $incomingBackground;
+                    } else {
+                        // Convert temporary S3 URLs back to stable object keys.
+                        $storedBackgroundPath = $mediaService->normalizeKey($incomingBackground) ?: $existingBackgroundKey;
+                    }
+                }
+
+                data_set($settings, 'screen_background.image', $storedBackgroundPath ?? '');
+
+                $mediaType = $existingContent->media_type ?? ($step['media_type'] ?? null);
+                $mediaPath = $mediaService->normalizeKey($existingContent->media_path ?? ($step['media_path'] ?? null));
+
+                $slots = [
+                    'main' => [
+                        'setting_key' => null,
+                        'purpose' => (($step['media_type'] ?? null) === 'pdf') ? 'pdf' : ($type === 'description' ? 'description' : 'media'),
+                    ],
+                    'prompt' => ['setting_key' => 'prompt_image_path', 'purpose' => 'example'],
+                    'answer' => ['setting_key' => 'answer_image_path', 'purpose' => 'answer'],
+                    'explanation' => ['setting_key' => 'explanation_image_path', 'purpose' => 'commentary'],
+                ];
+
+                foreach ($slots as $slot => $slotDefinition) {
+                    $settingKey = $slotDefinition['setting_key'];
+                    $purpose = $slotDefinition['purpose'];
+                    $file = $request->file("files.$index.$slot");
+                    $remove = (bool) data_get($step, "media_remove.$slot", false);
+
+                    if ($slot === 'main') {
+                        $oldPath = $mediaPath;
+                        $incomingPath = $mediaService->normalizeKey($step['media_path'] ?? null);
+                    } else {
+                        $oldPath = $mediaService->normalizeKey(data_get($existingSettings, "specific.$settingKey"));
+                        $incomingPath = $mediaService->normalizeKey(data_get($settings, "specific.$settingKey"));
+                    }
+
+                    $newPath = $oldPath;
+
+                    if ($file) {
+                        $newPath = $mediaService->upload(
+                            $file,
+                            (int) $page->id,
+                            $learningSessionId,
+                            $stepId,
+                            $purpose
+                        );
+                        $uploadedDuringRequest[] = $newPath;
+                        if ($oldPath && $oldPath !== $newPath) {
+                            $cleanupAfterCommit[] = $oldPath;
+                        }
+                    } elseif ($remove) {
+                        $newPath = null;
+                        if ($oldPath) {
+                            $cleanupAfterCommit[] = $oldPath;
+                        }
+                    } elseif ($isNewStep && $incomingPath) {
+                        $newPath = $mediaService->copy(
+                            $incomingPath,
+                            (int) $page->id,
+                            $learningSessionId,
+                            $stepId,
+                            $purpose
+                        );
+                        $uploadedDuringRequest[] = $newPath;
+                    } elseif (! $oldPath && $incomingPath) {
+                        $newPath = $incomingPath;
+                    }
+
+                    if ($slot === 'main') {
+                        $mediaPath = $newPath;
+                        if (! $newPath) {
+                            $mediaType = null;
+                        } elseif ($file) {
+                            $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'bin');
+                            $mediaType = $extension === 'pdf' ? 'pdf' : 'image';
+                        }
+                    } elseif ($settingKey) {
+                        data_set($settings, "specific.$settingKey", $newPath ?: '');
+                    }
+                }
+
+                // Component-builder media files are stored inside settings.components.
+                $components = data_get($settings, 'components', []);
+                if (is_array($components)) {
+                    foreach ($components as $componentIndex => $component) {
+                        if (! is_array($component) || ($component['type'] ?? null) !== 'image') {
+                            continue;
+                        }
+
+                        $componentId = preg_replace('/[^A-Za-z0-9_-]/', '', (string) ($component['id'] ?? $componentIndex));
+                        $slot = 'component_' . $componentId;
+                        $file = $request->file("files.$index.$slot");
+                        $incomingPath = $mediaService->normalizeKey($component['path'] ?? null);
+
+                        if ($file) {
+                            $storedPath = $mediaService->upload(
+                                $file,
+                                (int) $page->id,
+                                $learningSessionId,
+                                $stepId,
+                                'media'
+                            );
+                            $uploadedDuringRequest[] = $storedPath;
+                            data_set($settings, "components.$componentIndex.path", $storedPath);
+                            data_set($settings, "components.$componentIndex.upload_slot", null);
+                        } elseif ($incomingPath && ! str_starts_with((string) ($component['path'] ?? ''), 'blob:')) {
+                            data_set($settings, "components.$componentIndex.path", $incomingPath);
+                        } elseif (str_starts_with((string) ($component['path'] ?? ''), 'blob:')) {
+                            data_set($settings, "components.$componentIndex.path", '');
+                        }
+                    }
+                }
+
+                $contentPayload = [
                     'content_title' => $step['content_title'] ?? ($step['label'] ?? $this->learningStepTypeLabel($type)),
                     'body' => $step['body'] ?? null,
-                    'media_type' => $step['media_type'] ?? null,
-                    'media_path' => $step['media_path'] ?? null,
-                    'settings' => json_encode($step['settings'] ?? [], JSON_UNESCAPED_UNICODE),
+                    'media_type' => $mediaType,
+                    'media_path' => $mediaPath,
+                    'settings' => json_encode($settings, JSON_UNESCAPED_UNICODE),
                     'questions' => json_encode($step['questions'] ?? [], JSON_UNESCAPED_UNICODE),
-                    'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ];
+                if ($existingContent) {
+                    DB::table('learning_step_contents')->where('learning_step_id', $stepId)->update($contentPayload);
+                } else {
+                    $contentPayload['learning_step_id'] = $stepId;
+                    $contentPayload['created_at'] = now();
+                    DB::table('learning_step_contents')->insert($contentPayload);
+                }
+                $previewSettings = $settings;
+                $storedScreenBackground = data_get($previewSettings, 'screen_background.image');
+                if ($storedScreenBackground) {
+                    data_set($previewSettings, 'screen_background.image', $this->screenBackgroundPreviewUrl($storedScreenBackground, $mediaService));
+                }
+                foreach (['prompt_image_path', 'answer_image_path', 'explanation_image_path'] as $imageSettingKey) {
+                    $storedImageKey = data_get($previewSettings, "specific.$imageSettingKey");
+                    if ($storedImageKey) {
+                        data_set($previewSettings, "specific.$imageSettingKey", $mediaService->previewUrl($storedImageKey));
+                    }
+                }
+                $previewComponents = data_get($previewSettings, 'components', []);
+                if (is_array($previewComponents)) {
+                    foreach ($previewComponents as $componentIndex => $component) {
+                        if (($component['type'] ?? null) === 'image' && ! empty($component['path'])) {
+                            data_set($previewSettings, "components.$componentIndex.path", $mediaService->previewUrl($component['path']));
+                        }
+                    }
+                }
+                $result[] = [
+                    'id' => $stepId,
+                    'media_type' => $mediaType,
+                    'media_path' => $mediaService->previewUrl($mediaPath),
+                    'settings' => $previewSettings,
+                ];
+            }
+
+            $removed = array_values(array_diff($existing, $kept));
+            foreach ($removed as $removedId) {
+                $mediaService->deleteDirectory("learning-pages/{$page->id}/sessions/{$learningSessionId}/steps/{$removedId}");
+            }
+            if ($removed) {
+                DB::table('learning_step_contents')->whereIn('learning_step_id', $removed)->delete();
+                DB::table('learning_steps')->whereIn('id', $removed)->delete();
             }
 
             $statuses = DB::table('learning_sessions')->where('learning_page_id', $page->id)->pluck('development_status');
@@ -221,9 +452,64 @@ class RoutineManagementController extends Controller
             if (Schema::hasColumn('routine_contents', 'learning_page_status')) {
                 DB::table('routine_contents')->where('id', $item->id)->update(['learning_page_status' => ['published'=>'作成済','draft'=>'作成中','not_created'=>'未作成'][$pageStatus], 'updated_at' => now()]);
             }
-        });
+            return $result;
+            });
+        } catch (\Throwable $exception) {
+            foreach (array_unique($uploadedDuringRequest) as $uploadedKey) {
+                $mediaService->delete($uploadedKey);
+            }
+            throw $exception;
+        }
 
-        return response()->json(['message' => '学習' . ((int) $sessionRow->session_no) . '日目を保存しました。']);
+        foreach (array_unique(array_filter($cleanupAfterCommit)) as $oldKey) {
+            $mediaService->delete($oldKey);
+        }
+
+        return response()->json(['message' => '学習' . ((int) $sessionRow->session_no) . '日目を保存しました。', 'steps' => $savedSteps]);
+    }
+
+    private function normalizeLearningMediaKey(?string $path): ?string
+    {
+        if (! $path) return null;
+
+        $path = trim($path);
+        if ($path === '') return null;
+        if (! str_starts_with($path, 'http://') && ! str_starts_with($path, 'https://')) {
+            return ltrim($path, '/');
+        }
+
+        $urlPath = rawurldecode((string) parse_url($path, PHP_URL_PATH));
+        $key = ltrim($urlPath, '/');
+        $bucket = trim((string) config('filesystems.disks.s3.bucket'));
+        if ($bucket !== '' && str_starts_with($key, $bucket . '/')) {
+            $key = substr($key, strlen($bucket) + 1);
+        }
+
+        $marker = 'learning-pages/';
+        $position = strpos($key, $marker);
+        if ($position !== false) {
+            $key = substr($key, $position);
+        }
+
+        return $key !== '' ? $key : null;
+    }
+
+    private function learningMediaPreviewUrl(?string $path): string
+    {
+        $key = $this->normalizeLearningMediaKey($path);
+        if (! $key) return '';
+
+        try {
+            return Storage::disk('s3')->temporaryUrl($key, now()->addHours(6));
+        } catch (\Throwable) {
+            return Storage::disk('s3')->url($key);
+        }
+    }
+
+    private function deleteLearningMedia(?string $path): void
+    {
+        $key = $this->normalizeLearningMediaKey($path);
+        if ($key) Storage::disk('s3')->delete($key);
     }
 
     public function saveLearningPageBuilder(Request $request, int $routineContentId)
@@ -1340,8 +1626,11 @@ class RoutineManagementController extends Controller
             }
         }
 
-        return $sessions->values()->map(function ($session, $index) use ($stepsBySession, $contentsByStep) {
-            $steps = ($stepsBySession[$session->id] ?? collect())->map(function ($step) use ($contentsByStep) {
+        /** @var LearningMediaService $mediaService */
+        $mediaService = app(LearningMediaService::class);
+
+        return $sessions->values()->map(function ($session, $index) use ($stepsBySession, $contentsByStep, $mediaService) {
+            $steps = ($stepsBySession[$session->id] ?? collect())->map(function ($step) use ($contentsByStep, $mediaService) {
                 $content = $contentsByStep[$step->id] ?? null;
                 $decode = static function ($value, $default) {
                     if (is_array($value)) return $value;
@@ -1349,6 +1638,17 @@ class RoutineManagementController extends Controller
                     $decoded = json_decode($value, true);
                     return is_array($decoded) ? $decoded : $default;
                 };
+                $settings = $decode($content->settings ?? null, []);
+                $storedScreenBackground = data_get($settings, 'screen_background.image');
+                if ($storedScreenBackground) {
+                    data_set($settings, 'screen_background.image', $this->screenBackgroundPreviewUrl($storedScreenBackground, $mediaService));
+                }
+                foreach (['prompt_image_path', 'answer_image_path', 'explanation_image_path'] as $imageSettingKey) {
+                    $storedImageKey = data_get($settings, "specific.$imageSettingKey");
+                    if ($storedImageKey) {
+                        data_set($settings, "specific.$imageSettingKey", $mediaService->previewUrl($storedImageKey));
+                    }
+                }
                 return [
                     'id' => $step->id,
                     'key' => $step->step_type,
@@ -1356,8 +1656,8 @@ class RoutineManagementController extends Controller
                     'content_title' => $content->content_title ?? '',
                     'body' => $content->body ?? '',
                     'media_type' => $content->media_type ?? '',
-                    'media_path' => $content->media_path ?? '',
-                    'settings' => $decode($content->settings ?? null, []),
+                    'media_path' => $this->learningMediaPreviewUrl($content->media_path ?? null),
+                    'settings' => $settings,
                     'questions' => $decode($content->questions ?? null, []),
                 ];
             })->values()->all();
@@ -1615,6 +1915,34 @@ class RoutineManagementController extends Controller
             'LOGIC' => '論理思考ルーティン',
             default => null,
         };
+    }
+
+
+    private function isExternalBackgroundUrl(?string $path): bool
+    {
+        if (! is_string($path)) {
+            return false;
+        }
+
+        $path = trim($path);
+        if (! str_starts_with($path, 'http://') && ! str_starts_with($path, 'https://')) {
+            return false;
+        }
+
+        $urlPath = rawurldecode((string) parse_url($path, PHP_URL_PATH));
+
+        return ! str_contains(ltrim($urlPath, '/'), 'learning-pages/');
+    }
+
+    private function screenBackgroundPreviewUrl(?string $path, LearningMediaService $mediaService): string
+    {
+        if (! $path) {
+            return '';
+        }
+
+        return $this->isExternalBackgroundUrl($path)
+            ? trim((string) $path)
+            : $mediaService->previewUrl($path);
     }
 
     private function fallbackName(?string $name, ?string $code, string $fallback): string
