@@ -18,7 +18,13 @@ use App\Http\Controllers\Admin\Account\SpotSaleController;
 use App\Http\Controllers\Admin\Account\RefundController;
 use App\Http\Controllers\Admin\Account\PointProductCostController;
 use App\Http\Controllers\Admin\Account\ExpenseController;
+use App\Http\Controllers\Learning\ShogiMateResultController;
 
+
+
+Route::post('/learning/shogi-mate/results', [ShogiMateResultController::class, 'store'])
+    ->middleware('auth')
+    ->name('learning.shogi-mate.results.store');
 
 Route::get('/', function () {
     return redirect()->route('admin.students.karte.show', ['student' => 1]);

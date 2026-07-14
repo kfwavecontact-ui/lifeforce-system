@@ -1,0 +1,1134 @@
+/* LifeForce Core - 詰将棋問題セット */
+.lle-shogi-palette-button{position:relative;overflow:hidden}.lle-shogi-palette-icon{display:inline-grid;place-items:center;width:34px;height:38px;margin-right:8px;clip-path:polygon(50% 0,94% 18%,88% 100%,12% 100%,6% 18%);background:linear-gradient(145deg,#f6d798,#c99749);color:#302012;font-family:"Yu Mincho","Hiragino Mincho ProN",serif;font-weight:900;box-shadow:0 3px 8px rgba(66,38,10,.22)}
+.is-shogi-step{border-color:#bd842f!important;background:linear-gradient(90deg,rgba(235,196,126,.14),transparent)!important}
+.lle-shogi-editor{display:grid;gap:18px;color:#33291d}.lle-shogi-editor-section{border:1px solid #dfd4c2;border-radius:16px;background:#fffdfa;box-shadow:0 8px 24px rgba(60,42,20,.06);overflow:hidden}.lle-shogi-editor-section>header{display:flex;align-items:center;gap:12px;padding:14px 16px;background:linear-gradient(90deg,#f8f1e4,#fffdfa);border-bottom:1px solid #e7ddcd}.lle-shogi-editor-section>header>span{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:#6b421e;color:#fff;font-weight:800}.lle-shogi-editor-section>header strong{display:block;font-size:15px}.lle-shogi-editor-section>header p{margin:2px 0 0;color:#806e58;font-size:12px}.lle-shogi-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}.lle-shogi-form-grid label{display:grid;gap:6px;font-size:12px;font-weight:700;color:#5d4b36}.lle-shogi-form-grid label.wide{grid-column:1/-1}.lle-shogi-form-grid input,.lle-shogi-form-grid textarea,.lle-shogi-form-grid select{width:100%;box-sizing:border-box;border:1px solid #d8cbb7;border-radius:9px;padding:10px 11px;background:#fff;color:#2e261e;font:inherit;resize:vertical}.lle-shogi-form-grid input:focus,.lle-shogi-form-grid textarea:focus,.lle-shogi-form-grid select:focus{outline:2px solid rgba(175,116,42,.25);border-color:#a96d27}.lle-shogi-check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 16px 16px}.lle-shogi-check-grid label{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid #e2d8c8;border-radius:9px;background:#fff;font-size:12px}.lle-shogi-check-grid input{accent-color:#80511f}
+.lle-shogi-position-tools{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:14px 14px 8px}.lle-shogi-piece-palette{display:grid;gap:8px}.lle-shogi-palette-side,.lle-shogi-palette-pieces,.lle-shogi-position-actions{display:flex;gap:6px;flex-wrap:wrap}.lle-shogi-palette-side button,.lle-shogi-position-actions button,.lle-shogi-record-actions button,.lle-shogi-player-actions button{border:1px solid #d5c4aa;border-radius:8px;background:#fffaf1;color:#594329;padding:7px 10px;font-weight:700;cursor:pointer}.lle-shogi-palette-side button.is-active,.lle-shogi-position-actions button:hover,.lle-shogi-record-actions button:hover,.lle-shogi-player-actions button:hover{background:#6d451f;color:#fff;border-color:#6d451f}.lle-shogi-palette-pieces>button{display:grid;place-items:center;width:42px;height:48px;padding:2px;border:1px solid transparent;border-radius:8px;background:#f8f1e5;cursor:pointer}.lle-shogi-palette-pieces>button.is-active{border-color:#9f681f;box-shadow:0 0 0 2px rgba(159,104,31,.18)}
+.lle-shogi-table{display:grid;grid-template-columns:minmax(82px,118px) minmax(280px,540px) minmax(82px,118px);gap:12px;align-items:end;justify-content:center;padding:16px}.lle-shogi-board-wrap{position:relative;padding:17px;border:8px solid #70471f;border-radius:8px;background:linear-gradient(135deg,#805629,#4d2c13);box-shadow:0 18px 30px rgba(42,24,7,.2),inset 0 1px 0 rgba(255,255,255,.25)}.lle-shogi-board-wrap:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(8deg,transparent 0 15px,rgba(92,52,14,.045) 16px 17px,transparent 18px 36px);pointer-events:none}.lle-shogi-board{position:relative;z-index:1;display:grid;grid-template-columns:repeat(9,1fr);aspect-ratio:1/1;background:linear-gradient(100deg,#e7bd70,#f2d18d 48%,#ddb264);border:2px solid #3e2815;box-shadow:inset 0 0 16px rgba(93,57,18,.12)}.lle-shogi-board:after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(2deg,transparent 0 22px,rgba(111,69,24,.035) 23px 24px,transparent 25px 48px);mix-blend-mode:multiply}.lle-shogi-cell{position:relative;display:grid;place-items:center;min-width:0;padding:3px;border:0;border-right:1px solid rgba(52,34,17,.78);border-bottom:1px solid rgba(52,34,17,.78);background:transparent;cursor:pointer;aspect-ratio:1/1}.lle-shogi-cell:nth-child(9n){border-right:0}.lle-shogi-cell:nth-last-child(-n+9){border-bottom:0}.lle-shogi-cell:hover{background:rgba(255,246,199,.25)}.lle-shogi-cell.is-selected{background:rgba(42,101,157,.23);box-shadow:inset 0 0 0 3px #2d6590}.lle-shogi-cell.is-legal{background:rgba(59,127,71,.14)}.lle-shogi-cell.is-last-from{box-shadow:inset 0 0 0 2px rgba(174,118,27,.55)}.lle-shogi-cell.is-last-to{background:rgba(245,200,64,.29);box-shadow:inset 0 0 0 3px rgba(151,101,20,.7)}.lle-shogi-cell.is-check{background:rgba(174,43,34,.23);animation:lle-shogi-check 1.2s ease-in-out infinite alternate}.lle-shogi-move-dot{position:absolute;width:22%;aspect-ratio:1;border-radius:50%;background:#347642;box-shadow:0 0 0 3px rgba(255,255,255,.48)}
+.lle-shogi-piece{position:relative;z-index:2;display:grid;place-items:center;width:82%;height:88%;clip-path:polygon(50% 0,93% 17%,86% 100%,14% 100%,7% 17%);background:linear-gradient(145deg,#f8dea8 0,#dca758 60%,#bd8137 100%);filter:drop-shadow(0 2px 1px rgba(62,34,8,.34));transform-origin:center;color:#2a180b;font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;font-weight:900;line-height:1}.lle-shogi-piece:before{content:"";position:absolute;inset:5% 8% 9%;clip-path:inherit;border:1px solid rgba(107,64,18,.25)}.lle-shogi-piece>span{position:relative;font-size:clamp(14px,3.3vw,30px);text-shadow:0 1px rgba(255,255,255,.25)}.lle-shogi-piece.is-white{transform:rotate(180deg)}.lle-shogi-piece.is-promoted{color:#a32218}.lle-shogi-side-panel{min-width:0}.lle-shogi-hand{border:1px solid #c8ad86;border-radius:10px;background:linear-gradient(145deg,#f7ead1,#e5c595);box-shadow:0 8px 18px rgba(60,37,13,.13);overflow:hidden}.lle-shogi-hand-head{display:flex;justify-content:space-between;gap:5px;align-items:center;padding:7px 8px;background:rgba(92,54,19,.8);color:#fff;font-size:10px}.lle-shogi-hand-head span{padding:2px 5px;border-radius:10px;background:#f0cf82;color:#4a2c0d}.lle-shogi-hand-list{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;padding:5px}.lle-shogi-hand-piece{position:relative;display:grid;place-items:center;min-width:0;aspect-ratio:1;border:1px solid transparent;border-radius:6px;background:rgba(255,255,255,.32);padding:2px;cursor:pointer}.lle-shogi-hand-piece:disabled{opacity:.25;cursor:default}.lle-shogi-hand-piece.is-selected{border-color:#28638e;background:rgba(42,101,157,.18)}.lle-shogi-hand-piece .lle-shogi-piece{width:85%;height:85%}.lle-shogi-hand-piece .lle-shogi-piece>span{font-size:18px}.lle-shogi-hand-piece b{position:absolute;right:2px;bottom:2px;display:grid;place-items:center;min-width:17px;height:17px;padding:0 2px;border-radius:9px;background:#4e3217;color:#fff;font-size:10px}.lle-shogi-file-labels{position:absolute;z-index:2;left:17px;right:17px;top:1px;display:grid;grid-template-columns:repeat(9,1fr);font-size:9px;color:#f7e6c7;text-align:center}.lle-shogi-rank-labels{position:absolute;z-index:2;top:17px;bottom:17px;right:2px;display:grid;grid-template-rows:repeat(9,1fr);align-items:center;font-size:9px;color:#f7e6c7}
+.lle-shogi-hand-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px 14px 16px}.lle-shogi-hand-editor section{border:1px solid #dfd2bf;border-radius:10px;padding:10px;background:#fbf5eb}.lle-shogi-hand-editor section>strong{display:block;margin-bottom:7px;font-size:12px}.lle-shogi-hand-editor section>div{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}.lle-shogi-hand-editor label{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:3px;padding:4px;border-radius:6px;background:#fff}.lle-shogi-hand-editor button{width:23px;height:23px;border:1px solid #d7c4aa;border-radius:5px;background:#fff;cursor:pointer}.lle-shogi-hand-editor b{min-width:14px;text-align:center}
+.lle-shogi-record-status{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px}.lle-shogi-record-status>div:first-child{display:grid}.lle-shogi-record-status span{font-size:10px;color:#8b755a}.lle-shogi-record-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.lle-shogi-move-list{display:flex;gap:6px;flex-wrap:wrap;list-style:none;margin:0;padding:0 14px 16px}.lle-shogi-move-list li{display:flex;gap:5px;align-items:center;padding:6px 9px;border-radius:8px;background:#f4eadb;border:1px solid #dfcfb8;font-size:12px}.lle-shogi-move-list li>span{color:#9b7d56}.lle-shogi-move-list li.is-empty{width:100%;justify-content:center;color:#8b7860;background:#faf7f2}
+.lle-shogi-promotion{position:absolute;z-index:20;inset:0;display:grid;place-items:center;background:rgba(37,24,10,.52);backdrop-filter:blur(2px)}.lle-shogi-promotion>div{width:min(250px,80%);padding:20px;border-radius:14px;background:#fffdf8;box-shadow:0 18px 50px rgba(0,0,0,.25);text-align:center}.lle-shogi-promotion strong{font-size:18px}.lle-shogi-promotion p{color:#75644f;font-size:12px}.lle-shogi-promotion span{display:flex;gap:8px;justify-content:center}.lle-shogi-promotion button{padding:9px 17px;border:1px solid #795025;border-radius:8px;background:#fff;color:#5c3c1c;font-weight:700}.lle-shogi-promotion button:last-child{background:#6b431c;color:#fff}
+.lle-shogi-player{width:100%;max-width:840px;margin:auto;padding:18px;box-sizing:border-box;border:1px solid rgba(116,81,39,.28);border-radius:18px;background:rgba(255,253,247,.94);box-shadow:0 16px 40px rgba(64,42,16,.12)}.lle-shogi-player>header{text-align:center;margin-bottom:10px}.lle-shogi-player>header>span{display:inline-block;padding:4px 10px;border-radius:20px;background:#70471f;color:#fff;font-size:11px;font-weight:800}.lle-shogi-player h3{margin:7px 0 3px;font-size:clamp(18px,3vw,28px);font-family:"Yu Mincho","Hiragino Mincho ProN",serif}.lle-shogi-player header p{margin:0;color:#675842}.lle-shogi-player-status{text-align:center;padding:7px;border-radius:8px;background:#f5ecdf;color:#68471f;font-size:12px;font-weight:700}.lle-shogi-player-actions{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:10px}.lle-shogi-player-message{margin-top:10px;padding:12px 14px;border-radius:10px;text-align:center}.lle-shogi-player-message p{margin:5px 0 0}.lle-shogi-player-message.is-success{background:#e8f4e7;border:1px solid #88b783;color:#285b29}.lle-shogi-player-message.is-error{background:#fbe9e7;border:1px solid #d99a92;color:#8e2820}.lle-shogi-player-message.is-hint,.lle-shogi-player-message.is-info{background:#fff4d9;border:1px solid #dfbd67;color:#6b4b13}.lle-shogi-player-message.is-warning{background:#f5eee3;border:1px solid #c9aa7a;color:#634822}.is-shogi-complete .lle-shogi-board-wrap{box-shadow:0 0 0 4px rgba(77,143,72,.26),0 18px 30px rgba(42,24,7,.2)}.is-shogi-wrong .lle-shogi-board-wrap{animation:lle-shogi-wrong .34s ease}
+@keyframes lle-shogi-check{from{box-shadow:inset 0 0 0 2px rgba(160,37,29,.45)}to{box-shadow:inset 0 0 0 4px rgba(160,37,29,.85)}}@keyframes lle-shogi-wrong{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+@media(max-width:1100px){.lle-shogi-table{grid-template-columns:86px minmax(260px,1fr) 86px;gap:7px;padding:10px}.lle-shogi-board-wrap{padding:13px;border-width:6px}.lle-shogi-file-labels{left:13px;right:13px}.lle-shogi-rank-labels{top:13px;bottom:13px}.lle-shogi-hand-head{display:block}.lle-shogi-hand-list{grid-template-columns:1fr}}
+@media(max-width:720px){.lle-shogi-form-grid,.lle-shogi-check-grid,.lle-shogi-hand-editor{grid-template-columns:1fr}.lle-shogi-position-tools,.lle-shogi-record-status{align-items:stretch;flex-direction:column}.lle-shogi-table{grid-template-columns:1fr;align-items:stretch}.lle-shogi-board-wrap{order:2;width:min(100%,540px);box-sizing:border-box;margin:auto}.lle-shogi-side-panel:first-child{order:1}.lle-shogi-side-panel:last-child{order:3}.lle-shogi-hand-list{grid-template-columns:repeat(7,1fr)}.lle-shogi-hand-head{display:flex}.lle-shogi-hand-piece{aspect-ratio:auto;height:42px}.lle-shogi-hand-piece .lle-shogi-piece>span{font-size:14px}.lle-shogi-player{padding:10px}.lle-shogi-piece>span{font-size:clamp(13px,6vw,24px)}}
+@media(max-width:420px){.lle-shogi-board-wrap{padding:10px;border-width:5px}.lle-shogi-file-labels{left:10px;right:10px}.lle-shogi-rank-labels{top:10px;bottom:10px}.lle-shogi-table{padding:7px}.lle-shogi-hand-list{gap:2px;padding:3px}.lle-shogi-hand-piece{height:36px}.lle-shogi-player-actions button{flex:1;min-width:42%}}
+
+/* v3: 縦型編集画面を維持し、駒形状と表示品質のみ改善 */
+.lle-shogi-quick-positions{justify-content:flex-end}
+.lle-shogi-quick-positions button:last-child{border-color:#cf9a8d;color:#9b3c2f;background:#fff8f6}
+.lle-shogi-board{background:linear-gradient(100deg,#dcae5f,#e9c47d 48%,#cf9f50)}
+.lle-shogi-board:after{opacity:.88}
+.lle-shogi-cell{overflow:visible;padding:4px}
+.lle-shogi-piece{width:78%;height:auto;max-height:92%;aspect-ratio:.82;box-sizing:border-box;clip-path:polygon(50% 0%,92% 18%,86% 100%,14% 100%,8% 18%);background:linear-gradient(145deg,#f9e1ad 0%,#e2b364 58%,#c58a3e 100%);filter:drop-shadow(0 2px 1px rgba(62,34,8,.34))}
+.lle-shogi-piece:before{inset:5% 7% 7%;border:1px solid rgba(91,52,14,.38);box-sizing:border-box}
+.lle-shogi-piece>span{font-size:clamp(14px,2.55vw,28px)}
+.lle-shogi-hand-piece .lle-shogi-piece{width:78%;height:auto;max-height:88%}
+.lle-shogi-hand-editor label{grid-template-columns:1fr auto;padding:5px 7px}
+.lle-shogi-stepper{display:grid;grid-template-columns:26px 28px 26px;align-items:center;border:1px solid #d8c8b2;border-radius:7px;overflow:hidden;background:#fff}
+.lle-shogi-hand-editor .lle-shogi-stepper button{width:26px;height:26px;border:0;border-radius:0;background:#f5ede1;color:#64451f;font-weight:900}
+.lle-shogi-hand-editor .lle-shogi-stepper button:hover{background:#6d451f;color:#fff}
+.lle-shogi-hand-editor .lle-shogi-stepper b{display:grid;place-items:center;min-width:0;height:26px;border-left:1px solid #e2d5c3;border-right:1px solid #e2d5c3;background:#fff}
+.lle-shogi-player{max-width:960px}
+.lle-shogi-player .lle-shogi-board-wrap{width:100%;max-width:620px;margin:auto;box-sizing:border-box}
+@media(max-width:900px){.lle-shogi-player{max-width:720px}.lle-shogi-player .lle-shogi-board-wrap{max-width:540px}}
+@media(max-width:720px){.lle-shogi-quick-positions{justify-content:flex-start}.lle-shogi-player{width:100%;max-width:100%;padding:8px;overflow:hidden}.lle-shogi-player .lle-shogi-table{display:flex;flex-direction:column;min-width:0;width:100%;overflow:hidden;padding:6px!important;box-sizing:border-box}.lle-shogi-player .lle-shogi-side-panel:first-child{order:1}.lle-shogi-player .lle-shogi-board-wrap{order:2;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box}.lle-shogi-player .lle-shogi-side-panel:last-child{order:3}.lle-shogi-side-panel{width:100%;max-width:100%;min-width:0}.lle-shogi-hand{width:100%;box-sizing:border-box}.lle-shogi-hand-list{grid-template-columns:repeat(7,minmax(0,1fr))}.lle-shogi-piece>span{font-size:clamp(13px,5.4vw,23px)}}
+
+/* v4: 駒はCSS切り抜きではなくインラインSVGで完全な五角形を保持 */
+.lle-shogi-cell{
+    overflow:visible;
+    padding:2px;
+}
+.lle-shogi-piece{
+    position:relative;
+    z-index:2;
+    display:block;
+    width:84%;
+    height:92%;
+    max-width:none;
+    max-height:none;
+    aspect-ratio:auto;
+    clip-path:none;
+    background:none;
+    filter:none;
+    box-sizing:border-box;
+    transform-origin:50% 50%;
+    color:#26160a;
+    line-height:1;
+    overflow:visible;
+}
+.lle-shogi-piece::before{
+    content:none;
+}
+.lle-shogi-piece-svg{
+    display:block;
+    width:100%;
+    height:100%;
+    overflow:visible;
+    filter:drop-shadow(0 2px 1px rgba(62,34,8,.34));
+}
+.lle-shogi-piece-shadow{
+    fill:rgba(76,43,10,.28);
+}
+.lle-shogi-piece-body{
+    fill:url(#lle-shogi-piece-wood);
+    stroke:#835117;
+    stroke-width:1.8;
+    stroke-linejoin:round;
+}
+.lle-shogi-piece-inset{
+    fill:none;
+    stroke:rgba(104,61,14,.34);
+    stroke-width:1.15;
+    stroke-linejoin:round;
+}
+.lle-shogi-piece-label{
+    fill:#251508;
+    font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+    font-size:41px;
+    font-weight:900;
+    paint-order:stroke fill;
+    stroke:rgba(255,255,255,.12);
+    stroke-width:.45px;
+}
+.lle-shogi-piece.is-promoted .lle-shogi-piece-label{
+    fill:#a32218;
+}
+.lle-shogi-piece.is-white{
+    transform:rotate(180deg);
+}
+.lle-shogi-piece>span{
+    display:none;
+}
+.lle-shogi-hand-piece .lle-shogi-piece{
+    width:86%;
+    height:88%;
+    max-width:none;
+    max-height:none;
+}
+.lle-shogi-palette-pieces>button .lle-shogi-piece{
+    width:78%;
+    height:90%;
+}
+@media(max-width:720px){
+    .lle-shogi-piece{width:86%;height:92%}
+    .lle-shogi-hand-piece .lle-shogi-piece{width:82%;height:86%}
+}
+
+/* v5: 厚みと存在感のある独自木製駒。画像不使用・インラインSVG描画 */
+.lle-shogi-piece{
+    width:88%;
+    height:95%;
+}
+.lle-shogi-piece-svg{
+    overflow:visible;
+    filter:none;
+}
+.lle-shogi-piece-body{
+    stroke:#6f3d10;
+    stroke-width:2.25;
+    stroke-linejoin:round;
+}
+.lle-shogi-piece-bevel{
+    pointer-events:none;
+    opacity:.72;
+}
+.lle-shogi-piece-grain{
+    fill:none;
+    stroke:rgba(117,68,20,.19);
+    stroke-width:1.15;
+    stroke-linecap:round;
+    opacity:.8;
+}
+.lle-shogi-piece-toplight{
+    fill:none;
+    stroke:rgba(255,250,225,.72);
+    stroke-width:1.45;
+    stroke-linecap:round;
+}
+.lle-shogi-piece-bottomshade{
+    fill:none;
+    stroke:rgba(72,34,6,.44);
+    stroke-width:1.65;
+    stroke-linecap:round;
+}
+.lle-shogi-piece-label{
+    fill:#1f1208;
+    font-family:"Yu Mincho","YuMincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+    font-size:43px;
+    font-weight:900;
+    letter-spacing:-1.8px;
+    paint-order:stroke fill;
+    stroke:rgba(255,244,210,.22);
+    stroke-width:.65px;
+}
+.lle-shogi-piece.is-promoted .lle-shogi-piece-label{
+    fill:#9d2118;
+    stroke:rgba(255,235,205,.2);
+}
+.lle-shogi-hand-piece .lle-shogi-piece{
+    width:89%;
+    height:91%;
+}
+.lle-shogi-palette-pieces>button .lle-shogi-piece{
+    width:84%;
+    height:94%;
+}
+@media(max-width:720px){
+    .lle-shogi-piece{width:89%;height:95%}
+    .lle-shogi-hand-piece .lle-shogi-piece{width:86%;height:89%}
+}
+
+
+/* v8: オレンジ系の木色・厚み・陰影を強化した立体駒。 */
+.lle-shogi-cell{overflow:visible}
+.lle-shogi-piece{
+    --piece-width:74%;
+    --piece-height:82%;
+    width:var(--piece-width)!important;
+    height:var(--piece-height)!important;
+    max-width:var(--piece-width)!important;
+    max-height:var(--piece-height)!important;
+    aspect-ratio:auto!important;
+    align-self:center;
+    justify-self:center;
+    overflow:visible;
+    clip-path:none!important;
+    background:none!important;
+    filter:none!important;
+    transform-origin:center center;
+}
+.lle-shogi-piece--king{--piece-width:79%;--piece-height:87%}
+.lle-shogi-piece--major{--piece-width:78%;--piece-height:86%}
+.lle-shogi-piece--general{--piece-width:76.5%;--piece-height:85%}
+.lle-shogi-piece--minor{--piece-width:75%;--piece-height:83.5%}
+.lle-shogi-piece--pawn{--piece-width:73.5%;--piece-height:82%}
+.lle-shogi-piece-svg{display:block;width:100%;height:100%;overflow:visible}
+.lle-shogi-piece-thickness{stroke:#6d2806;stroke-width:1.15;stroke-linejoin:round}
+.lle-shogi-piece-body{stroke:#75300a;stroke-width:1.65;stroke-linejoin:round}
+.lle-shogi-piece-face,.lle-shogi-piece-glow{pointer-events:none}
+.lle-shogi-piece-face{opacity:.86}
+.lle-shogi-piece-glow{opacity:.74}
+.lle-shogi-piece-grain{fill:none;stroke:rgba(117,53,9,.17);stroke-width:.85;stroke-linecap:round}
+.lle-shogi-piece-toplight{fill:none;stroke:rgba(255,247,207,.82);stroke-width:1.25;stroke-linecap:round}
+.lle-shogi-piece-sidehighlight{fill:none;stroke:rgba(255,229,158,.42);stroke-width:.95;stroke-linecap:round}
+.lle-shogi-piece-bottomshade{fill:none;stroke:rgba(79,25,2,.48);stroke-width:1.45;stroke-linecap:round}
+.lle-shogi-piece-label{
+    fill:#17100a;
+    font-family:"Yu Mincho","YuMincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+    font-weight:900;
+    letter-spacing:-1.15px;
+    paint-order:stroke fill;
+    stroke:rgba(255,230,165,.12);
+    stroke-width:.38px;
+}
+.lle-shogi-piece.is-promoted .lle-shogi-piece-label{fill:#a51f14}
+.lle-shogi-piece.is-white{transform:rotate(180deg)}
+.lle-shogi-piece::before,.lle-shogi-piece>span{display:none!important}
+.lle-shogi-hand-piece .lle-shogi-piece,
+.lle-shogi-palette-pieces>button .lle-shogi-piece{
+    width:var(--piece-width)!important;
+    height:var(--piece-height)!important;
+    max-width:var(--piece-width)!important;
+    max-height:var(--piece-height)!important;
+}
+@media(max-width:720px){
+    .lle-shogi-piece--king{--piece-width:78%;--piece-height:86%}
+    .lle-shogi-piece--major{--piece-width:77%;--piece-height:85%}
+    .lle-shogi-piece--general{--piece-width:75.5%;--piece-height:84%}
+    .lle-shogi-piece--minor{--piece-width:74%;--piece-height:82.5%}
+    .lle-shogi-piece--pawn{--piece-width:72.5%;--piece-height:81%}
+}
+
+
+/* v16: ゴール画像準拠。淡い蜂蜜色・控えめな木肌・柔らかな立体感。 */
+.lle-shogi-piece{
+    --piece-width:76%;
+    --piece-height:85%;
+    width:var(--piece-width)!important;
+    height:var(--piece-height)!important;
+    max-width:var(--piece-width)!important;
+    max-height:var(--piece-height)!important;
+    aspect-ratio:auto!important;
+    clip-path:none!important;
+    background:none!important;
+    filter:none!important;
+    overflow:visible;
+    transform-origin:center center;
+}
+.lle-shogi-piece--king{--piece-width:80%;--piece-height:89%}
+.lle-shogi-piece--major{--piece-width:79%;--piece-height:88%}
+.lle-shogi-piece--general{--piece-width:77.5%;--piece-height:86.5%}
+.lle-shogi-piece--minor{--piece-width:76%;--piece-height:85%}
+.lle-shogi-piece--pawn{--piece-width:75%;--piece-height:84%}
+.lle-shogi-piece-svg{display:block;width:100%;height:100%;overflow:visible}
+.lle-shogi-piece-thickness{
+    stroke:#a96e28;
+    stroke-width:.9;
+    stroke-linejoin:round;
+}
+.lle-shogi-piece-body{
+    stroke:#b98237;
+    stroke-width:1.15;
+    stroke-linejoin:round;
+}
+.lle-shogi-piece-face{pointer-events:none;opacity:.92}
+.lle-shogi-piece-toplight{
+    fill:none;
+    stroke:rgba(255,246,207,.66);
+    stroke-width:1.05;
+    stroke-linecap:round;
+}
+.lle-shogi-piece-leftbevel{
+    fill:none;
+    stroke:rgba(255,236,181,.34);
+    stroke-width:.8;
+    stroke-linecap:round;
+}
+.lle-shogi-piece-rightbevel{
+    fill:none;
+    stroke:rgba(128,76,25,.16);
+    stroke-width:.8;
+    stroke-linecap:round;
+}
+.lle-shogi-piece-bottomshade{
+    fill:none;
+    stroke:rgba(125,75,25,.22);
+    stroke-width:.95;
+    stroke-linecap:round;
+}
+.lle-shogi-piece-grain-group{opacity:.32}
+.lle-shogi-piece-grain{
+    fill:none;
+    stroke:rgba(132,82,29,.13);
+    stroke-width:.58;
+    stroke-linecap:round;
+}
+.lle-shogi-piece-label,
+.lle-shogi-piece-label-highlight{
+    font-family:"Yu Mincho","YuMincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+    font-weight:900;
+    letter-spacing:-1.05px;
+    paint-order:stroke fill;
+}
+.lle-shogi-piece-label{
+    fill:#19140f;
+    stroke:rgba(64,40,20,.14);
+    stroke-width:.32px;
+}
+.lle-shogi-piece-label-highlight{
+    fill:#f5d99b;
+    stroke:none;
+    opacity:.46;
+    pointer-events:none;
+}
+.lle-shogi-piece-label--promoted{fill:#a6281e}
+.lle-shogi-piece-label-highlight.lle-shogi-piece-label--promoted{fill:#efb39f;opacity:.34}
+.lle-shogi-piece.is-white{transform:rotate(180deg)}
+.lle-shogi-piece::before,.lle-shogi-piece>span{display:none!important}
+.lle-shogi-hand-piece .lle-shogi-piece,
+.lle-shogi-palette-pieces>button .lle-shogi-piece{
+    width:var(--piece-width)!important;
+    height:var(--piece-height)!important;
+    max-width:var(--piece-width)!important;
+    max-height:var(--piece-height)!important;
+}
+@media(max-width:720px){
+    .lle-shogi-piece--king{--piece-width:79%;--piece-height:88%}
+    .lle-shogi-piece--major{--piece-width:78%;--piece-height:87%}
+    .lle-shogi-piece--general{--piece-width:76.5%;--piece-height:85.5%}
+    .lle-shogi-piece--minor{--piece-width:75%;--piece-height:84%}
+    .lle-shogi-piece--pawn{--piece-width:74%;--piece-height:83%}
+}
+
+/* v17: ゴール画像に合わせた蜂蜜色と、文字位置・立体感の最終調整 */
+.lle-shogi-piece{
+    --piece-width:78%;
+    --piece-height:87%;
+}
+.lle-shogi-piece--king{--piece-width:82%;--piece-height:91%}
+.lle-shogi-piece--major{--piece-width:81%;--piece-height:90%}
+.lle-shogi-piece--general{--piece-width:79.5%;--piece-height:88.5%}
+.lle-shogi-piece--minor{--piece-width:78%;--piece-height:87%}
+.lle-shogi-piece--pawn{--piece-width:77%;--piece-height:86%}
+.lle-shogi-piece-thickness{
+    stroke:#b47223;
+    stroke-width:.82;
+}
+.lle-shogi-piece-body{
+    stroke:#c0832f;
+    stroke-width:1.05;
+}
+.lle-shogi-piece-face{opacity:.94}
+.lle-shogi-piece-toplight{
+    stroke:rgba(255,245,198,.72);
+    stroke-width:1.05;
+}
+.lle-shogi-piece-leftbevel{
+    stroke:rgba(255,237,170,.40);
+    stroke-width:.76;
+}
+.lle-shogi-piece-rightbevel{
+    stroke:rgba(132,78,22,.18);
+    stroke-width:.76;
+}
+.lle-shogi-piece-bottomshade{
+    stroke:rgba(132,76,22,.22);
+    stroke-width:.9;
+}
+.lle-shogi-piece-grain-group{opacity:.20}
+.lle-shogi-piece-grain{
+    stroke:rgba(139,84,28,.11);
+    stroke-width:.5;
+}
+.lle-shogi-piece-label,
+.lle-shogi-piece-label-highlight{
+    font-family:"Yu Mincho","YuMincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+    font-weight:900;
+    letter-spacing:-1px;
+}
+.lle-shogi-piece-label{
+    fill:#17120d;
+    stroke:rgba(74,43,18,.13);
+    stroke-width:.28px;
+}
+.lle-shogi-piece-label-highlight{
+    fill:#f4d58d;
+    opacity:.38;
+}
+.lle-shogi-piece-label--promoted{fill:#a6281e}
+.lle-shogi-piece-label-highlight.lle-shogi-piece-label--promoted{fill:#efb39f;opacity:.30}
+@media(max-width:720px){
+    .lle-shogi-piece--king{--piece-width:81%;--piece-height:90%}
+    .lle-shogi-piece--major{--piece-width:80%;--piece-height:89%}
+    .lle-shogi-piece--general{--piece-width:78.5%;--piece-height:87.5%}
+    .lle-shogi-piece--minor{--piece-width:77%;--piece-height:86%}
+    .lle-shogi-piece--pawn{--piece-width:76%;--piece-height:85%}
+}
+
+
+/* v18: 参考画像に合わせ、横幅を広げて下辺の安定感を強化。 */
+.lle-shogi-piece{
+    --piece-width:88%;
+    --piece-height:84%;
+}
+.lle-shogi-piece--king{--piece-width:92%;--piece-height:88%}
+.lle-shogi-piece--major{--piece-width:91%;--piece-height:87%}
+.lle-shogi-piece--general{--piece-width:89.5%;--piece-height:85.5%}
+.lle-shogi-piece--minor{--piece-width:88%;--piece-height:84%}
+.lle-shogi-piece--pawn{--piece-width:87%;--piece-height:83%}
+.lle-shogi-piece-svg{filter:drop-shadow(0 2px 1.4px rgba(86,48,13,.28))}
+.lle-shogi-piece-thickness{stroke:#a96820;stroke-width:1}
+.lle-shogi-piece-body{stroke:#b97828;stroke-width:1.12}
+.lle-shogi-piece-face{opacity:.96}
+.lle-shogi-piece-label,.lle-shogi-piece-label-highlight{letter-spacing:-1.35px}
+.lle-shogi-hand-piece .lle-shogi-piece{--piece-width:90%;--piece-height:86%}
+.lle-shogi-palette-pieces>button .lle-shogi-piece{--piece-width:90%;--piece-height:86%}
+@media(max-width:720px){
+    .lle-shogi-piece--king{--piece-width:91%;--piece-height:87%}
+    .lle-shogi-piece--major{--piece-width:90%;--piece-height:86%}
+    .lle-shogi-piece--general{--piece-width:88.5%;--piece-height:84.5%}
+    .lle-shogi-piece--minor{--piece-width:87%;--piece-height:83%}
+    .lle-shogi-piece--pawn{--piece-width:86%;--piece-height:82%}
+}
+
+/* v19: 基準画像に合わせ、駒をさらに幅広く・存在感のある比率へ調整 */
+.lle-shogi-piece--king{--piece-width:96%;--piece-height:90%}
+.lle-shogi-piece--major{--piece-width:95%;--piece-height:89%}
+.lle-shogi-piece--general{--piece-width:93.5%;--piece-height:87.5%}
+.lle-shogi-piece--minor{--piece-width:92%;--piece-height:86%}
+.lle-shogi-piece--pawn{--piece-width:91%;--piece-height:85%}
+.lle-shogi-piece-svg{filter:drop-shadow(0 2.4px 1.6px rgba(78,42,10,.31))}
+.lle-shogi-piece-label{font-weight:900;paint-order:stroke fill;stroke:rgba(48,24,5,.14);stroke-width:.35px}
+@media (max-width:760px){
+    .lle-shogi-piece--king{--piece-width:95%;--piece-height:89%}
+    .lle-shogi-piece--major{--piece-width:94%;--piece-height:88%}
+    .lle-shogi-piece--general{--piece-width:92.5%;--piece-height:86.5%}
+    .lle-shogi-piece--minor{--piece-width:91%;--piece-height:85%}
+    .lle-shogi-piece--pawn{--piece-width:90%;--piece-height:84%}
+}
+
+/* 詰将棋問題セット Version1.0：LifeForce組み込み用UI */
+.lle-shogi-v1-editor{border:1px solid #d9c7a9;border-radius:14px;background:#fffdf9;overflow:hidden}
+.lle-shogi-v1-header{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;padding:16px 18px;background:linear-gradient(135deg,#fff8e8,#f5ead7);border-bottom:1px solid #dfcfb5}
+.lle-shogi-v1-header>div:first-child{display:grid;gap:4px}.lle-shogi-v1-header strong{font-size:18px;color:#3f2d19}.lle-shogi-v1-header p{margin:0;color:#766550;font-size:12px}
+.lle-shogi-v1-version{width:max-content;padding:2px 8px;border-radius:999px;background:#825b2d;color:#fff;font-size:11px;font-weight:700}
+.lle-shogi-v1-status{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.lle-shogi-v1-status span{display:flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#fff;border:1px solid #ddcfbb;color:#7b6b57}.lle-shogi-v1-status i{width:7px;height:7px;border-radius:50%;background:#c8bca9}.lle-shogi-v1-status .is-complete{color:#176b3a;border-color:#a8d3b6;background:#eff9f2}.lle-shogi-v1-status .is-complete i{background:#2f9b58}
+.lle-shogi-editor-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin:0;background:#f8f2e8;border-bottom:1px solid #dfcfb5}.lle-shogi-editor-tabs button{min-height:54px;border:0;border-right:1px solid #dfcfb5;background:transparent;color:#6f604d;font-weight:700;cursor:pointer}.lle-shogi-editor-tabs button:last-child{border-right:0}.lle-shogi-editor-tabs button span{display:inline-grid;place-items:center;width:22px;height:22px;margin-right:5px;border-radius:50%;background:#ddd0bd;color:#5e4c37;font-size:11px}.lle-shogi-editor-tabs button:hover{background:#fff9ef}.lle-shogi-editor-tabs button.is-active{background:#fff;color:#754814;box-shadow:inset 0 -3px #d38a28}.lle-shogi-editor-tabs button.is-active span{background:#d38a28;color:#fff}.lle-shogi-editor-tabs button.is-complete:not(.is-active)::after{content:'✓';margin-left:5px;color:#23814a}
+.lle-shogi-v1-panel{padding:16px}.lle-shogi-preview-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.lle-shogi-preview-heading p{margin:3px 0 0;font-size:12px;color:#6b6254}.lle-shogi-preview-heading button{border:1px solid #bf9d6d;border-radius:8px;background:#fff8e9;padding:8px 11px;color:#65441d;font-weight:700;cursor:pointer}.lle-shogi-preview-message{margin-bottom:10px;padding:10px 12px;border-radius:8px;background:#fff4e5;color:#8a4d00}
+@media(max-width:900px){.lle-shogi-v1-header{display:grid}.lle-shogi-v1-status{justify-content:flex-start}.lle-shogi-editor-tabs{grid-template-columns:1fr}.lle-shogi-editor-tabs button{min-height:42px;border-right:0;border-bottom:1px solid #dfcfb5;text-align:left;padding:8px 12px}.lle-shogi-editor-tabs button:last-child{border-bottom:0}}
+
+/* 管理画面：盤面エディタ・正解手順・手順確認 共通 */
+.lle-shogi-admin-board{
+    display:grid!important;
+    grid-template-columns:repeat(9,minmax(0,1fr))!important;
+    grid-template-rows:repeat(9,minmax(0,1fr))!important;
+    width:min(100%,520px)!important;
+    aspect-ratio:1/1!important;
+    border:2px solid #5f4525!important;
+    background:#d8a65f!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+}
+.lle-shogi-admin-board.is-completed{opacity:.82}
+.lle-shogi-admin-cell{
+    box-sizing:border-box!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    aspect-ratio:1/1!important;
+    border:1px solid rgba(70,43,14,.72)!important;
+    border-radius:0!important;
+    background:linear-gradient(135deg,#efc77e,#dca457)!important;
+    font-size:clamp(15px,2vw,25px)!important;
+    font-weight:700!important;
+    line-height:1!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    cursor:pointer;
+    padding:0!important;
+    margin:0!important;
+    color:#17110a!important;
+}
+.lle-shogi-hand-count{
+    display:block!important;
+    width:100%!important;
+    min-width:34px!important;
+    height:36px!important;
+    padding:4px!important;
+    box-sizing:border-box!important;
+    color:#2d2419!important;
+    background:#fff!important;
+    border:1px solid #c9d3e0!important;
+    border-radius:7px!important;
+    text-align:center!important;
+    opacity:1!important;
+    -webkit-text-fill-color:#2d2419!important;
+}
+.lle-shogi-icon-button,
+.lle-shogi-action-button,
+.lle-shogi-replay-button{
+    appearance:none;
+    border:1px solid #d5c4a8!important;
+    border-radius:8px!important;
+    background:#fffaf0!important;
+    color:#5f4525!important;
+    min-height:36px!important;
+    padding:7px 12px!important;
+    font-weight:700!important;
+    cursor:pointer!important;
+    box-shadow:0 1px 2px rgba(69,45,20,.08)!important;
+}
+.lle-shogi-icon-button{min-width:38px!important;padding:6px 9px!important}
+.lle-shogi-action-button.is-danger{border-color:#e4b8ad!important;background:#fff3ef!important;color:#a13f2b!important}
+.lle-shogi-replay-button.is-primary{border-color:#d58b1d!important;background:#d98b16!important;color:#fff!important}
+.lle-shogi-icon-button:hover:not(:disabled),
+.lle-shogi-action-button:hover:not(:disabled),
+.lle-shogi-replay-button:hover:not(:disabled){filter:brightness(.97);transform:translateY(-1px)}
+.lle-shogi-icon-button:disabled,
+.lle-shogi-action-button:disabled,
+.lle-shogi-replay-button:disabled{opacity:.45!important;cursor:not-allowed!important}
+
+/* 管理画面修正17：解答手順・クリア結果をカードUIへ統一 */
+.lle-shogi-player .lle-shogi-answer-replay,
+.lle-shogi-player .lle-shogi-result{
+    width:100%;
+    box-sizing:border-box;
+    margin-top:16px;
+    border:1px solid #ddcfba;
+    border-radius:14px;
+    background:#fffdf8;
+    box-shadow:0 5px 18px rgba(75,48,20,.07);
+    overflow:hidden;
+    color:#3f3224;
+}
+
+.lle-shogi-player .lle-shogi-answer-replay[hidden],
+.lle-shogi-player .lle-shogi-result[hidden]{display:none!important}
+
+.lle-shogi-player .lle-shogi-answer-replay-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:13px 16px;
+    border-bottom:1px solid #eadfce;
+    background:linear-gradient(135deg,#fff8e9,#f7ecda);
+}
+.lle-shogi-player .lle-shogi-answer-replay-head strong{
+    font-size:15px;
+    color:#543919;
+}
+.lle-shogi-player .lle-shogi-answer-replay-head span{
+    display:inline-flex;
+    align-items:center;
+    min-height:27px;
+    padding:4px 10px;
+    border-radius:999px;
+    background:#fff;
+    border:1px solid #ddc8a7;
+    color:#765328;
+    font-size:12px;
+    font-weight:700;
+}
+.lle-shogi-player .lle-shogi-answer-replay-actions{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:14px 16px 10px;
+}
+.lle-shogi-player .lle-shogi-answer-replay-actions button,
+.lle-shogi-player .lle-shogi-result-actions button{
+    appearance:none;
+    min-height:36px;
+    padding:7px 14px;
+    border:1px solid #d5c4a8;
+    border-radius:9px;
+    background:#fffaf0;
+    color:#5f4525;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 1px 2px rgba(69,45,20,.08);
+    transition:transform .15s ease,filter .15s ease,box-shadow .15s ease;
+}
+.lle-shogi-player .lle-shogi-answer-replay-actions button:hover:not(:disabled),
+.lle-shogi-player .lle-shogi-result-actions button:hover:not(:disabled){
+    transform:translateY(-1px);
+    filter:brightness(.98);
+    box-shadow:0 3px 7px rgba(69,45,20,.12);
+}
+.lle-shogi-player .lle-shogi-answer-replay-actions button:disabled,
+.lle-shogi-player .lle-shogi-result-actions button:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+}
+.lle-shogi-player .lle-shogi-answer-replay ol{
+    margin:4px 16px 0;
+    padding:12px 16px 12px 38px;
+    border:1px solid #ece2d3;
+    border-radius:10px;
+    background:#fff;
+    line-height:1.85;
+    color:#263b59;
+}
+.lle-shogi-player .lle-shogi-answer-replay ol li{
+    padding-left:3px;
+    border-bottom:1px dashed #eee5d8;
+}
+.lle-shogi-player .lle-shogi-answer-replay ol li:last-child{border-bottom:0}
+.lle-shogi-player .lle-shogi-answer-replay > p{
+    margin:12px 16px 16px;
+    padding:14px 16px;
+    border-radius:10px;
+    background:#f6faf5;
+    border:1px solid #d7e7d3;
+    color:#33543a;
+    line-height:1.8;
+    white-space:pre-wrap;
+}
+
+.lle-shogi-player .lle-shogi-result{
+    padding:0;
+    border-color:#b8d9bd;
+    background:#fbfffb;
+}
+.lle-shogi-player .lle-shogi-result-title{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:9px;
+    padding:15px 18px 10px;
+    background:linear-gradient(135deg,#eef9ef,#f8fff7);
+}
+.lle-shogi-player .lle-shogi-result-title strong{
+    font-size:21px;
+    color:#216d38;
+}
+.lle-shogi-player .lle-shogi-result-title span{
+    display:inline-flex;
+    align-items:center;
+    padding:4px 9px;
+    border-radius:999px;
+    background:#2f8a4d;
+    color:#fff;
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.04em;
+}
+.lle-shogi-player .lle-shogi-result-score{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    padding:0 16px 15px;
+    background:linear-gradient(135deg,#eef9ef,#f8fff7);
+}
+.lle-shogi-player .lle-shogi-result-score span{
+    color:#d69418;
+    font-size:20px;
+    letter-spacing:2px;
+}
+.lle-shogi-player .lle-shogi-result-score b{
+    font-size:18px;
+    color:#274f31;
+}
+.lle-shogi-player .lle-shogi-result-score em{
+    display:grid;
+    place-items:center;
+    min-width:34px;
+    height:34px;
+    padding:0 8px;
+    border-radius:50%;
+    background:#315f3e;
+    color:#fff;
+    font-style:normal;
+    font-weight:800;
+}
+.lle-shogi-player .lle-shogi-result dl{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px;
+    margin:16px;
+}
+.lle-shogi-player .lle-shogi-result dl > div{
+    min-width:0;
+    padding:12px 10px;
+    border:1px solid #e4dacb;
+    border-radius:10px;
+    background:#fff;
+    text-align:center;
+}
+.lle-shogi-player .lle-shogi-result dt{
+    margin-bottom:5px;
+    color:#7b6a55;
+    font-size:12px;
+    font-weight:700;
+}
+.lle-shogi-player .lle-shogi-result dd{
+    margin:0;
+    color:#3f2f20;
+    font-size:18px;
+    font-weight:800;
+}
+.lle-shogi-player .lle-shogi-result-rewards{
+    margin:0 16px 14px;
+    padding:11px 13px;
+    border-radius:9px;
+    background:#fff8e8;
+    border:1px solid #ead19f;
+    color:#74521f;
+    text-align:center;
+    font-weight:700;
+}
+.lle-shogi-player .lle-shogi-result-actions{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:9px;
+    padding:0 16px 17px;
+}
+.lle-shogi-player .lle-shogi-result-actions [data-player-result-replay]{
+    border-color:#c9a46f;
+    background:#fff8e9;
+}
+.lle-shogi-player .lle-shogi-result-actions [data-player-result-retry]{
+    border-color:#c58a31;
+    background:#9a672c;
+    color:#fff;
+}
+.lle-shogi-player .lle-shogi-result-actions [data-player-result-next]{display:none!important}
+
+@media(max-width:700px){
+    .lle-shogi-player .lle-shogi-answer-replay-head{align-items:flex-start;flex-direction:column}
+    .lle-shogi-player .lle-shogi-result dl{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .lle-shogi-player .lle-shogi-answer-replay ol{margin-left:10px;margin-right:10px}
+    .lle-shogi-player .lle-shogi-answer-replay > p{margin-left:10px;margin-right:10px}
+}
+
+/* =========================================================
+   Shogi mate admin fix18: mistake action buttons
+   ========================================================= */
+.lle-shogi-player .lle-shogi-mistake-panel{
+    margin-top:10px;
+    padding:14px 16px;
+    border:1px solid #e4d7c4;
+    border-radius:12px;
+    background:#fffdf8;
+}
+.lle-shogi-player .lle-shogi-mistake-panel > strong{
+    display:block;
+    margin:0 0 5px;
+    color:#4d3822;
+    font-size:15px;
+    font-weight:800;
+}
+.lle-shogi-player .lle-shogi-mistake-panel > p{
+    margin:0;
+    color:#66533d;
+    line-height:1.65;
+}
+.lle-shogi-player .lle-shogi-mistake-actions{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:12px;
+}
+.lle-shogi-player .lle-shogi-mistake-actions button{
+    appearance:none;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:34px;
+    margin:0;
+    padding:7px 13px;
+    border:1px solid #d5c4aa;
+    border-radius:9px;
+    background:#fffaf1;
+    color:#594329;
+    box-shadow:none;
+    font:inherit;
+    font-size:13px;
+    font-weight:700;
+    line-height:1.2;
+    white-space:nowrap;
+    cursor:pointer;
+    transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+.lle-shogi-player .lle-shogi-mistake-actions button:hover:not(:disabled){
+    border-color:#6d451f;
+    background:#6d451f;
+    color:#fff;
+    box-shadow:0 4px 10px rgba(92,57,25,.16);
+    transform:translateY(-1px);
+}
+.lle-shogi-player .lle-shogi-mistake-actions button:focus-visible{
+    outline:3px solid rgba(43,111,190,.24);
+    outline-offset:2px;
+}
+.lle-shogi-player .lle-shogi-mistake-actions button:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+    transform:none;
+}
+.lle-shogi-player .lle-shogi-mistake-actions [data-player-mistake-continue]{
+    border-color:#c9a46f;
+    background:#fff8e9;
+}
+.lle-shogi-player .lle-shogi-mistake-actions [data-player-mistake-restart]{
+    border-color:#c58a31;
+    background:#9a672c;
+    color:#fff;
+}
+
+@media(max-width:520px){
+    .lle-shogi-player .lle-shogi-mistake-actions{
+        align-items:stretch;
+        flex-direction:column;
+    }
+    .lle-shogi-player .lle-shogi-mistake-actions button{
+        width:100%;
+    }
+}
+
+/* 管理画面修正19：問題設定の6チェック項目のみを3列×2行で整列 */
+.lle-shogi-check-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+}
+
+.lle-shogi-check-grid > label {
+    display: grid !important;
+    grid-template-columns: 20px minmax(0, 1fr) !important;
+    align-items: center !important;
+    justify-content: start !important;
+    column-gap: 8px !important;
+    min-height: 46px !important;
+    box-sizing: border-box !important;
+    padding: 8px 10px !important;
+    text-align: left !important;
+    white-space: normal !important;
+}
+
+.lle-shogi-check-grid > label > input[type="checkbox"] {
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0 !important;
+    justify-self: start !important;
+}
+
+/* =========================================================
+   詰将棋：指定済み操作ボタンのデザインを一括固定
+   対象は詰将棋コンポーネント内の操作ボタンのみ。
+   ========================================================= */
+.lle-shogi-v1 .lle-shogi-toolbar-button,
+.lle-shogi-v1 .lle-shogi-position-actions > button,
+.lle-shogi-v1 .lle-shogi-record-actions > button,
+.lle-shogi-v1 .lle-shogi-replay-button,
+.lle-shogi-v1 .lle-shogi-preview-heading > button,
+.lle-shogi-player .lle-shogi-player-actions > button,
+.lle-shogi-player .lle-shogi-answer-replay-actions > button,
+.lle-shogi-player .lle-shogi-mistake-actions > button,
+.lle-shogi-player .lle-shogi-result-actions > button {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    min-height: 36px !important;
+    margin: 0 !important;
+    padding: 7px 13px !important;
+    border: 1px solid #d5c4aa !important;
+    border-radius: 9px !important;
+    background: #fffaf1 !important;
+    color: #594329 !important;
+    box-shadow: 0 1px 2px rgba(69,45,20,.08) !important;
+    font: inherit !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    transition: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease, transform .16s ease !important;
+}
+
+.lle-shogi-v1 .lle-shogi-toolbar-button:hover:not(:disabled),
+.lle-shogi-v1 .lle-shogi-position-actions > button:hover:not(:disabled),
+.lle-shogi-v1 .lle-shogi-record-actions > button:hover:not(:disabled),
+.lle-shogi-v1 .lle-shogi-replay-button:hover:not(:disabled),
+.lle-shogi-v1 .lle-shogi-preview-heading > button:hover:not(:disabled),
+.lle-shogi-player .lle-shogi-player-actions > button:hover:not(:disabled),
+.lle-shogi-player .lle-shogi-answer-replay-actions > button:hover:not(:disabled),
+.lle-shogi-player .lle-shogi-mistake-actions > button:hover:not(:disabled),
+.lle-shogi-player .lle-shogi-result-actions > button:hover:not(:disabled) {
+    border-color: #6d451f !important;
+    background: #6d451f !important;
+    color: #fff !important;
+    box-shadow: 0 4px 10px rgba(92,57,25,.16) !important;
+    transform: translateY(-1px) !important;
+}
+
+.lle-shogi-v1 .lle-shogi-toolbar-button:focus-visible,
+.lle-shogi-v1 .lle-shogi-position-actions > button:focus-visible,
+.lle-shogi-v1 .lle-shogi-record-actions > button:focus-visible,
+.lle-shogi-v1 .lle-shogi-replay-button:focus-visible,
+.lle-shogi-v1 .lle-shogi-preview-heading > button:focus-visible,
+.lle-shogi-player .lle-shogi-player-actions > button:focus-visible,
+.lle-shogi-player .lle-shogi-answer-replay-actions > button:focus-visible,
+.lle-shogi-player .lle-shogi-mistake-actions > button:focus-visible,
+.lle-shogi-player .lle-shogi-result-actions > button:focus-visible {
+    outline: 3px solid rgba(43,111,190,.24) !important;
+    outline-offset: 2px !important;
+}
+
+.lle-shogi-v1 .lle-shogi-toolbar-button:disabled,
+.lle-shogi-v1 .lle-shogi-position-actions > button:disabled,
+.lle-shogi-v1 .lle-shogi-record-actions > button:disabled,
+.lle-shogi-v1 .lle-shogi-replay-button:disabled,
+.lle-shogi-v1 .lle-shogi-preview-heading > button:disabled,
+.lle-shogi-player .lle-shogi-player-actions > button:disabled,
+.lle-shogi-player .lle-shogi-answer-replay-actions > button:disabled,
+.lle-shogi-player .lle-shogi-mistake-actions > button:disabled,
+.lle-shogi-player .lle-shogi-result-actions > button:disabled {
+    opacity: .45 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* 主操作 */
+.lle-shogi-v1 .lle-shogi-toolbar-button.is-primary,
+.lle-shogi-v1 .lle-shogi-replay-button.is-primary,
+.lle-shogi-player .lle-shogi-mistake-actions [data-player-mistake-restart],
+.lle-shogi-player .lle-shogi-result-actions [data-player-result-retry] {
+    border-color: #9a672c !important;
+    background: #9a672c !important;
+    color: #fff !important;
+}
+
+/* 削除・全消去 */
+.lle-shogi-v1 .lle-shogi-toolbar-button.is-danger,
+.lle-shogi-v1 .lle-shogi-action-button.is-danger,
+.lle-shogi-v1 .lle-shogi-position-actions > button:last-child {
+    border-color: #e4b8ad !important;
+    background: #fff3ef !important;
+    color: #a13f2b !important;
+}
+
+/* 各ボタン群の並びと間隔 */
+.lle-shogi-v1 .lle-shogi-position-actions,
+.lle-shogi-v1 .lle-shogi-record-actions,
+.lle-shogi-player .lle-shogi-player-actions,
+.lle-shogi-player .lle-shogi-answer-replay-actions,
+.lle-shogi-player .lle-shogi-mistake-actions,
+.lle-shogi-player .lle-shogi-result-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+}
+
+@media (max-width: 520px) {
+    .lle-shogi-player .lle-shogi-mistake-actions {
+        align-items: stretch !important;
+        flex-direction: column !important;
+    }
+    .lle-shogi-player .lle-shogi-mistake-actions > button {
+        width: 100% !important;
+    }
+}
+
+/* 管理画面修正21：ユーザー指定の赤枠ボタンだけを統一 */
+[data-board-initial],
+[data-board-empty],
+[data-board-reverse],
+[data-board-reset],
+[data-route-validate],
+[data-route-clear],
+[data-route-usi-add],
+[data-recorder-undo],
+[data-recorder-reset] {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 34px !important;
+    margin: 0 !important;
+    padding: 7px 13px !important;
+    border: 1px solid #d5c4aa !important;
+    border-radius: 9px !important;
+    background: #fffaf1 !important;
+    color: #594329 !important;
+    box-shadow: 0 1px 2px rgba(69, 45, 20, .08) !important;
+    font: inherit !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    transition: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease, transform .16s ease !important;
+}
+
+[data-board-initial]:hover:not(:disabled),
+[data-board-empty]:hover:not(:disabled),
+[data-board-reverse]:hover:not(:disabled),
+[data-board-reset]:hover:not(:disabled),
+[data-route-validate]:hover:not(:disabled),
+[data-route-clear]:hover:not(:disabled),
+[data-route-usi-add]:hover:not(:disabled),
+[data-recorder-undo]:hover:not(:disabled),
+[data-recorder-reset]:hover:not(:disabled) {
+    border-color: #6d451f !important;
+    background: #6d451f !important;
+    color: #fff !important;
+    box-shadow: 0 4px 10px rgba(92, 57, 25, .16) !important;
+    transform: translateY(-1px) !important;
+}
+
+[data-board-initial]:focus-visible,
+[data-board-empty]:focus-visible,
+[data-board-reverse]:focus-visible,
+[data-board-reset]:focus-visible,
+[data-route-validate]:focus-visible,
+[data-route-clear]:focus-visible,
+[data-route-usi-add]:focus-visible,
+[data-recorder-undo]:focus-visible,
+[data-recorder-reset]:focus-visible {
+    outline: 3px solid rgba(43, 111, 190, .24) !important;
+    outline-offset: 2px !important;
+}
+
+[data-board-initial]:disabled,
+[data-board-empty]:disabled,
+[data-board-reverse]:disabled,
+[data-board-reset]:disabled,
+[data-route-validate]:disabled,
+[data-route-clear]:disabled,
+[data-route-usi-add]:disabled,
+[data-recorder-undo]:disabled,
+[data-recorder-reset]:disabled {
+    opacity: .45 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* 正解ルート選択・現在手順表示 */
+.lle-shogi-record-route-toolbar{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:14px;flex-wrap:wrap}
+.lle-shogi-record-route-toolbar>[data-shogi-route-tabs]{justify-content:flex-start;flex:1 1 auto}
+.lle-shogi-record-actions [data-shogi-route-tab].is-active{background:#9a672c;color:#fff;border-color:#9a672c;box-shadow:0 1px 3px rgba(75,45,15,.18)}
+.lle-shogi-current-move{display:flex!important;align-items:center;gap:9px;padding:7px 11px;border:1px solid #ead7b8;border-radius:9px;background:#fffaf1;box-shadow:0 1px 2px rgba(69,45,20,.06)}
+.lle-shogi-current-move span{font-size:11px;color:#8b755a}
+.lle-shogi-current-move strong{font-size:14px;color:#5d3c18;white-space:nowrap}
+@media(max-width:720px){.lle-shogi-record-route-toolbar{align-items:stretch;flex-direction:column}.lle-shogi-record-route-toolbar>[data-shogi-route-tabs]{width:100%}}
+
+/* 管理画面修正：正解ルート追加・正解ルート選択ボタンを「手順を検証」と同一デザインに統一 */
+[data-shogi-route-add],
+[data-shogi-route-tab] {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    min-height: 34px !important;
+    margin: 0 !important;
+    padding: 7px 13px !important;
+    border: 1px solid #d5c4aa !important;
+    border-radius: 9px !important;
+    background: #fffaf1 !important;
+    color: #594329 !important;
+    box-shadow: 0 1px 2px rgba(69,45,20,.08) !important;
+    font: inherit !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    transition: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease, transform .16s ease !important;
+}
+
+[data-shogi-route-add]:hover:not(:disabled),
+[data-shogi-route-tab]:hover:not(:disabled) {
+    border-color: #6d451f !important;
+    background: #6d451f !important;
+    color: #fff !important;
+    box-shadow: 0 4px 10px rgba(92,57,25,.16) !important;
+    transform: translateY(-1px) !important;
+}
+
+[data-shogi-route-add]:focus-visible,
+[data-shogi-route-tab]:focus-visible {
+    outline: 3px solid rgba(43,111,190,.24) !important;
+    outline-offset: 2px !important;
+}
+
+[data-shogi-route-add]:disabled,
+[data-shogi-route-tab]:disabled {
+    opacity: .45 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+[data-shogi-route-tab].is-active {
+    border-color: #9a672c !important;
+    background: #9a672c !important;
+    color: #fff !important;
+    box-shadow: 0 1px 3px rgba(75,45,15,.18) !important;
+}

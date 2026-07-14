@@ -282,5 +282,7 @@
         </section>
     </div>
 </div>
+<link rel="stylesheet" href="{{ asset('css/admin/lle-shogi-mate.css') }}">
+<script src="{{ asset('js/admin/lle-shogi-mate.js') }}"></script>
 <script src="{{ asset('js/admin/lle-learning-builder.js') }}"></script>
 @endsection

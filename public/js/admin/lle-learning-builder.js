@@ -1,3 +1,250 @@
+(function(){
+    'use strict';
+
+    const PIECES=[
+        ['pawn','歩'],['lance','香'],['knight','桂'],['silver','銀'],['gold','金'],['bishop','角'],['rook','飛'],['king','玉'],
+        ['tokin','と'],['promotedLance','成香'],['promotedKnight','成桂'],['promotedSilver','成銀'],['horse','馬'],['dragon','龍']
+    ];
+    const HAND_PIECES=[['pawn','歩'],['lance','香'],['knight','桂'],['silver','銀'],['gold','金'],['bishop','角'],['rook','飛']];
+    const GLYPHS={pawn:'歩',lance:'香',knight:'桂',silver:'銀',gold:'金',bishop:'角',rook:'飛',king:'玉',tokin:'と',promotedLance:'杏',promotedKnight:'圭',promotedSilver:'全',horse:'馬',dragon:'龍'};
+    const LEGACY_TYPES={P:'pawn',L:'lance',N:'knight',S:'silver',G:'gold',B:'bishop',R:'rook',K:'king','+P':'tokin','+L':'promotedLance','+N':'promotedKnight','+S':'promotedSilver','+B':'horse','+R':'dragon'};
+    const emptyBoard=()=>Array.from({length:9},()=>Array(9).fill(null));
+    const clone=value=>JSON.parse(JSON.stringify(value));
+    const canonicalType=type=>LEGACY_TYPES[String(type||'')]||String(type||'pawn');
+    const normalizePiece=piece=>piece&&typeof piece==='object'?{type:canonicalType(piece.type||piece.kind),side:(piece.side||piece.owner)==='white'?'white':'black'}:null;
+    const normalizeBoard=board=>Array.from({length:9},(_,r)=>Array.from({length:9},(_,c)=>normalizePiece(board?.[r]?.[c])));
+    const initialBoard=()=>{
+        const board=emptyBoard();
+        const back=['lance','knight','silver','gold','king','gold','silver','knight','lance'];
+        back.forEach((type,c)=>{board[0][c]={type,side:'white'};board[8][8-c]={type,side:'black'};});
+        board[1][1]={type:'rook',side:'white'}; board[1][7]={type:'bishop',side:'white'};
+        board[7][1]={type:'bishop',side:'black'}; board[7][7]={type:'rook',side:'black'};
+        for(let c=0;c<9;c++){board[2][c]={type:'pawn',side:'white'};board[6][c]={type:'pawn',side:'black'};}
+        return board;
+    };
+    const normalizeHands=hands=>{
+        const result={black:{},white:{}};
+        const legacy={pawn:'P',lance:'L',knight:'N',silver:'S',gold:'G',bishop:'B',rook:'R'};
+        ['black','white'].forEach(side=>HAND_PIECES.forEach(([type])=>{result[side][type]=Math.max(0,Number(hands?.[side]?.[type]??hands?.[side]?.[legacy[type]]??0));}));
+        return result;
+    };
+
+    function createBoardEditor(root,rawConfig={},onChange=()=>{}){
+        if(!root) throw new Error('盤面エディタの表示先がありません。');
+        const api=window.LLEShogiMate||{};
+        const normalized=api.normalizeConfig?api.normalizeConfig(rawConfig):rawConfig;
+        let state={
+            board:normalizeBoard(normalized.board),
+            hands:normalizeHands(normalized.hands),
+            turn:normalized.turn==='white'?'white':'black',
+            reversed:false,
+            selected:{type:'pawn',side:'black'},
+            erase:false
+        };
+        const emit=()=>{
+            let sfen='';
+            try{sfen=api.generateSfen?api.generateSfen(state.board,state.hands,state.turn,1):'';}catch(error){console.warn('[LLE BoardEditor] SFEN生成失敗',error);}
+            onChange({...(rawConfig||{}),board:clone(state.board),hands:clone(state.hands),turn:state.turn,sfen});
+            renderStatus(sfen);
+        };
+        const coord=index=>state.reversed?8-index:index;
+        const pieceButton=([type,label])=>`<button type="button" data-board-piece="${type}" title="${label}" style="min-width:48px;padding:7px 8px;border:1px solid #c8b38c;border-radius:7px;background:#fff8e8;cursor:pointer">${label}</button>`;
+        root.innerHTML=`<section class="lle-shogi-board-editor" style="display:grid;gap:14px;padding:14px;border:1px solid #dcc9a7;border-radius:12px;background:#fffdf8">
+            <header style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><strong style="font-size:16px">盤面エディタ</strong><div style="font-size:12px;color:#6b6254">駒を選び、盤上のマスをクリックして配置します。</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="lle-shogi-toolbar-button" data-board-empty>空盤から作成</button><button type="button" class="lle-shogi-toolbar-button is-danger" data-board-reset>盤面をリセット</button></div></header>
+            <div style="display:grid;grid-template-columns:minmax(250px,1fr) minmax(220px,310px);gap:16px;align-items:start">
+                <div><div data-board-grid class="lle-shogi-admin-board"></div></div>
+                <aside style="display:grid;gap:14px">
+                    <section><strong>配置する駒</strong><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px" data-board-palette>${PIECES.map(pieceButton).join('')}</div></section>
+                    <section><strong>駒の向き</strong><div style="display:flex;gap:8px;margin-top:7px"><label><input type="radio" name="lle-board-owner" value="black" checked> 先手</label><label><input type="radio" name="lle-board-owner" value="white"> 後手</label><label><input type="checkbox" data-board-erase> 消去</label></div></section>
+                    <section><strong>手番</strong><select data-board-turn style="width:100%;margin-top:7px"><option value="black">先手</option><option value="white">後手</option></select></section>
+                    <section><strong>持ち駒</strong><div data-board-hands style="display:grid;gap:7px;margin-top:7px"></div></section>
+                    <section><strong>SFEN</strong><textarea data-board-sfen rows="3" readonly style="width:100%;margin-top:7px"></textarea><small data-board-status style="display:block;margin-top:5px;color:#5d6f42"></small></section>
+                </aside>
+            </div>
+        </section>`;
+        const grid=root.querySelector('[data-board-grid]');
+        const turn=root.querySelector('[data-board-turn]');
+        const erase=root.querySelector('[data-board-erase]');
+        const handHost=root.querySelector('[data-board-hands]');
+        const sfenBox=root.querySelector('[data-board-sfen]');
+        const status=root.querySelector('[data-board-status]');
+        function renderStatus(sfen){if(sfenBox)sfenBox.value=sfen||'';if(status)status.textContent=sfen?'SFENを自動生成しました。':'SFENを生成できませんでした。';}
+        function renderBoard(){
+            grid.innerHTML='';
+            for(let vr=0;vr<9;vr++)for(let vc=0;vc<9;vc++){
+                const r=coord(vr),c=coord(vc),piece=state.board[r][c];
+                const cell=document.createElement('button');cell.type='button';cell.dataset.row=String(r);cell.dataset.col=String(c);
+                cell.className='lle-shogi-admin-cell';
+                if(piece){cell.textContent=GLYPHS[piece.type]||piece.type;cell.style.transform=piece.side==='white'?'rotate(180deg)':'none';cell.title=`${piece.side==='black'?'先手':'後手'} ${GLYPHS[piece.type]||piece.type}`;}
+                grid.appendChild(cell);
+            }
+        }
+        function renderHands(){
+            handHost.innerHTML=['black','white'].map(owner=>`<div style="display:grid;grid-template-columns:42px repeat(7,1fr);gap:4px;align-items:center"><strong>${owner==='black'?'先手':'後手'}</strong>${HAND_PIECES.map(([type,label])=>`<label title="${label}" style="display:grid;gap:2px;font-size:11px;text-align:center">${label}<input type="number" min="0" max="18" value="${state.hands[owner][type]}" data-hand-owner="${owner}" data-hand-type="${type}" class="lle-shogi-hand-count"></label>`).join('')}</div>`).join('');
+        }
+        root.addEventListener('click',event=>{
+            const pieceButton=event.target.closest('[data-board-piece]');
+            if(pieceButton){state.selected.type=pieceButton.dataset.boardPiece;state.erase=false;erase.checked=false;root.querySelectorAll('[data-board-piece]').forEach(button=>button.style.outline='');pieceButton.style.outline='3px solid #d48c24';return;}
+            const cell=event.target.closest('[data-row][data-col]');
+            if(cell){
+                const r=Number(cell.dataset.row),c=Number(cell.dataset.col);
+                if(state.erase){state.board[r][c]=null;renderBoard();emit();return;}
+                if(state.selected.type==='king'&&state.selected.side===state.turn){window.alert('攻め方の玉は配置できません。');return;}
+                if(state.selected.type==='king'){
+                    for(let rr=0;rr<9;rr+=1)for(let cc=0;cc<9;cc+=1){const p=state.board[rr][cc];if(p?.type==='king'&&p?.side===state.selected.side)state.board[rr][cc]=null;}
+                }
+                state.board[r][c]={type:state.selected.type,side:state.selected.side};renderBoard();emit();return;
+            }
+            if(event.target.closest('[data-board-initial]')){state.board=initialBoard();renderBoard();emit();return;}
+            if(event.target.closest('[data-board-empty]')){state.board=emptyBoard();state.hands=normalizeHands({});renderBoard();renderHands();emit();return;}
+            if(event.target.closest('[data-board-reverse]')){state.reversed=!state.reversed;renderBoard();return;}
+            if(event.target.closest('[data-board-reset]')){state.board=normalizeBoard(normalized.board);state.hands=normalizeHands(normalized.hands);state.turn=normalized.turn==='white'?'white':'black';turn.value=state.turn;renderBoard();renderHands();emit();}
+        });
+        root.addEventListener('change',event=>{
+            if(event.target.matches('input[name="lle-board-owner"]'))state.selected.side=event.target.value;
+            if(event.target===erase){state.erase=erase.checked;}
+            if(event.target===turn){state.turn=turn.value;emit();}
+            if(event.target.matches('[data-hand-owner][data-hand-type]')){const owner=event.target.dataset.handOwner,type=event.target.dataset.handType;state.hands[owner][type]=Math.max(0,Number(event.target.value||0));emit();}
+        });
+        turn.value=state.turn;renderBoard();renderHands();emit();
+        return {
+            getValue:()=>({board:clone(state.board),hands:clone(state.hands),turn:state.turn,sfen:sfenBox.value}),
+            setValue:config=>{const next=api.normalizeConfig?api.normalizeConfig(config):config;state.board=normalizeBoard(next.board);state.hands=normalizeHands(next.hands);state.turn=next.turn==='white'?'white':'black';turn.value=state.turn;renderBoard();renderHands();emit();},
+            destroy:()=>{root.innerHTML='';}
+        };
+    }
+
+    function createSolutionRouteRecorder(root,rawConfig={},onChange=()=>{}){
+        if(!root)throw new Error('正解手順レコーダーの表示先がありません。');
+        const api=window.LLEShogiMate||{};
+        if(typeof api.createEngine!=='function')throw new Error('将棋エンジンを読み込めませんでした。');
+        const base=api.normalizeConfig?api.normalizeConfig(rawConfig):rawConfig;
+        const recorderHands=[['pawn','歩'],['lance','香'],['knight','桂'],['silver','銀'],['gold','金'],['bishop','角'],['rook','飛']];
+        let moves=Array.isArray(base.solution_moves)?clone(base.solution_moves):[];
+        let engine=null,selected=null,lastMessage='盤上の駒、または持ち駒を選んでください。';
+        const rebuild=()=>{
+            engine=api.createEngine({...base,solution_moves:[]});
+            for(let i=0;i<moves.length;i+=1){
+                const result=engine.apply(moves[i]);
+                if(!result?.ok){moves=moves.slice(0,i);lastMessage=`${i+1}手目以降を取り除きました：${result?.message||'不正な指し手です。'}`;break;}
+            }
+            selected=null;
+        };
+        const ownerOf=piece=>piece?.owner||piece?.side;
+        const glyphMap={pawn:'歩',lance:'香',knight:'桂',silver:'銀',gold:'金',bishop:'角',rook:'飛',king:'玉',tokin:'と',promotedLance:'杏',promotedKnight:'圭',promotedSilver:'全',horse:'馬',dragon:'龍'};
+        const cellLabel=piece=>piece?(glyphMap[piece.type]||GLYPHS[piece.type]||GLYPHS[piece.kind]||piece.type||piece.kind):'';
+        const emit=()=>onChange(clone(moves));
+        const routeValidation=()=>{
+            if(typeof api.validateSolutionRoute!=='function')return {valid:false,errors:[],warnings:[],pending:true};
+            try{return api.validateSolutionRoute({...base,solution_moves:clone(moves)})||{valid:false,errors:['正解手順を検証できませんでした。'],warnings:[]};}
+            catch(error){return {valid:false,errors:[error?.message||'正解手順の検証に失敗しました。'],warnings:[]};}
+        };
+        const legalTargets=()=>{
+            if(!selected)return [];
+            if(selected.kind==='hand')return engine.dropMoves?.(selected.piece,engine.turn)||[];
+            return engine.pseudoMoves?.(selected.row,selected.col)||[];
+        };
+        const render=()=>{
+            const turn=engine?.turn==='white'?'後手':'先手';
+            const validation=routeValidation();
+            const completed=Boolean(validation.valid);
+            const validationErrors=Array.isArray(validation.errors)?validation.errors:[];
+            const validationWarnings=Array.isArray(validation.warnings)?validation.warnings:[];
+            const statusText=completed
+                ? '詰み成立：この正解手順は完成しています。'
+                : moves.length
+                    ? (validationErrors[0]||validationWarnings[0]||'手順を続けて、最後に詰ませてください。')
+                    : '開始局面から正解手順を登録してください。';
+            const statusBg=completed?'#eaf7e5':(validationErrors.length?'#fff1ee':'#fff8e6');
+            const statusColor=completed?'#2f6c2a':(validationErrors.length?'#a33a2e':'#795b19');
+            const targets=completed?[]:legalTargets();
+            const targetKeys=new Set(targets.map(item=>`${item.row}:${item.col}`));
+            const handHtml=recorderHands.map(([type,label])=>{
+                const count=Number(engine?.hands?.[engine.turn]?.[type]||0);
+                const active=selected?.kind==='hand'&&selected.piece===type;
+                return `<button type="button" data-recorder-hand="${type}" ${(count&&!completed)?'':'disabled'} style="min-width:56px;padding:7px 8px;border:1px solid ${active?'#d9362b':'#c8b38c'};border-radius:7px;background:${active?'#fff0e8':'#fff8e8'};cursor:${count&&!completed?'pointer':'not-allowed'};opacity:${count&&!completed?1:.45}">${label}<small style="display:block;font-size:10px">×${count}</small></button>`;
+            }).join('');
+            root.innerHTML=`<section style="border:1px solid #eadfce;border-radius:9px;background:#fff;padding:12px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px"><div><strong>盤面を動かして指し手を追加</strong><div style="font-size:12px;color:#6b6254;margin-top:2px">駒を実際に動かすと、その手が正解手順へ追加されます。現在は${turn}の手です。奇数手は生徒、偶数手は固定応手として保存されます。</div></div><div style="display:flex;gap:6px"><button type="button" class="lle-shogi-toolbar-button" data-recorder-undo ${moves.length?'':'disabled'}>1手戻す</button><button type="button" class="lle-shogi-toolbar-button" data-recorder-reset ${moves.length?'':'disabled'}>開始局面へ</button></div></div><div style="margin-bottom:10px;padding:9px 11px;border-radius:8px;background:${statusBg};color:${statusColor};font-size:12px"><strong>${completed?'詰み成立':'手順確認中'}</strong><div style="margin-top:3px">${statusText}</div></div><div data-recorder-board class="lle-shogi-admin-board${completed?' is-completed':''}"></div><section style="margin-top:10px"><strong style="font-size:13px">${turn}の持ち駒</strong><div data-recorder-hands style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">${handHtml}</div></section><div data-recorder-message style="margin-top:9px;padding:8px 10px;border-radius:7px;background:#f6eddf;color:#5e4a31;font-size:12px">${completed?'正解手順が完成しました。修正する場合は「1手戻す」を押してください。':lastMessage}</div></section>`;
+            const board=root.querySelector('[data-recorder-board]');
+            for(let r=0;r<9;r+=1)for(let c=0;c<9;c+=1){
+                const piece=engine.pieceAt?.(r,c);
+                const cell=document.createElement('button');cell.type='button';cell.dataset.row=String(r);cell.dataset.col=String(c);
+                const isSelected=selected?.kind==='board'&&selected.row===r&&selected.col===c;
+                const isTarget=targetKeys.has(`${r}:${c}`);
+                cell.style.cssText=`border:1px solid rgba(70,43,14,.72);background:${isTarget?'linear-gradient(135deg,#f8e7a8,#e7be69)':'linear-gradient(135deg,#efc77e,#dca457)'};font-size:clamp(15px,2.2vw,25px);font-weight:700;display:flex;align-items:center;justify-content:center;cursor:${completed?'default':'pointer'};padding:0;position:relative;${isSelected?'outline:3px solid #d9362b;z-index:1;':''}`;
+                if(isTarget){const dot=document.createElement('span');dot.setAttribute('aria-hidden','true');dot.style.cssText='position:absolute;width:12px;height:12px;border-radius:50%;background:rgba(64,102,37,.6);';cell.appendChild(dot);}
+                if(piece){const text=document.createElement('span');text.textContent=cellLabel(piece);text.style.cssText=`position:relative;z-index:1;${ownerOf(piece)==='white'?'transform:rotate(180deg);':''}`;cell.appendChild(text);}
+                board.appendChild(cell);
+            }
+            root.querySelector('[data-recorder-undo]')?.addEventListener('click',()=>{moves.pop();lastMessage='1手戻しました。';rebuild();emit();render();});
+            root.querySelector('[data-recorder-reset]')?.addEventListener('click',()=>{moves=[];lastMessage='開始局面へ戻しました。';rebuild();emit();render();});
+            root.querySelectorAll('[data-recorder-hand]').forEach(button=>button.addEventListener('click',()=>{
+                const piece=button.dataset.recorderHand;
+                if(selected?.kind==='hand'&&selected.piece===piece){selected=null;lastMessage='持ち駒の選択を解除しました。';}
+                else{selected={kind:'hand',piece};lastMessage=`${glyphMap[piece]||piece}を打つマスを選んでください。`;}
+                render();
+            }));
+        };
+        root.addEventListener('click',event=>{
+            const cell=event.target.closest('[data-recorder-board] [data-row][data-col]');if(!cell)return;
+            if(routeValidation().valid){lastMessage='正解手順はすでに詰みまで完成しています。修正する場合は「1手戻す」を押してください。';render();return;}
+            const row=Number(cell.dataset.row),col=Number(cell.dataset.col),piece=engine.pieceAt?.(row,col);
+            if(!selected){
+                if(!piece){lastMessage='移動する駒、または持ち駒を選んでください。';render();return;}
+                if(ownerOf(piece)!==engine.turn){lastMessage='現在の手番の駒を選んでください。';render();return;}
+                selected={kind:'board',row,col,piece};lastMessage='移動先を選んでください。';render();return;
+            }
+            if(selected.kind==='hand'){
+                const move={kind:'drop',side:engine.turn,piece:selected.piece,to:{row,col}};
+                const result=engine.apply(move);
+                if(!result?.ok){lastMessage=result?.message||'そのマスには打てません。';selected=null;render();return;}
+                moves.push(move);selected=null;lastMessage=`${moves.length}手目（${glyphMap[move.piece]||move.piece}打ち）を登録しました。`;emit();render();return;
+            }
+            if(selected.row===row&&selected.col===col){selected=null;lastMessage='選択を解除しました。';render();return;}
+            const type=selected.piece?.type||selected.piece?.kind||'';
+            const canPromote=engine.canPromote?.(selected.piece,selected.row,row)||false;
+            const mustPromote=engine.mustPromote?.(selected.piece,row)||false;
+            let promote=mustPromote;
+            if(canPromote&&!mustPromote)promote=window.confirm('この手で成りますか？\n「キャンセル」を選ぶと成らずに指します。');
+            const move={kind:'move',side:engine.turn,piece:type,from:{row:selected.row,col:selected.col},to:{row,col},promote};
+            const result=engine.apply(move);
+            if(!result?.ok){lastMessage=result?.message||'その場所には移動できません。';selected=null;render();return;}
+            moves.push(move);selected=null;lastMessage=`${moves.length}手目を登録しました。`;emit();render();
+        });
+        rebuild();render();
+        return {getMoves:()=>clone(moves),setMoves:next=>{moves=Array.isArray(next)?clone(next):[];rebuild();render();},destroy:()=>{root.innerHTML='';}};
+    }
+
+    function validateShogiComponents(steps=[]){
+        const issues=[];
+        const api=window.LLEShogiMate||{};
+        (Array.isArray(steps)?steps:[]).forEach((step,stepIndex)=>{
+            const components=Array.isArray(step?.settings?.components)?step.settings.components:[];
+            components.forEach((component,componentIndex)=>{
+                if(component?.type!=='shogi_mate')return;
+                const config=api.normalizeConfig?api.normalizeConfig(component.shogi_mate||{}):(component.shogi_mate||{});
+                let result=null;
+                try{result=api.validateSolutionRoute?api.validateSolutionRoute(config):null;}
+                catch(error){result={valid:false,errors:[error?.message||'正解手順の検証に失敗しました。'],warnings:[]};}
+                const base={stepIndex,componentIndex,stepLabel:step?.label||`ステップ${stepIndex+1}`,componentLabel:component?.label||'詰将棋問題セット'};
+                if(!result){
+                    issues.push({...base,severity:'error',message:'将棋検証機能を読み込めませんでした。'});
+                    return;
+                }
+                (result.errors||[]).forEach(message=>issues.push({...base,severity:'error',message:String(message)}));
+                (result.warnings||[]).forEach(message=>issues.push({...base,severity:'warning',message:String(message)}));
+            });
+        });
+        return {
+            valid:!issues.some(issue=>issue.severity==='error'),
+            issues,
+            errors:issues.filter(issue=>issue.severity==='error'),
+            warnings:issues.filter(issue=>issue.severity==='warning')
+        };
+    }
+    window.LLELearningBuilder=Object.assign(window.LLELearningBuilder||{},{createBoardEditor,createSolutionRouteRecorder,validateShogiComponents});
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
     const listPage = document.querySelector('[data-builder-list-page]');
     const editPage = document.querySelector('[data-session-edit-page]');
@@ -154,12 +401,12 @@ function initEditPage(page) {
     const componentLabels = {
         heading:'見出し', text:'テキスト', image:'画像', video:'動画', divider:'区切り線', spacer:'余白',
         timed_display:'制限表示', answer_input:'回答入力', answer_timer:'回答タイマー',
-        submit_answer:'回答送信', judgment:'正誤判定', question_set:'問題セット', choice_question_set:'X択問題セット'
+        submit_answer:'回答送信', judgment:'正誤判定', question_set:'問題セット', choice_question_set:'X択問題セット', shogi_mate:'詰将棋問題セット'
     };
     const componentIcons = {
         heading:'fa-heading', text:'fa-align-left', image:'fa-image', video:'fa-video', divider:'fa-minus',
         spacer:'fa-arrows-alt-v', timed_display:'fa-stopwatch', answer_input:'fa-keyboard',
-        answer_timer:'fa-hourglass-half', submit_answer:'fa-paper-plane', judgment:'fa-check-circle', question_set:'fa-list-ol', choice_question_set:'fa-list-check'
+        answer_timer:'fa-hourglass-half', submit_answer:'fa-paper-plane', judgment:'fa-check-circle', question_set:'fa-list-ol', choice_question_set:'fa-list-check', shogi_mate:'fa-chess-board'
     };
     const defaultScreenBackground = () => ({
         color: '#f4f7fb',
@@ -240,7 +487,8 @@ function initEditPage(page) {
         choice_count: type === 'choice_question_set' ? 4 : null,
         explanation_mode: type === 'choice_question_set' ? 'common' : null,
         choices: type === 'choice_question_set' ? [] : null,
-        choice_questions: type === 'choice_question_set' ? [] : null
+        choice_questions: type === 'choice_question_set' ? [] : null,
+        shogi_mate: type === 'shogi_mate' ? (window.LLEShogiMate?.defaultConfig?.() || {}) : null
     });
 
     const legacyComponents = step => {
@@ -562,6 +810,7 @@ function initEditPage(page) {
                     <div class="lle-question-table-wrap"><table class="lle-question-table"><thead><tr><th>No</th><th>問題</th><th>回答</th><th>正解</th><th>解説</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table></div>
                 </div>${modal}`;
         }
+        if(c.type==='shogi_mate') return `<div class="lle-shogi-component-editor-host full" data-shogi-component-editor></div>`;
         if(c.type==='spacer') return `<label>余白の高さ<input type="number" min="8" max="300" data-component-field="spacer_height" value="${Number(c.spacer_height||32)}"></label>`;
         return '<p>区切り線を表示します。</p>';
     };
@@ -573,9 +822,258 @@ function initEditPage(page) {
         const step=session.steps[selected]; detail.hidden=false;
         detailTitle.textContent=`${step.label} 編集`; detailIcon.innerHTML=`<i class="fas ${esc(stepIcon(step))}"></i>`; detailSubtitle.textContent='コンポーネントを自由に追加・入替・削除できます。';
         const basicTypes=['heading','text','image','video','divider','spacer'];
-        const questionTypes=['question_set','choice_question_set','timed_display','answer_input','answer_timer','submit_answer','judgment'];
+        const questionTypes=['question_set','choice_question_set','shogi_mate','timed_display','answer_input','answer_timer','submit_answer','judgment'];
         const toolbarButtons = types => types.map(t=>`<button type="button" data-add-component="${t}"><i class="fas ${componentIcons[t]||'fa-cube'}"></i> ＋ ${componentLabels[t]}</button>`).join('');
         detailFields.innerHTML=`<section class="lle-step-basic-settings"><label>ステップ名<input data-step-name maxlength="255" value="${esc(step.label)}"></label><div class="lle-current-step-icon"><span>アイコン</span><button type="button" data-change-step-icon><i class="fas ${esc(stepIcon(step))}"></i> 変更</button></div></section><section class="lle-component-builder"><div class="lle-component-toolbar"><strong>コンポーネント</strong><div class="lle-component-toolbar-groups"><div><span>基本</span>${toolbarButtons(basicTypes)}</div><div><span>問題・時間・判定</span>${toolbarButtons(questionTypes)}</div></div></div><div class="lle-component-list">${step.settings.components.length?step.settings.components.map(componentCard).join(''):'<div class="lle-component-empty"><strong>中身は空です</strong><span>上のボタンからコンポーネントを追加してください。</span></div>'}</div></section>`;
+        detailFields.querySelectorAll('[data-shogi-component-editor]').forEach(host=>{
+            const card=host.closest('[data-component-index]');
+            const component=step.settings.components[Number(card?.dataset.componentIndex)];
+            if(!component)return;
+            component.shogi_mate=window.LLEShogiMate?.normalizeConfig?.(component.shogi_mate)||component.shogi_mate||{};
+            host.innerHTML=`<section class="lle-shogi-v1-editor" data-shogi-v1-editor>
+                <header class="lle-shogi-v1-header">
+                    <div><span class="lle-shogi-v1-version">Version 1.0</span><strong>詰将棋問題セット</strong><p>問題設定から生徒プレビューまで、上から順に完成させてください。</p></div>
+                    <div class="lle-shogi-v1-status" data-shogi-v1-status></div>
+                </header>
+                <nav class="lle-shogi-editor-tabs" aria-label="詰将棋作成手順">
+                    <button type="button" data-shogi-tab="settings" class="is-active"><span>1</span>問題・ヒント・解説</button>
+                    <button type="button" data-shogi-tab="board"><span>2</span>初期局面</button>
+                    <button type="button" data-shogi-tab="route-edit"><span>3</span>正解手順</button>
+                    <button type="button" data-shogi-tab="route"><span>4</span>手順確認</button>
+                    <button type="button" data-shogi-tab="preview"><span>5</span>生徒プレビュー</button>
+                </nav>
+                <input type="hidden" data-shogi-component-json>
+                <div class="lle-shogi-v1-panel" data-shogi-settings-host></div>
+                <div class="lle-shogi-v1-panel" data-shogi-board-host hidden></div>
+                <div class="lle-shogi-v1-panel" data-shogi-route-edit-host hidden></div>
+                <div class="lle-shogi-v1-panel" data-shogi-route-host hidden></div>
+                <div class="lle-shogi-v1-panel" data-shogi-preview-host hidden>
+                    <div class="lle-shogi-preview-heading"><div><strong>生徒画面プレビュー</strong><p>登録済みの固定応手を含む正解手順で、実際に解答できます。</p></div><button type="button" data-shogi-preview-reload>最新内容で再読込</button></div>
+                    <div class="lle-shogi-preview-message" data-shogi-preview-message hidden></div><div data-shogi-preview-player></div>
+                </div>
+            </section>`;
+            const settingsHost=host.querySelector('[data-shogi-settings-host]');
+            const boardHost=host.querySelector('[data-shogi-board-host]');
+            const routeEditHost=host.querySelector('[data-shogi-route-edit-host]');
+            const routeHost=host.querySelector('[data-shogi-route-host]');
+            const previewHost=host.querySelector('[data-shogi-preview-host]');
+            const previewPlayer=host.querySelector('[data-shogi-preview-player]');
+            const previewMessage=host.querySelector('[data-shogi-preview-message]');
+            const jsonField=host.querySelector('[data-shogi-component-json]');
+            const statusHost=host.querySelector('[data-shogi-v1-status]');
+            const syncShogiMeta=()=>{
+                const config=window.LLEShogiMate?.normalizeConfig?.(component.shogi_mate)||component.shogi_mate||{};
+                if(jsonField)jsonField.value=JSON.stringify(config);
+                const route=window.LLEShogiMate?.validateSolutionRoute?.(config)||{valid:false};
+                const boardReady=Array.isArray(config.board)&&config.board.length===9;
+                const textReady=Boolean(String(config.title||'').trim()&&String(config.hint||'').trim()&&String(config.explanation||'').trim());
+                const items=[['問題情報',textReady],['初期局面',boardReady],['正解手順',route.valid]];
+                if(statusHost)statusHost.innerHTML=items.map(([label,ok])=>`<span class="${ok?'is-complete':'is-incomplete'}"><i></i>${label}</span>`).join('');
+                host.querySelectorAll('[data-shogi-tab]').forEach(button=>{
+                    const mode=button.dataset.shogiTab;
+                    const complete=mode==='settings'?textReady:mode==='board'?boardReady:(mode==='route-edit'||mode==='route'||mode==='preview')?route.valid:false;
+                    button.classList.toggle('is-complete',complete);
+                });
+            };
+            const updateShogi=next=>{
+                const normalized=window.LLEShogiMate?.normalizeConfig?.(next)||next;
+                if(Array.isArray(next?.solution_routes)){
+                    normalized.solution_routes=next.solution_routes.map(route=>Array.isArray(route)?route.map(move=>({...move})):[]);
+                    normalized.solution_moves=normalized.solution_routes[0]?.map(move=>({...move}))||[];
+                }
+                const before=JSON.stringify(component.shogi_mate||{});
+                const after=JSON.stringify(normalized||{});
+                component.shogi_mate=normalized;
+                syncShogiMeta();
+                if(before!==after){markDirty();renderPreview();}
+            };
+            window.LLEShogiMate?.mountEditor?.(settingsHost,component.shogi_mate,updateShogi);
+            syncShogiMeta();
+            const boardEditor=window.LLELearningBuilder?.createBoardEditor?.(boardHost,component.shogi_mate,next=>{updateShogi({...component.shogi_mate,...next});});
+            let routeEditActiveIndex=0;
+            let routeReviewActiveIndex=0;
+            const renderRouteEditor=()=>{
+                if(!routeEditHost)return;
+                const config=window.LLEShogiMate?.normalizeConfig?.(component.shogi_mate)||component.shogi_mate||{};
+                const routes=Array.isArray(config.solution_routes)&&config.solution_routes.length?config.solution_routes:[Array.isArray(config.solution_moves)?config.solution_moves:[]];
+                routeEditActiveIndex=Math.max(0,Math.min(routeEditActiveIndex,routes.length-1));
+                const moves=Array.isArray(routes[routeEditActiveIndex])?routes[routeEditActiveIndex]:[];
+                const validation=window.LLEShogiMate?.validateSolutionRoute?.(config,routeEditActiveIndex)||{valid:false,errors:['正解手順を確認できません。']};
+                const routeTabs=routes.map((route,index)=>`<button type="button" class="lle-shogi-toolbar-button ${index===routeEditActiveIndex?'is-primary':''}" data-route-select="${index}" style="-webkit-appearance:none;appearance:none;display:inline-flex;align-items:center;justify-content:center;min-height:36px;margin:0;padding:7px 13px;border:1px solid ${index===routeEditActiveIndex?'#9a672c':'#d5c4aa'};border-radius:9px;background:${index===routeEditActiveIndex?'#9a672c':'#fffaf1'};color:${index===routeEditActiveIndex?'#fff':'#594329'};box-shadow:0 1px 2px rgba(69,45,20,.08);font:inherit;font-size:13px;font-weight:700;line-height:1.2;text-align:center;text-decoration:none;white-space:nowrap;cursor:pointer">正解ルート${index+1}${route.length?`（${route.length}手）`:''}</button>`).join('');
+                const rows=moves.length?moves.map((move,index)=>{
+                    let label=`${index+1}手目`;
+                    try{label=window.LLEShogiMate?.formatJapaneseMove?.(move,index)||label;}catch(_){/* 表示用フォールバック */}
+                    const role=index%2===0?'生徒の手':'固定応手';
+                    return `<li data-route-edit-index="${index}" style="display:grid;grid-template-columns:76px minmax(120px,1fr) auto;gap:8px;align-items:center;padding:9px 10px;border-bottom:1px solid #eadfce"><span style="font-size:12px;color:#7a6b57">${role}</span><strong>${esc(label)}</strong><span style="display:flex;gap:4px"><button type="button" class="lle-shogi-icon-button" data-route-up="${index}" ${index===0?'disabled':''}>↑</button><button type="button" class="lle-shogi-icon-button" data-route-down="${index}" ${index===moves.length-1?'disabled':''}>↓</button><button type="button" class="lle-shogi-action-button is-danger" data-route-delete="${index}">削除</button></span></li>`;
+                }).join(''):'<li style="padding:16px;color:#7a6b57">正解手順がまだ登録されていません。問題設定タブで指し手を登録してください。</li>';
+                const status=validation.valid?'詰み成立':((validation.errors||[])[0]||'正解手順を完成させてください。');
+                routeEditHost.innerHTML=`<section style="border:1px solid #dcc9a7;border-radius:12px;background:#fffdf8;overflow:hidden"><header style="display:flex;justify-content:space-between;gap:10px;align-items:center;padding:13px 14px;background:#f6eddf;flex-wrap:wrap"><div><strong>正解手順編集</strong><div style="font-size:12px;color:#6b6254;margin-top:3px">指し手の追加・順番変更・削除ができます。奇数手は生徒、偶数手は固定応手です。</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="lle-shogi-toolbar-button" data-route-add style="-webkit-appearance:none;appearance:none;display:inline-flex;align-items:center;justify-content:center;min-height:36px;margin:0;padding:7px 13px;border:1px solid #d5c4aa;border-radius:9px;background:#fffaf1;color:#594329;box-shadow:0 1px 2px rgba(69,45,20,.08);font:inherit;font-size:13px;font-weight:700;line-height:1.2;text-align:center;text-decoration:none;white-space:nowrap;cursor:pointer">＋正解ルート追加</button><button type="button" class="lle-shogi-toolbar-button" data-route-validate>手順を検証</button><button type="button" class="lle-shogi-toolbar-button is-danger" data-route-clear ${moves.length?'':'disabled'}>全削除</button></div></header><div style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 12px 0">${routeTabs}</div><div data-route-edit-status style="margin:12px;padding:10px 12px;border-radius:8px;background:${validation.valid?'#edf9f1':'#fff1ec'};color:${validation.valid?'#176b3a':'#9a3d22'}"><strong>${validation.valid?'詰み成立':'要確認'}</strong><div style="font-size:12px;margin-top:3px">${esc(status)}</div></div><div data-route-recorder-host style="margin:0 12px 12px"></div><ol style="list-style:none;margin:0 12px 12px;padding:0;border:1px solid #eadfce;border-radius:8px;overflow:hidden">${rows}</ol><footer style="padding:12px 14px;font-size:12px;color:#6b6254;border-top:1px solid #eadfce">登録手数：${moves.length}手 ／ 想定：${Number(config.mate_in||moves.length||0)}手詰</footer></section>`;
+                const saveMoves=nextMoves=>{
+                    const nextRoutes=routes.map(route=>Array.isArray(route)?route.map(move=>({...move})):[]);
+                    nextRoutes[routeEditActiveIndex]=nextMoves;
+                    updateShogi({...component.shogi_mate,solution_routes:nextRoutes,solution_moves:nextRoutes[0]||[]});
+                    renderRouteEditor();
+                };
+                routeEditHost.querySelectorAll('[data-route-select]').forEach(button=>button.addEventListener('click',()=>{
+                    routeEditActiveIndex=Number(button.dataset.routeSelect)||0;
+                    renderRouteEditor();
+                }));
+                routeEditHost.querySelector('[data-route-add]')?.addEventListener('click',()=>{
+                    const nextRoutes=routes.map(route=>Array.isArray(route)?route.map(move=>({...move})):[]);
+                    nextRoutes.push([]);
+                    routeEditActiveIndex=nextRoutes.length-1;
+                    updateShogi({...component.shogi_mate,solution_routes:nextRoutes,solution_moves:nextRoutes[0]||[]});
+                    renderRouteEditor();
+                });
+
+                const recorderHost=routeEditHost.querySelector('[data-route-recorder-host]');
+                if(recorderHost&&window.LLELearningBuilder?.createSolutionRouteRecorder){
+                    window.LLELearningBuilder.createSolutionRouteRecorder(recorderHost,{...config,solution_routes:[moves],solution_moves:moves},nextMoves=>{
+                        const nextRoutes=routes.map(route=>Array.isArray(route)?route.map(move=>({...move})):[]);
+                        nextRoutes[routeEditActiveIndex]=nextMoves;
+                        updateShogi({...component.shogi_mate,solution_routes:nextRoutes,solution_moves:nextRoutes[0]||[]});
+                    });
+                }
+
+                routeEditHost.querySelectorAll('[data-route-up]').forEach(button=>button.addEventListener('click',()=>{
+                    const index=Number(button.dataset.routeUp);if(index<=0)return;
+                    const next=[...moves];[next[index-1],next[index]]=[next[index],next[index-1]];saveMoves(next);
+                }));
+                routeEditHost.querySelectorAll('[data-route-down]').forEach(button=>button.addEventListener('click',()=>{
+                    const index=Number(button.dataset.routeDown);if(index<0||index>=moves.length-1)return;
+                    const next=[...moves];[next[index+1],next[index]]=[next[index],next[index+1]];saveMoves(next);
+                }));
+                routeEditHost.querySelectorAll('[data-route-delete]').forEach(button=>button.addEventListener('click',()=>{
+                    const index=Number(button.dataset.routeDelete);saveMoves(moves.filter((_,i)=>i!==index));
+                }));
+                routeEditHost.querySelector('[data-route-clear]')?.addEventListener('click',()=>{
+                    if(!confirm('登録済みの正解手順をすべて削除しますか？'))return;saveMoves([]);
+                });
+                routeEditHost.querySelector('[data-route-validate]')?.addEventListener('click',()=>{
+                    const result=window.LLEShogiMate?.validateSolutionRoute?.(component.shogi_mate)||{valid:false,errors:['検証できませんでした。']};
+                    const box=routeEditHost.querySelector('[data-route-edit-status]');
+                    if(box){box.style.background=result.valid?'#edf9f1':'#fff1ec';box.style.color=result.valid?'#176b3a':'#9a3d22';box.innerHTML=`<strong>${result.valid?'詰み成立':'要確認'}</strong><div style="font-size:12px;margin-top:3px">${esc(result.valid?'登録された最終手で詰みが成立しています。':(result.errors?.[0]||'正解手順を確認してください。'))}</div>`;}
+                });
+            };
+            const renderSolutionRoute=()=>{
+                if(!routeHost)return;
+                const config=window.LLEShogiMate?.normalizeConfig?.(component.shogi_mate)||component.shogi_mate||{};
+                const routes=Array.isArray(config.solution_routes)&&config.solution_routes.length
+                    ?config.solution_routes
+                    :[Array.isArray(config.solution_moves)?config.solution_moves:[]];
+                routeReviewActiveIndex=Math.max(0,Math.min(routeReviewActiveIndex,routes.length-1));
+                const moves=Array.isArray(routes[routeReviewActiveIndex])?routes[routeReviewActiveIndex]:[];
+                const validation=window.LLEShogiMate?.validateSolutionRoute?.(config,routeReviewActiveIndex)||{valid:false,errors:['正解手順を確認できません。']};
+                const routeButtons=routes.map((route,index)=>`<button type="button" class="lle-shogi-toolbar-button ${index===routeReviewActiveIndex?'is-primary':''}" data-route-review-select="${index}" style="-webkit-appearance:none;appearance:none;display:inline-flex;align-items:center;justify-content:center;min-height:36px;margin:0;padding:7px 13px;border:1px solid ${index===routeReviewActiveIndex?'#9a672c':'#d5c4aa'};border-radius:9px;background:${index===routeReviewActiveIndex?'#9a672c':'#fffaf1'};color:${index===routeReviewActiveIndex?'#fff':'#594329'};box-shadow:0 1px 2px rgba(69,45,20,.08);font:inherit;font-size:13px;font-weight:700;line-height:1.2;text-align:center;text-decoration:none;white-space:nowrap;cursor:pointer">正解ルート${index+1}${route.length?`（${route.length}手）`:''}</button>`).join('');
+                const moveRows=moves.length?moves.map((move,index)=>{
+                    let label=`${index+1}手目`;
+                    try{label=window.LLEShogiMate?.formatJapaneseMove?.(move,index)||label;}catch(_){/* 表示用フォールバック */}
+                    const role=index%2===0?'生徒の手':'固定応手';
+                    return `<li style="display:grid;grid-template-columns:72px 1fr;gap:10px;padding:9px 10px;border-bottom:1px solid #eadfce"><span style="font-size:12px;color:#7a6b57">${role}</span><strong>${esc(label)}</strong></li>`;
+                }).join(''):'<li style="padding:14px;color:#7a6b57">正解手順がまだ登録されていません。</li>';
+                const statusColor=validation.valid?'#176b3a':'#9a3d22';
+                const statusBg=validation.valid?'#edf9f1':'#fff1ec';
+                const detail=validation.valid?'登録された最終手で詰みが成立しています。':esc((validation.errors||[])[0]||'正解手順を完成させてください。');
+                routeHost.innerHTML=`<section style="border:1px solid #dcc9a7;border-radius:12px;background:#fffdf8;overflow:hidden"><header style="padding:13px 14px;background:#f6eddf"><strong>固定応手を含む正解ルート</strong><div style="font-size:12px;color:#6b6254;margin-top:3px">確認する正解ルートを選択してください。奇数手が生徒、偶数手が問題側の固定応手です。</div></header><div style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 12px 0">${routeButtons}</div><div style="margin:12px;padding:10px 12px;border-radius:8px;background:${statusBg};color:${statusColor}"><strong>${validation.valid?'詰み成立':'手順を確認してください'}</strong><div style="font-size:12px;margin-top:3px">${detail}</div></div><div style="display:grid;grid-template-columns:minmax(250px,1fr) minmax(220px,330px);gap:14px;padding:0 12px 12px;align-items:start"><div><div data-shogi-route-replay-board class="lle-shogi-admin-board"></div><div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:10px"><button type="button" class="lle-shogi-replay-button" data-route-first>最初へ</button><button type="button" class="lle-shogi-replay-button" data-route-prev>戻る</button><button type="button" class="lle-shogi-replay-button is-primary" data-route-play>自動再生</button><button type="button" class="lle-shogi-replay-button" data-route-next>進む</button><button type="button" class="lle-shogi-replay-button" data-route-last>最後へ</button></div><div data-route-position style="text-align:center;font-size:12px;color:#6b6254;margin-top:7px">開始局面</div></div><ol data-route-move-list style="list-style:none;margin:0;padding:0;border:1px solid #eadfce;border-radius:8px;overflow:auto;max-height:430px">${moveRows}</ol></div><footer style="padding:12px 14px;font-size:12px;color:#6b6254;border-top:1px solid #eadfce">登録手数：${moves.length}手 ／ 想定：${Number(config.mate_in||moves.length||0)}手詰</footer></section>`;
+                routeHost.querySelectorAll('[data-route-review-select]').forEach(button=>button.addEventListener('click',()=>{
+                    routeReviewActiveIndex=Number(button.dataset.routeReviewSelect)||0;
+                    renderSolutionRoute();
+                }));
+                const replayApi=window.LLEShogiMate?.createReplaySession;
+                if(typeof replayApi==='function'){
+                    const replay=replayApi({...config,solution_routes:[moves],solution_moves:moves},moves);
+                    const board=routeHost.querySelector('[data-shogi-route-replay-board]');
+                    const position=routeHost.querySelector('[data-route-position]');
+                    const playButton=routeHost.querySelector('[data-route-play]');
+                    let timer=null;
+                    const stop=()=>{if(timer){clearInterval(timer);timer=null;}if(playButton)playButton.textContent='自動再生';};
+                    const replayGlyphs={
+                        pawn:'歩',lance:'香',knight:'桂',silver:'銀',gold:'金',bishop:'角',rook:'飛',king:'玉',
+                        tokin:'と',promotedLance:'杏',promotedKnight:'圭',promotedSilver:'全',horse:'馬',dragon:'龍',
+                        P:'歩',L:'香',N:'桂',S:'銀',G:'金',B:'角',R:'飛',K:'玉','+P':'と','+L':'杏','+N':'圭','+S':'全','+B':'馬','+R':'龍'
+                    };
+                    const draw=state=>{
+                        if(!board)return;
+                        board.innerHTML='';
+                        const stateBoard=Array.isArray(state?.board)?state.board:[];
+                        for(let row=0;row<9;row+=1){
+                            for(let col=0;col<9;col+=1){
+                                const piece=stateBoard?.[row]?.[col]||null;
+                                const cell=document.createElement('div');
+                                cell.className='lle-shogi-admin-cell';
+                                if(piece){
+                                    const type=String(piece.type||piece.kind||'');
+                                    const side=piece.side||piece.owner||'black';
+                                    cell.textContent=replayGlyphs[type]||type;
+                                    const glyph=document.createElement('span');
+                                    glyph.textContent=cell.textContent;
+                                    glyph.style.display='inline-block';
+                                    glyph.style.transform=side==='white'?'rotate(180deg)':'none';
+                                    cell.textContent='';
+                                    cell.appendChild(glyph);
+                                    cell.title=`${side==='white'?'後手':'先手'} ${replayGlyphs[type]||type}`;
+                                }
+                                board.appendChild(cell);
+                            }
+                        }
+                        if(position)position.textContent=state.index===0?'開始局面':`${state.index} / ${state.total}手　${state.move_text||''}`;
+                        routeHost.querySelectorAll('[data-route-move-list] li').forEach((item,index)=>{item.style.background=state.index===index+1?'#fff1d6':'';});
+                    };
+                    replay.subscribe(draw);
+                    routeHost.querySelector('[data-route-first]')?.addEventListener('click',()=>{stop();replay.first();});
+                    routeHost.querySelector('[data-route-prev]')?.addEventListener('click',()=>{stop();replay.previous();});
+                    routeHost.querySelector('[data-route-next]')?.addEventListener('click',()=>{stop();replay.next();});
+                    routeHost.querySelector('[data-route-last]')?.addEventListener('click',()=>{stop();replay.last();});
+                    playButton?.addEventListener('click',()=>{
+                        if(timer){stop();return;}
+                        if(!replay.canNext())replay.first();
+                        playButton.textContent='停止';
+                        timer=setInterval(()=>{if(!replay.canNext()){stop();return;}replay.next();},700);
+                    });
+                }
+            };
+            let shogiPreviewInstance=null;
+            const destroyStudentPreview=()=>{
+                try{shogiPreviewInstance?.destroy?.();}catch(_){/* プレビュー破棄失敗は画面操作を止めない */}
+                shogiPreviewInstance=null;
+                if(previewPlayer)previewPlayer.innerHTML='';
+            };
+            const mountStudentPreview=()=>{
+                if(!previewPlayer)return;
+                destroyStudentPreview();
+                const validation=window.LLEShogiMate?.validateSolutionRoute?.(component.shogi_mate);
+                if(validation && !validation.valid){
+                    previewMessage.hidden=false;
+                    previewMessage.innerHTML=`<strong>プレビューできません。</strong><div>${esc(validation.errors?.[0]||'正解手順を完成させてください。')}</div>`;
+                    return;
+                }
+                previewMessage.hidden=true;
+                if(!window.LLEShogiMate?.mountPlayer){
+                    previewMessage.hidden=false;
+                    previewMessage.textContent='将棋プレイヤーを読み込めませんでした。';
+                    return;
+                }
+                shogiPreviewInstance=window.LLEShogiMate.mountPlayer(previewPlayer,{
+                    ...component.shogi_mate,
+                    preview_mode:true
+                });
+            };
+            host.querySelector('[data-shogi-preview-reload]')?.addEventListener('click',mountStudentPreview);
+            host.querySelectorAll('[data-shogi-tab]').forEach(button=>button.addEventListener('click',()=>{
+                const mode=button.dataset.shogiTab;
+                host.querySelectorAll('[data-shogi-tab]').forEach(item=>item.classList.toggle('is-active',item===button));
+                settingsHost.hidden=mode!=='settings';
+                boardHost.hidden=mode!=='board';
+                routeEditHost.hidden=mode!=='route-edit';
+                routeHost.hidden=mode!=='route';
+                previewHost.hidden=mode!=='preview';
+                if(mode==='board')boardEditor?.setValue?.(component.shogi_mate);
+                if(mode==='route-edit')renderRouteEditor();
+                if(mode==='route')renderSolutionRoute();
+                if(mode==='preview')mountStudentPreview();
+                else destroyStudentPreview();
+            }));
+        });
     };
 
     const youtubeEmbed = url => {
@@ -650,6 +1148,10 @@ function initEditPage(page) {
             const payload=encodeURIComponent(JSON.stringify({title:c.set_title||'X択問題セット',answerMode:c.answer_mode||'per_question_feedback',explanationMode:c.explanation_mode||'common',questions:Array.isArray(c.choice_questions)?c.choice_questions:[]}));
             return `<section class="lle-question-set-runtime lle-choice-set-runtime" data-runtime-choice-set data-choice-set="${payload}"><div class="lle-question-set-loading">X択問題セットを準備しています…</div></section>`;
         }
+        if(c.type==='shogi_mate'){
+            const payload=encodeURIComponent(JSON.stringify(c.shogi_mate||{}));
+            return `<section class="lle-shogi-runtime-host" data-runtime-shogi-mate data-shogi-mate="${payload}"></section>`;
+        }
         if(c.type==='divider')return '<hr class="lle-cmp-divider">';
         if(c.type==='spacer')return `<div style="height:${Number(c.spacer_height||32)}px"></div>`;
         return '';
@@ -671,6 +1173,10 @@ function initEditPage(page) {
     const initializeRuntime = root => {
         if(!root) return;
         clearRuntime();
+        root.querySelectorAll('[data-runtime-shogi-mate]').forEach(box=>{
+            let config={};try{config=JSON.parse(decodeURIComponent(box.dataset.shogiMate||''));}catch(_){config={};}
+            window.LLEShogiMate?.mountPlayer?.(box,config);
+        });
         root.querySelectorAll('[data-runtime-question-set]').forEach(box=>{
             let config={}; try{config=JSON.parse(decodeURIComponent(box.dataset.questionSet||''));}catch(_){config={};}
             if(config.answerMode==='per_question') config.answerMode='per_question_feedback';
@@ -1238,8 +1744,13 @@ function initEditPage(page) {
 
     async function save(){
         session.title=title.value.trim();session.subtitle=subtitle.value.trim();session.show_subtitle=showSubtitle.checked;session.developer_note=memo.value;session.is_published=published.checked;session.development_complete=complete.checked;
-        if(!session.title)throw new Error('タイトルを入力してください。');saveButton.disabled=true;saveButton.textContent='保存中…';
-        try{const backgroundCopyTargets=[...(session._backgroundCopyTargets||[])];const payload=JSON.parse(JSON.stringify(session,(k,v)=>(k.startsWith('_')||k==='show_result_mark'||k==='result_display_seconds')?undefined:v));const form=new FormData();form.append('_method','PUT');form.append('payload',JSON.stringify(payload));if(session._backgroundUpload){form.append('background_image_file',session._backgroundUpload);form.append('background_step_index',String(session._backgroundUploadStepIndex ?? selected ?? 0));}session.steps.forEach((step,i)=>Object.entries(step._uploads||{}).forEach(([slot,file])=>form.append(`files[${i}][${slot}]`,file)));const res=await fetch(saveUrl,{method:'POST',headers:{Accept:'application/json','X-CSRF-TOKEN':csrf},body:form});let data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.message||'保存に失敗しました。');if(Array.isArray(data.steps))data.steps.forEach((saved,i)=>{if(!session.steps[i])return;session.steps[i].id=saved.id;session.steps[i].settings=saved.settings||session.steps[i].settings;session.steps[i]._uploads={};});const savedIndex=session._backgroundUploadStepIndex ?? selected ?? 0;const savedBackground=data.steps?.[savedIndex]?.settings?.screen_background;if(savedBackground&&session.steps[savedIndex]){session.steps[savedIndex].settings.screen_background={...defaultScreenBackground(),...savedBackground};if(selected===savedIndex&&backgroundImage)backgroundImage.value=session.steps[savedIndex].settings.screen_background.image||'';}if(savedBackground&&backgroundCopyTargets.length){backgroundCopyTargets.forEach(index=>{if(session.steps[index])session.steps[index].settings.screen_background=cloneBackground(savedBackground);});const copiedPayload=JSON.parse(JSON.stringify(session,(k,v)=>(k.startsWith('_')||k==='show_result_mark'||k==='result_display_seconds')?undefined:v));const copiedForm=new FormData();copiedForm.append('_method','PUT');copiedForm.append('payload',JSON.stringify(copiedPayload));const copiedRes=await fetch(saveUrl,{method:'POST',headers:{Accept:'application/json','X-CSRF-TOKEN':csrf},body:copiedForm});data=await copiedRes.json().catch(()=>({}));if(!copiedRes.ok)throw new Error(data.message||'背景設定のコピー保存に失敗しました。');if(Array.isArray(data.steps))data.steps.forEach((saved,i)=>{if(session.steps[i])session.steps[i].settings=saved.settings||session.steps[i].settings;});}if(session._backgroundBlobUrl)URL.revokeObjectURL(session._backgroundBlobUrl);session._backgroundBlobUrl=null;session._backgroundUpload=null;session._backgroundUploadStepIndex=null;session._backgroundCopyTargets=[];if(backgroundFile)backgroundFile.value='';refreshBackgroundUploadState();markSaved();renderSteps();}
+        if(!session.title)throw new Error('タイトルを入力してください。');
+        // 詰将棋は作成途中でも保存可能にします。
+        // 正解手順・詰み成立などの完成チェックは、手順確認／生徒プレビュー側で行います。
+        const shogiValidation=window.LLELearningBuilder?.validateShogiComponents?.(session.steps)||{valid:true,errors:[],warnings:[]};
+        document.dispatchEvent(new CustomEvent('lle:shogi-save-validated',{detail:{...shogiValidation,allowIncomplete:true}}));
+        saveButton.disabled=true;saveButton.textContent='保存中…';
+        try{const backgroundCopyTargets=[...(session._backgroundCopyTargets||[])];const payload=JSON.parse(JSON.stringify(session,(k,v)=>(k.startsWith('_')||k==='show_result_mark'||k==='result_display_seconds')?undefined:v));const form=new FormData();form.append('_method','PUT');form.append('payload',JSON.stringify(payload));if(session._backgroundUpload){form.append('background_image_file',session._backgroundUpload);form.append('background_step_index',String(session._backgroundUploadStepIndex ?? selected ?? 0));}session.steps.forEach((step,i)=>Object.entries(step._uploads||{}).forEach(([slot,file])=>form.append(`files[${i}][${slot}]`,file)));const res=await fetch(saveUrl,{method:'POST',headers:{Accept:'application/json','X-CSRF-TOKEN':csrf},body:form});let data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.message||'保存に失敗しました。');if(Array.isArray(data.steps))data.steps.forEach((saved,i)=>{if(!session.steps[i])return;session.steps[i].id=saved.id;session.steps[i].settings=saved.settings||session.steps[i].settings;session.steps[i]._uploads={};});const savedIndex=session._backgroundUploadStepIndex ?? selected ?? 0;const savedBackground=data.steps?.[savedIndex]?.settings?.screen_background;if(savedBackground&&session.steps[savedIndex]){session.steps[savedIndex].settings.screen_background={...defaultScreenBackground(),...savedBackground};if(selected===savedIndex&&backgroundImage)backgroundImage.value=session.steps[savedIndex].settings.screen_background.image||'';}if(savedBackground&&backgroundCopyTargets.length){backgroundCopyTargets.forEach(index=>{if(session.steps[index])session.steps[index].settings.screen_background=cloneBackground(savedBackground);});const copiedPayload=JSON.parse(JSON.stringify(session,(k,v)=>(k.startsWith('_')||k==='show_result_mark'||k==='result_display_seconds')?undefined:v));const copiedForm=new FormData();copiedForm.append('_method','PUT');copiedForm.append('payload',JSON.stringify(copiedPayload));const copiedRes=await fetch(saveUrl,{method:'POST',headers:{Accept:'application/json','X-CSRF-TOKEN':csrf},body:copiedForm});data=await copiedRes.json().catch(()=>({}));if(!copiedRes.ok)throw new Error(data.message||'背景設定のコピー保存に失敗しました。');if(Array.isArray(data.steps))data.steps.forEach((saved,i)=>{if(session.steps[i])session.steps[i].settings=saved.settings||session.steps[i].settings;});}if(session._backgroundBlobUrl)URL.revokeObjectURL(session._backgroundBlobUrl);session._backgroundBlobUrl=null;session._backgroundUpload=null;session._backgroundUploadStepIndex=null;session._backgroundCopyTargets=[];if(backgroundFile)backgroundFile.value='';refreshBackgroundUploadState();renderSteps();markSaved();}
         finally{saveButton.disabled=false;saveButton.textContent='保存';}
     }
     saveButton.addEventListener('click',()=>save().catch(e=>alert(e.message)));

@@ -6,13 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class RoutineStudySession extends Model
+class StudySession extends Model
 {
     protected $fillable = [
         'student_id',
-        'student_routine_item_id',
+        'learning_content_id',
         'routine_content_id',
         'learning_session_id',
+        'student_routine_item_id',
         'component_type',
         'completion_key',
         'started_at',
@@ -31,23 +32,23 @@ class RoutineStudySession extends Model
         'context' => 'array',
     ];
 
-    public function result(): HasOne
-    {
-        return $this->hasOne(RoutineStudyResult::class, 'routine_study_session_id');
-    }
-
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
-    public function routineItem(): BelongsTo
+    public function learningContent(): BelongsTo
     {
-        return $this->belongsTo(StudentRoutineItem::class, 'student_routine_item_id');
+        return $this->belongsTo(LearningContent::class);
     }
 
-    public function routineContent(): BelongsTo
+    public function studentRoutineItem(): BelongsTo
     {
-        return $this->belongsTo(RoutineContent::class, 'routine_content_id');
+        return $this->belongsTo(StudentRoutineItem::class);
+    }
+
+    public function result(): HasOne
+    {
+        return $this->hasOne(StudyResult::class);
     }
 }

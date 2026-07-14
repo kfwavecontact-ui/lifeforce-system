@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\System;
 
 use App\Http\Controllers\Controller;
 use App\Services\LearningMediaService;
+use App\Services\ShogiMateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -236,6 +237,13 @@ class RoutineManagementController extends Controller
                 $kept[] = $stepId;
 
                 $settings = $step['settings'] ?? [];
+                /** @var ShogiMateService $shogiMateService */
+                $shogiMateService = app(ShogiMateService::class);
+                // 作成途中の詰将棋も保存できるよう、保存時は正規化だけを行います。
+                // 正解手順・詰み成立の検証は管理画面の「手順確認」「生徒プレビュー」で実行します。
+                $settings = $shogiMateService->normalizeSettings(
+                    is_array($settings) ? $settings : []
+                );
                 $existingContent = DB::table('learning_step_contents')->where('learning_step_id', $stepId)->first();
                 $existingSettings = [];
                 if ($existingContent && ! empty($existingContent->settings)) {
@@ -1747,6 +1755,9 @@ class RoutineManagementController extends Controller
                     return is_array($decoded) ? $decoded : $default;
                 };
                 $settings = $decode($content->settings ?? null, []);
+                /** @var ShogiMateService $shogiMateService */
+                $shogiMateService = app(ShogiMateService::class);
+                $settings = $shogiMateService->normalizeSettings($settings);
                 $storedScreenBackground = data_get($settings, 'screen_background.image');
                 if ($storedScreenBackground) {
                     data_set($settings, 'screen_background.image', $this->screenBackgroundPreviewUrl($storedScreenBackground, $mediaService));
