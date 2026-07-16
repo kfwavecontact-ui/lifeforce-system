@@ -426,8 +426,13 @@
             </a>
 
             <a href="{{ route('admin.system.challenges') }}" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ チャレンジ管理" data-info="チャレンジ試験を管理します"><span>チャレンジ管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
-            <a href="#" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ ルーティン管理" data-info="共通ルーティン・ルーティンアイテムを管理します"><span>ルーティン管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
-            
+            <a href="{{ url('/admin/system/routine-management') }}"
+                class="sidebar-subitem"
+                data-search-name="システム ＞ 設定 ＞ ルーティン管理"
+                data-info="共通ルーティン・ルーティンアイテムを管理します">
+                <span>ルーティン管理</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
             <a href="{{ route('admin.system.badges') }}" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ バッジ管理" data-info="バッジ情報を管理します"><span>バッジ管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
 
 
