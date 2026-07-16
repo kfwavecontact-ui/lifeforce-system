@@ -222,5 +222,7 @@
             </tbody>
         </table>
     </div>
-    <div class="routine-pagination"><span>全 {{ $routines->total() }} 件</span>{{ $routines->links() }}</div>
+    @include('admin.system.routines.partials.pagination', [
+        'paginator' => $routines,
+    ])
 </section>

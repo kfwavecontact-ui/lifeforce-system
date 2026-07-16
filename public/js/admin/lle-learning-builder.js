@@ -305,7 +305,26 @@ function initListPage(page) {
         const btn = e.target.closest('[data-action]'); if (!btn) return;
         const i = Number(btn.dataset.index), action = btn.dataset.action, s = sessions[i];
         if (action === 'publish') s.is_published = !s.is_published;
-        if (action === 'duplicate') sessions.splice(i + 1, 0, {...JSON.parse(JSON.stringify(s)), id:null, title:`${i + 2}日目`, is_published:false, development_complete:false});
+        if (action === 'duplicate') {
+            const copy = JSON.parse(JSON.stringify(s));
+
+            copy.id = null;
+            copy.title = `${i + 2}日目`;
+            copy.is_published = false;
+            copy.development_complete = false;
+
+            copy.steps = Array.isArray(copy.steps)
+                ? copy.steps.map(step => ({
+                    ...step,
+                    id: null,
+
+                    // 保存時にS3画像を物理コピーするための一時フラグ
+                    duplicate_media: true,
+                }))
+                : [];
+
+            sessions.splice(i + 1, 0, copy);
+        }
         if (action === 'up' && i > 0) {
             const [moved] = sessions.splice(i, 1);
             sessions.splice(i - 1, 0, moved);
@@ -322,7 +341,16 @@ function initListPage(page) {
         render();
     });
     async function save() {
-        const payload = {publication:{status:publicationStatus.value},sessions:sessions.map(s=>({title:s.title,subtitle:s.subtitle||'',show_subtitle:!!s.show_subtitle,developer_note:s.developer_note||s.memo||'',is_published:!!s.is_published,development_complete:!!s.development_complete,steps:s.steps||[]}))};
+        const payload = {publication:{status:publicationStatus.value},sessions:sessions.map(s=>({
+            id:s.id||null,
+            title:s.title,
+            subtitle:s.subtitle||'',
+            show_subtitle:!!s.show_subtitle,
+            developer_note:s.developer_note||s.memo||'',
+            is_published:!!s.is_published,
+            development_complete:!!s.development_complete,
+            steps:s.steps||[]
+        }))};
         const res = await fetch(saveUrl,{method:'PUT',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify(payload)});
         const data = await res.json().catch(()=>({})); if (!res.ok) throw new Error(data.message||'保存に失敗しました。'); alert(data.message||'保存しました。'); location.reload();
     }
@@ -1742,7 +1770,28 @@ function initEditPage(page) {
     page.querySelectorAll('[data-exact-preview-close]').forEach(b=>b.addEventListener('click',()=>{modal.hidden=true;document.body.classList.remove('lle-exact-preview-open');}));
     page.querySelectorAll('[data-exact-preview-device]').forEach(b=>b.addEventListener('click',()=>{page.querySelectorAll('[data-exact-preview-device]').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');exactShell.dataset.device=b.dataset.exactPreviewDevice;}));
 
+    const syncMountedShogiEditors=()=>{
+        if(selected===null||!session.steps[selected])return;
+        const step=session.steps[selected];
+        detailFields.querySelectorAll('[data-shogi-component-json]').forEach(field=>{
+            const card=field.closest('[data-component-index]');
+            const componentIndex=Number(card?.dataset.componentIndex);
+            const component=step.settings?.components?.[componentIndex];
+            if(!component||component.type!=='shogi_mate')return;
+            try{
+                const parsed=JSON.parse(field.value||'{}');
+                const normalized=window.LLEShogiMate?.normalizeConfig?.(parsed)||parsed;
+                if(Array.isArray(parsed.solution_routes)){
+                    normalized.solution_routes=parsed.solution_routes.map(route=>Array.isArray(route)?route.map(move=>({...move})):[]);
+                    normalized.solution_moves=normalized.solution_routes[0]?.map(move=>({...move}))||[];
+                }
+                component.shogi_mate=normalized;
+            }catch(_){/* 画面上の編集中データを壊さず、既存値のまま保存します。 */}
+        });
+    };
+
     async function save(){
+        syncMountedShogiEditors();
         session.title=title.value.trim();session.subtitle=subtitle.value.trim();session.show_subtitle=showSubtitle.checked;session.developer_note=memo.value;session.is_published=published.checked;session.development_complete=complete.checked;
         if(!session.title)throw new Error('タイトルを入力してください。');
         // 詰将棋は作成途中でも保存可能にします。
@@ -1750,7 +1799,7 @@ function initEditPage(page) {
         const shogiValidation=window.LLELearningBuilder?.validateShogiComponents?.(session.steps)||{valid:true,errors:[],warnings:[]};
         document.dispatchEvent(new CustomEvent('lle:shogi-save-validated',{detail:{...shogiValidation,allowIncomplete:true}}));
         saveButton.disabled=true;saveButton.textContent='保存中…';
-        try{const backgroundCopyTargets=[...(session._backgroundCopyTargets||[])];const payload=JSON.parse(JSON.stringify(session,(k,v)=>(k.startsWith('_')||k==='show_result_mark'||k==='result_display_seconds')?undefined:v));const form=new FormData();form.append('_method','PUT');form.append('payload',JSON.stringify(payload));if(session._backgroundUpload){form.append('background_image_file',session._backgroundUpload);form.append('background_step_index',String(session._backgroundUploadStepIndex ?? selected ?? 0));}session.steps.forEach((step,i)=>Object.entries(step._uploads||{}).forEach(([slot,file])=>form.append(`files[${i}][${slot}]`,file)));const res=await fetch(saveUrl,{method:'POST',headers:{Accept:'application/json','X-CSRF-TOKEN':csrf},body:form});let data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.message||'保存に失敗しました。');if(Array.isArray(data.steps))data.steps.forEach((saved,i)=>{if(!session.steps[i])return;session.steps[i].id=saved.id;session.steps[i].settings=saved.settings||session.steps[i].settings;session.steps[i]._uploads={};});const savedIndex=session._backgroundUploadStepIndex ?? selected ?? 0;const savedBackground=data.steps?.[savedIndex]?.settings?.screen_background;if(savedBackground&&session.steps[savedIndex]){session.steps[savedIndex].settings.screen_background={...defaultScreenBackground(),...savedBackground};if(selected===savedIndex&&backgroundImage)backgroundImage.value=session.steps[savedIndex].settings.screen_background.image||'';}if(savedBackground&&backgroundCopyTargets.length){backgroundCopyTargets.forEach(index=>{if(session.steps[index])session.steps[index].settings.screen_background=cloneBackground(savedBackground);});const copiedPayload=JSON.parse(JSON.stringify(session,(k,v)=>(k.startsWith('_')||k==='show_result_mark'||k==='result_display_seconds')?undefined:v));const copiedForm=new FormData();copiedForm.append('_method','PUT');copiedForm.append('payload',JSON.stringify(copiedPayload));const copiedRes=await fetch(saveUrl,{method:'POST',headers:{Accept:'application/json','X-CSRF-TOKEN':csrf},body:copiedForm});data=await copiedRes.json().catch(()=>({}));if(!copiedRes.ok)throw new Error(data.message||'背景設定のコピー保存に失敗しました。');if(Array.isArray(data.steps))data.steps.forEach((saved,i)=>{if(session.steps[i])session.steps[i].settings=saved.settings||session.steps[i].settings;});}if(session._backgroundBlobUrl)URL.revokeObjectURL(session._backgroundBlobUrl);session._backgroundBlobUrl=null;session._backgroundUpload=null;session._backgroundUploadStepIndex=null;session._backgroundCopyTargets=[];if(backgroundFile)backgroundFile.value='';refreshBackgroundUploadState();renderSteps();markSaved();}
+        try{const backgroundCopyTargets=[...(session._backgroundCopyTargets||[])];const payload=JSON.parse(JSON.stringify(session,(k,v)=>(k.startsWith('_')||k==='show_result_mark'||k==='result_display_seconds')?undefined:v));const form=new FormData();form.append('_method','PUT');form.append('payload',JSON.stringify(payload));if(session._backgroundUpload){form.append('background_image_file',session._backgroundUpload);form.append('background_step_index',String(session._backgroundUploadStepIndex ?? selected ?? 0));}session.steps.forEach((step,i)=>Object.entries(step._uploads||{}).forEach(([slot,file])=>form.append(`files[${i}][${slot}]`,file)));const res=await fetch(saveUrl,{method:'POST',headers:{Accept:'application/json','X-CSRF-TOKEN':csrf},body:form});let data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.message||'保存に失敗しました。');if(Array.isArray(data.steps))data.steps.forEach((saved,i)=>{if(!session.steps[i])return;session.steps[i].id=saved.id;session.steps[i].settings=saved.settings||session.steps[i].settings;session.steps[i]._uploads={};});const savedIndex=session._backgroundUploadStepIndex ?? selected ?? 0;const savedBackground=data.steps?.[savedIndex]?.settings?.screen_background;if(savedBackground&&session.steps[savedIndex]){session.steps[savedIndex].settings.screen_background={...defaultScreenBackground(),...savedBackground};if(selected===savedIndex&&backgroundImage)backgroundImage.value=session.steps[savedIndex].settings.screen_background.image||'';}if(savedBackground&&backgroundCopyTargets.length){backgroundCopyTargets.forEach(index=>{if(session.steps[index])session.steps[index].settings.screen_background=cloneBackground(savedBackground);});const copiedPayload=JSON.parse(JSON.stringify(session,(k,v)=>(k.startsWith('_')||k==='show_result_mark'||k==='result_display_seconds')?undefined:v));const copiedForm=new FormData();copiedForm.append('_method','PUT');copiedForm.append('payload',JSON.stringify(copiedPayload));const copiedRes=await fetch(saveUrl,{method:'POST',headers:{Accept:'application/json','X-CSRF-TOKEN':csrf},body:copiedForm});data=await copiedRes.json().catch(()=>({}));if(!copiedRes.ok)throw new Error(data.message||'背景設定のコピー保存に失敗しました。');if(Array.isArray(data.steps))data.steps.forEach((saved,i)=>{if(session.steps[i])session.steps[i].settings=saved.settings||session.steps[i].settings;});}if(session._backgroundBlobUrl)URL.revokeObjectURL(session._backgroundBlobUrl);session._backgroundBlobUrl=null;session._backgroundUpload=null;session._backgroundUploadStepIndex=null;session._backgroundCopyTargets=[];if(backgroundFile)backgroundFile.value='';refreshBackgroundUploadState();renderSteps();renderDetail();renderPreview();markSaved();}
         finally{saveButton.disabled=false;saveButton.textContent='保存';}
     }
     saveButton.addEventListener('click',()=>save().catch(e=>alert(e.message)));

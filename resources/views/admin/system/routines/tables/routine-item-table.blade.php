@@ -248,5 +248,7 @@
             </tbody>
         </table>
     </div>
-    <div class="routine-pagination"><span>全 {{ $items->total() }} 件</span>{{ $items->links() }}</div>
+    @include('admin.system.routines.partials.pagination', [
+        'paginator' => $items,
+    ])
 </section>

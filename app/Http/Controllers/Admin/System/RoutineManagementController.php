@@ -640,6 +640,7 @@ class RoutineManagementController extends Controller
             'publication' => ['nullable', 'array'],
             'publication.status' => ['nullable', 'in:unpublished,published,stopped'],
             'sessions' => ['required', 'array', 'min:1'],
+            'sessions.*.id' => ['nullable', 'integer'],
             'sessions.*.title' => ['nullable', 'string', 'max:255'],
             'sessions.*.subtitle' => ['nullable', 'string', 'max:255'],
             'sessions.*.show_subtitle' => ['nullable', 'boolean'],
@@ -656,6 +657,7 @@ class RoutineManagementController extends Controller
             'sessions.*.steps.*.media_path' => ['nullable', 'string', 'max:2048'],
             'sessions.*.steps.*.settings' => ['nullable', 'array'],
             'sessions.*.steps.*.questions' => ['nullable', 'array'],
+            'sessions.*.steps.*.duplicate_media' => ['nullable', 'boolean'],
         ]);
 
         $learningPageId = DB::transaction(function () use ($data, $item) {
@@ -704,15 +706,29 @@ class RoutineManagementController extends Controller
                 ->where('id', $page->id)
                 ->update($pageUpdate);
 
-            $sessionIds = DB::table('learning_sessions')->where('learning_page_id', $page->id)->pluck('id')->all();
-            if (! empty($sessionIds)) {
-                $stepIds = DB::table('learning_steps')->whereIn('learning_session_id', $sessionIds)->pluck('id')->all();
-                if (! empty($stepIds)) {
-                    DB::table('learning_step_contents')->whereIn('learning_step_id', $stepIds)->delete();
-                    DB::table('learning_steps')->whereIn('id', $stepIds)->delete();
-                }
-                DB::table('learning_sessions')->whereIn('id', $sessionIds)->delete();
+            $existingSessionIds = DB::table('learning_sessions')
+                ->where('learning_page_id', $page->id)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
+            $keptSessionIds = [];
+
+            /*
+            * 学習日の挿入・並び替え時に、
+            * 既存のsession_noとの一時的なUnique重複を防ぐため、
+            * 現在の番号を一旦退避します。
+            */
+            if (! empty($existingSessionIds)) {
+                DB::table('learning_sessions')
+                    ->whereIn('id', $existingSessionIds)
+                    ->update([
+                        'session_no' => DB::raw('session_no + 10000'),
+                        'sort_order' => DB::raw('sort_order + 10000'),
+                        'updated_at' => now(),
+                    ]);
             }
+
 
             foreach (array_values($data['sessions']) as $sessionIndex => $session) {
                 $sessionNo = $sessionIndex + 1;
@@ -721,7 +737,19 @@ class RoutineManagementController extends Controller
                     ? 'completed'
                     : (count($steps) > 0 ? 'in_progress' : 'not_started');
 
-                $sessionId = DB::table('learning_sessions')->insertGetId([
+                $candidateSessionId = isset($session['id'])
+                    ? (int) $session['id']
+                    : 0;
+
+                $sessionId = in_array(
+                    $candidateSessionId,
+                    $existingSessionIds,
+                    true
+                )
+                    ? $candidateSessionId
+                    : 0;
+
+                $sessionPayload = [
                     'learning_page_id' => $page->id,
                     'session_no' => $sessionNo,
                     'title' => $session['title'] ?? ($sessionNo . '日目'),
@@ -731,9 +759,44 @@ class RoutineManagementController extends Controller
                     'development_status' => $developmentStatus,
                     'is_published' => (bool) ($session['is_published'] ?? false),
                     'sort_order' => $sessionNo,
-                    'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ];
+
+                if ($sessionId) {
+                    DB::table('learning_sessions')
+                        ->where('id', $sessionId)
+                        ->update($sessionPayload);
+                } else {
+                    $sessionPayload['created_at'] = now();
+
+                    $sessionId = DB::table('learning_sessions')
+                        ->insertGetId($sessionPayload);
+                }
+
+                $keptSessionIds[] = $sessionId;
+
+                                /*
+                * 学習ページ一覧保存では、各学習日のステップを一度DBから削除し、
+                * 受信した最新状態で再作成します。
+                *
+                * S3画像は削除しません。
+                * 通常の学習日は既存画像パスを再利用し、
+                * 複製された学習日だけduplicate_mediaにより物理コピーします。
+                */
+                $existingStepIdsForSession = DB::table('learning_steps')
+                    ->where('learning_session_id', $sessionId)
+                    ->pluck('id')
+                    ->all();
+
+                if (! empty($existingStepIdsForSession)) {
+                    DB::table('learning_step_contents')
+                        ->whereIn('learning_step_id', $existingStepIdsForSession)
+                        ->delete();
+
+                    DB::table('learning_steps')
+                        ->whereIn('id', $existingStepIdsForSession)
+                        ->delete();
+                }
 
                 foreach ($steps as $stepIndex => $step) {
                     $stepType = $step['key'];
@@ -747,19 +810,71 @@ class RoutineManagementController extends Controller
                         'updated_at' => now(),
                     ]);
 
-                    DB::table('learning_step_contents')->insert([
+                    $contentPayload = [
                         'learning_step_id' => $stepId,
-                        'content_title' => $step['content_title'] ?? ($step['label'] ?? $this->learningStepTypeLabel($stepType)),
+                        'content_title' => $step['content_title']
+                            ?? ($step['label'] ?? $this->learningStepTypeLabel($stepType)),
                         'body' => $step['body'] ?? null,
                         'media_type' => $step['media_type'] ?? null,
                         'media_path' => $step['media_path'] ?? null,
-                        'settings' => json_encode($step['settings'] ?? [], JSON_UNESCAPED_UNICODE),
-                        'questions' => json_encode($step['questions'] ?? [], JSON_UNESCAPED_UNICODE),
+                        'settings' => json_encode(
+                            $step['settings'] ?? [],
+                            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+                        ),
+                        'questions' => json_encode(
+                            $step['questions'] ?? [],
+                            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+                        ),
                         'created_at' => now(),
                         'updated_at' => now(),
-                    ]);
+                    ];
+
+                    /*
+                    * 学習日複製で作成されたステップだけ、
+                    * 画像ファイルを複製先のS3階層へ物理コピーします。
+                    */
+                    if (! empty($step['duplicate_media'])) {
+                        $copiedMediaPaths = [];
+
+                        $contentPayload = $this->duplicateLearningContentMedia(
+                            $contentPayload,
+                            (int) $page->id,
+                            $sessionId,
+                            $stepId,
+                            $copiedMediaPaths
+                        );
+                    }
+
+                    DB::table('learning_step_contents')->insert($contentPayload);
                 }
             }
+
+            $removedSessionIds = array_values(
+                array_diff($existingSessionIds, $keptSessionIds)
+            );
+
+            if ($removedSessionIds) {
+                $removedStepIds = DB::table('learning_steps')
+                    ->whereIn('learning_session_id', $removedSessionIds)
+                    ->pluck('id')
+                    ->all();
+
+                if ($removedStepIds) {
+                    DB::table('learning_step_contents')
+                        ->whereIn('learning_step_id', $removedStepIds)
+                        ->delete();
+
+                    DB::table('learning_steps')
+                        ->whereIn('id', $removedStepIds)
+                        ->delete();
+                }
+
+                DB::table('learning_sessions')
+                    ->whereIn('id', $removedSessionIds)
+                    ->delete();
+            }
+
+
 
             if (Schema::hasColumn('routine_contents', 'learning_page_status')) {
                 DB::table('routine_contents')
@@ -1038,46 +1153,535 @@ class RoutineManagementController extends Controller
 
     public function duplicateItem(int $routineContentId)
     {
-        DB::transaction(function () use ($routineContentId) {
-            $source = DB::table('routine_contents')->where('id', $routineContentId)->first();
-            abort_if(empty($source), 404);
+        $copiedMediaPaths = [];
 
-            $sourceArray = collect((array) $source)
-                ->reject(fn ($value, $key) => trim((string) $key) === 'id')
-                ->all();
+        try {
+            DB::transaction(function () use ($routineContentId, &$copiedMediaPaths) {
+                $source = DB::table('routine_contents')
+                    ->where('id', $routineContentId)
+                    ->first();
 
-            $baseName = DB::table('routine_package_items')
-                ->where('routine_content_id', $routineContentId)
-                ->whereNotNull('item_name')
-                ->where('item_name', '<>', '')
-                ->orderBy('order_no')
-                ->value('item_name');
+                abort_if(empty($source), 404);
 
-            $displayBaseName = trim((string) ($baseName ?: $source->name ?: 'ルーティンアイテム'));
-            $duplicatedName = $displayBaseName . '（複製）';
+                $sourceArray = collect((array) $source)
+                    ->reject(fn ($value, $key) => trim((string) $key) === 'id')
+                    ->all();
 
-            $sourceArray['name'] = $duplicatedName;
+                $baseName = DB::table('routine_package_items')
+                    ->where('routine_content_id', $routineContentId)
+                    ->whereNotNull('item_name')
+                    ->where('item_name', '<>', '')
+                    ->orderBy('order_no')
+                    ->value('item_name');
 
-            if (array_key_exists('content_code', $sourceArray)) {
-                $sourceArray['content_code'] = $this->nextCode('routine_contents', 'content_code', 'CONT-');
+                $displayBaseName = trim(
+                    (string) ($baseName ?: $source->name ?: 'ルーティンアイテム')
+                );
+
+                $sourceArray['name'] = $displayBaseName . '（複製）';
+
+                if (array_key_exists('content_code', $sourceArray)) {
+                    $sourceArray['content_code'] = $this->nextCode(
+                        'routine_contents',
+                        'content_code',
+                        'CONT-'
+                    );
+                }
+
+                if (array_key_exists('created_by', $sourceArray)) {
+                    $sourceArray['created_by'] = Auth::id() ?? 1;
+                }
+
+                if (array_key_exists('updated_by', $sourceArray)) {
+                    $sourceArray['updated_by'] = Auth::id() ?? 1;
+                }
+
+                if (array_key_exists('created_at', $sourceArray)) {
+                    $sourceArray['created_at'] = now();
+                }
+
+                if (array_key_exists('updated_at', $sourceArray)) {
+                    $sourceArray['updated_at'] = now();
+                }
+
+                $newRoutineContentId = DB::table('routine_contents')
+                    ->insertGetId($sourceArray);
+
+                $this->duplicateLearningPageTree(
+                    $routineContentId,
+                    $newRoutineContentId,
+                    $copiedMediaPaths
+                );
+            });
+        } catch (\Throwable $exception) {
+            /** @var \App\Services\LearningMediaService $mediaService */
+            $mediaService = app(\App\Services\LearningMediaService::class);
+
+            foreach (array_unique(array_filter($copiedMediaPaths)) as $copiedMediaPath) {
+                try {
+                    $mediaService->delete($copiedMediaPath);
+                } catch (\Throwable) {
+                    // 元の例外を優先するため、後片付けの例外は無視します。
+                }
             }
-            if (array_key_exists('created_by', $sourceArray)) {
-                $sourceArray['created_by'] = Auth::id() ?? 1;
-            }
-            if (array_key_exists('updated_by', $sourceArray)) {
-                $sourceArray['updated_by'] = Auth::id() ?? 1;
-            }
-            if (array_key_exists('created_at', $sourceArray)) {
-                $sourceArray['created_at'] = now();
-            }
-            if (array_key_exists('updated_at', $sourceArray)) {
-                $sourceArray['updated_at'] = now();
+
+            throw $exception;
+        }
+
+        return back()->with(
+            'status',
+            'ルーティンアイテム、学習ページ、画像ファイルを複製しました。'
+        );
+    }
+
+    private function duplicateLearningPageTree(
+        int $sourceRoutineContentId,
+        int $newRoutineContentId,
+        array &$copiedMediaPaths
+    ): void {
+        if (! Schema::hasTable('learning_pages')) {
+            return;
+        }
+
+        $routineForeignKey = Schema::hasColumn(
+            'learning_pages',
+            'routine_content_id'
+        )
+            ? 'routine_content_id'
+            : 'routine_item_id';
+
+        $sourcePages = DB::table('learning_pages')
+            ->where($routineForeignKey, $sourceRoutineContentId)
+            ->orderBy('id')
+            ->get();
+
+        foreach ($sourcePages as $sourcePage) {
+            $pagePayload = $this->makeDuplicatePayload(
+                'learning_pages',
+                $sourcePage
+            );
+
+            $pagePayload[$routineForeignKey] = $newRoutineContentId;
+
+            if (
+                Schema::hasColumn('learning_pages', 'title')
+                && empty($pagePayload['title'])
+            ) {
+                $pagePayload['title'] = '学習ページ';
             }
 
-            DB::table('routine_contents')->insert($sourceArray);
-        });
+            $newLearningPageId = DB::table('learning_pages')
+                ->insertGetId($pagePayload);
 
-        return back()->with('status', 'ルーティンアイテムを複製しました。');
+            $this->duplicateLearningSessions(
+                (int) $sourcePage->id,
+                $newLearningPageId,
+                $copiedMediaPaths
+            );
+        }
+    }
+
+    private function duplicateLearningSessions(
+        int $sourceLearningPageId,
+        int $newLearningPageId,
+        array &$copiedMediaPaths
+    ): void {
+        if (! Schema::hasTable('learning_sessions')) {
+            return;
+        }
+
+        $sourceSessions = DB::table('learning_sessions')
+            ->where('learning_page_id', $sourceLearningPageId)
+            ->orderBy('session_no')
+            ->orderBy('id')
+            ->get();
+
+        foreach ($sourceSessions as $sourceSession) {
+            $sessionPayload = $this->makeDuplicatePayload(
+                'learning_sessions',
+                $sourceSession
+            );
+
+            $sessionPayload['learning_page_id'] = $newLearningPageId;
+
+            $newLearningSessionId = DB::table('learning_sessions')
+                ->insertGetId($sessionPayload);
+
+            $this->duplicateLearningSteps(
+                (int) $sourceSession->id,
+                $newLearningPageId,
+                $newLearningSessionId,
+                $copiedMediaPaths
+            );
+        }
+    }
+
+    private function duplicateLearningSteps(
+        int $sourceLearningSessionId,
+        int $newLearningPageId,
+        int $newLearningSessionId,
+        array &$copiedMediaPaths
+    ): void {
+        if (! Schema::hasTable('learning_steps')) {
+            return;
+        }
+
+        $sourceSteps = DB::table('learning_steps')
+            ->where('learning_session_id', $sourceLearningSessionId)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        foreach ($sourceSteps as $sourceStep) {
+            $stepPayload = $this->makeDuplicatePayload(
+                'learning_steps',
+                $sourceStep
+            );
+
+            $stepPayload['learning_session_id'] = $newLearningSessionId;
+
+            $newLearningStepId = DB::table('learning_steps')
+                ->insertGetId($stepPayload);
+
+            $this->duplicateLearningStepContents(
+                (int) $sourceStep->id,
+                $newLearningPageId,
+                $newLearningSessionId,
+                $newLearningStepId,
+                $copiedMediaPaths
+            );
+        }
+    }
+
+    private function duplicateLearningStepContents(
+        int $sourceLearningStepId,
+        int $newLearningPageId,
+        int $newLearningSessionId,
+        int $newLearningStepId,
+        array &$copiedMediaPaths
+    ): void {
+        if (! Schema::hasTable('learning_step_contents')) {
+            return;
+        }
+
+        $sourceContents = DB::table('learning_step_contents')
+            ->where('learning_step_id', $sourceLearningStepId)
+            ->orderBy('id')
+            ->get();
+
+        foreach ($sourceContents as $sourceContent) {
+            $contentPayload = $this->makeDuplicatePayload(
+                'learning_step_contents',
+                $sourceContent
+            );
+
+            $contentPayload['learning_step_id'] = $newLearningStepId;
+
+            $contentPayload = $this->duplicateLearningContentMedia(
+                $contentPayload,
+                $newLearningPageId,
+                $newLearningSessionId,
+                $newLearningStepId,
+                $copiedMediaPaths
+            );
+
+            DB::table('learning_step_contents')->insert($contentPayload);
+        }
+    }
+
+    private function duplicateLearningContentMedia(
+        array $contentPayload,
+        int $newLearningPageId,
+        int $newLearningSessionId,
+        int $newLearningStepId,
+        array &$copiedMediaPaths
+    ): array {
+        /** @var \App\Services\LearningMediaService $mediaService */
+        $mediaService = app(\App\Services\LearningMediaService::class);
+
+        $copyMedia = function (
+            ?string $sourcePath,
+            string $purpose = 'media'
+        ) use (
+            $mediaService,
+            $newLearningPageId,
+            $newLearningSessionId,
+            $newLearningStepId,
+            &$copiedMediaPaths
+        ): ?string {
+            $sourcePath = trim((string) $sourcePath);
+
+            if (
+                $sourcePath === ''
+                || str_starts_with($sourcePath, 'blob:')
+                || str_starts_with($sourcePath, 'data:')
+            ) {
+                return null;
+            }
+
+            $sourceKey = $mediaService->normalizeKey($sourcePath);
+
+            if (
+                ! $sourceKey
+                || ! \Illuminate\Support\Facades\Storage::disk('s3')->exists($sourceKey)
+            ) {
+                return null;
+            }
+
+            $newPath = $mediaService->copy(
+                $sourceKey,
+                $newLearningPageId,
+                $newLearningSessionId,
+                $newLearningStepId,
+                $purpose
+            );
+
+            $copiedMediaPaths[] = $newPath;
+
+            return $newPath;
+        };
+
+        /*
+        * learning_step_contents.media_path
+        */
+        if (! empty($contentPayload['media_path'])) {
+            $purpose = ($contentPayload['media_type'] ?? null) === 'pdf'
+                ? 'pdf'
+                : 'media';
+
+            $contentPayload['media_path'] = $copyMedia(
+                (string) $contentPayload['media_path'],
+                $purpose
+            );
+        }
+
+        $settings = $this->decodeLearningJsonValue(
+            $contentPayload['settings'] ?? null
+        );
+
+        /*
+        * 学習画面の背景画像
+        */
+        $screenBackgroundPath = data_get(
+            $settings,
+            'screen_background.image'
+        );
+
+        if ($screenBackgroundPath) {
+            data_set(
+                $settings,
+                'screen_background.image',
+                $copyMedia((string) $screenBackgroundPath, 'background')
+            );
+        }
+
+        /*
+        * 問題・回答・解説画像
+        */
+        $specificImagePurposes = [
+            'prompt_image_path' => 'description',
+            'answer_image_path' => 'answer',
+            'explanation_image_path' => 'commentary',
+        ];
+
+        foreach ($specificImagePurposes as $settingKey => $purpose) {
+            $sourcePath = data_get(
+                $settings,
+                "specific.{$settingKey}"
+            );
+
+            if (! $sourcePath) {
+                continue;
+            }
+
+            data_set(
+                $settings,
+                "specific.{$settingKey}",
+                $copyMedia((string) $sourcePath, $purpose)
+            );
+        }
+
+        /*
+        * コンポーネント内画像
+        */
+        $components = data_get($settings, 'components', []);
+
+        if (is_array($components)) {
+            foreach ($components as $componentIndex => $component) {
+                if (! is_array($component)) {
+                    continue;
+                }
+
+                $componentType = $component['type'] ?? null;
+
+                /*
+                * 画像・時間制限表示コンポーネント
+                */
+                if (
+                    in_array($componentType, ['image', 'timed_display'], true)
+                    && ! empty($component['path'])
+                ) {
+                    data_set(
+                        $settings,
+                        "components.{$componentIndex}.path",
+                        $copyMedia((string) $component['path'], 'media')
+                    );
+
+                    data_set(
+                        $settings,
+                        "components.{$componentIndex}.upload_slot",
+                        null
+                    );
+                }
+
+                /*
+                * X択問題セットの問題画像・選択肢画像
+                */
+                if ($componentType !== 'choice_question_set') {
+                    continue;
+                }
+
+                $choiceQuestions = $component['choice_questions'] ?? [];
+
+                if (! is_array($choiceQuestions)) {
+                    continue;
+                }
+
+                foreach (
+                    $choiceQuestions as $questionIndex => $choiceQuestion
+                ) {
+                    if (! is_array($choiceQuestion)) {
+                        continue;
+                    }
+
+                    if (! empty($choiceQuestion['path'])) {
+                        data_set(
+                            $settings,
+                            "components.{$componentIndex}.choice_questions.{$questionIndex}.path",
+                            $copyMedia(
+                                (string) $choiceQuestion['path'],
+                                'media'
+                            )
+                        );
+
+                        data_set(
+                            $settings,
+                            "components.{$componentIndex}.choice_questions.{$questionIndex}.upload_slot",
+                            null
+                        );
+                    }
+
+                    $options = $choiceQuestion['options'] ?? [];
+
+                    if (! is_array($options)) {
+                        continue;
+                    }
+
+                    foreach ($options as $optionIndex => $choiceOption) {
+                        if (
+                            ! is_array($choiceOption)
+                            || empty($choiceOption['path'])
+                        ) {
+                            continue;
+                        }
+
+                        data_set(
+                            $settings,
+                            "components.{$componentIndex}.choice_questions.{$questionIndex}.options.{$optionIndex}.path",
+                            $copyMedia(
+                                (string) $choiceOption['path'],
+                                'media'
+                            )
+                        );
+
+                        data_set(
+                            $settings,
+                            "components.{$componentIndex}.choice_questions.{$questionIndex}.options.{$optionIndex}.upload_slot",
+                            null
+                        );
+                    }
+                }
+            }
+        }
+
+        /*
+        * settingsはjsonカラムへ保存できるJSON文字列に戻します。
+        */
+        if (array_key_exists('settings', $contentPayload)) {
+            $contentPayload['settings'] = json_encode(
+                $settings,
+                JSON_UNESCAPED_UNICODE
+                | JSON_UNESCAPED_SLASHES
+                | JSON_THROW_ON_ERROR
+            );
+        }
+
+        return $contentPayload;
+    }
+
+
+    private function decodeLearningJsonValue(mixed $value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_object($value)) {
+            return (array) $value;
+        }
+
+        if (! is_string($value) || trim($value) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($value, true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+
+
+
+
+
+
+
+    private function makeDuplicatePayload(
+        string $table,
+        object $source
+    ): array {
+        $payload = collect((array) $source)
+            ->reject(fn ($value, $key) => trim((string) $key) === 'id')
+            ->all();
+
+        /*
+        * 現在のDBに実在する列だけを残します。
+        * migrationの適用差によるSQLエラーを防止します。
+        */
+        $existingColumns = Schema::getColumnListing($table);
+
+        $payload = array_intersect_key(
+            $payload,
+            array_flip($existingColumns)
+        );
+
+        if (array_key_exists('created_at', $payload)) {
+            $payload['created_at'] = now();
+        }
+
+        if (array_key_exists('updated_at', $payload)) {
+            $payload['updated_at'] = now();
+        }
+
+        if (array_key_exists('created_by', $payload)) {
+            $payload['created_by'] = Auth::id() ?? 1;
+        }
+
+        if (array_key_exists('updated_by', $payload)) {
+            $payload['updated_by'] = Auth::id() ?? 1;
+        }
+
+        return $payload;
     }
 
     public function duplicateRoutine(int $routinePackageId)
@@ -1651,6 +2255,10 @@ class RoutineManagementController extends Controller
         }
 
         $payload = [
+            'title' => $item->name
+                ?? $item->title
+                ?? $item->content_name
+                ?? '学習ページ',
             'status' => 'draft',
             'publication_status' => 'unpublished',
             'publish_start_at' => null,
