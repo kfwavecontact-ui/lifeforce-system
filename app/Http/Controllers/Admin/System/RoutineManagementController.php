@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin\System;
 
 use App\Http\Controllers\Controller;
+use App\Services\LearningContentMediaPathService;
 use App\Services\LearningMediaService;
+use App\Services\RoutineItemDuplicateService;
 use App\Services\ShogiMateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +16,15 @@ use Illuminate\Support\Str;
 
 class RoutineManagementController extends Controller
 {
+    /**
+     * ControllerはHTTP入出力のみを担当し、複製の業務処理はServiceへ委譲する。
+     */
+    public function __construct(
+        private readonly RoutineItemDuplicateService $routineItemDuplicateService,
+        private readonly LearningContentMediaPathService $learningContentMediaPathService,
+    ) {
+    }
+
     private array $learningStatusMap = [
         'not_created' => '未作成',
         'uncreated' => '未作成',
@@ -1151,82 +1162,15 @@ class RoutineManagementController extends Controller
         return response()->json(['message' => 'ルーティンアイテムを保存しました。']);
     }
 
+    /**
+     * ルーティンアイテムと配下の学習ページ・画像を複製する。
+     *
+     * ControllerではURL引数の受領とレスポンス生成だけを行い、
+     * DB・Storage・ロールバック処理はRoutineItemDuplicateServiceへ委譲する。
+     */
     public function duplicateItem(int $routineContentId)
     {
-        $copiedMediaPaths = [];
-
-        try {
-            DB::transaction(function () use ($routineContentId, &$copiedMediaPaths) {
-                $source = DB::table('routine_contents')
-                    ->where('id', $routineContentId)
-                    ->first();
-
-                abort_if(empty($source), 404);
-
-                $sourceArray = collect((array) $source)
-                    ->reject(fn ($value, $key) => trim((string) $key) === 'id')
-                    ->all();
-
-                $baseName = DB::table('routine_package_items')
-                    ->where('routine_content_id', $routineContentId)
-                    ->whereNotNull('item_name')
-                    ->where('item_name', '<>', '')
-                    ->orderBy('order_no')
-                    ->value('item_name');
-
-                $displayBaseName = trim(
-                    (string) ($baseName ?: $source->name ?: 'ルーティンアイテム')
-                );
-
-                $sourceArray['name'] = $displayBaseName . '（複製）';
-
-                if (array_key_exists('content_code', $sourceArray)) {
-                    $sourceArray['content_code'] = $this->nextCode(
-                        'routine_contents',
-                        'content_code',
-                        'CONT-'
-                    );
-                }
-
-                if (array_key_exists('created_by', $sourceArray)) {
-                    $sourceArray['created_by'] = Auth::id() ?? 1;
-                }
-
-                if (array_key_exists('updated_by', $sourceArray)) {
-                    $sourceArray['updated_by'] = Auth::id() ?? 1;
-                }
-
-                if (array_key_exists('created_at', $sourceArray)) {
-                    $sourceArray['created_at'] = now();
-                }
-
-                if (array_key_exists('updated_at', $sourceArray)) {
-                    $sourceArray['updated_at'] = now();
-                }
-
-                $newRoutineContentId = DB::table('routine_contents')
-                    ->insertGetId($sourceArray);
-
-                $this->duplicateLearningPageTree(
-                    $routineContentId,
-                    $newRoutineContentId,
-                    $copiedMediaPaths
-                );
-            });
-        } catch (\Throwable $exception) {
-            /** @var \App\Services\LearningMediaService $mediaService */
-            $mediaService = app(\App\Services\LearningMediaService::class);
-
-            foreach (array_unique(array_filter($copiedMediaPaths)) as $copiedMediaPath) {
-                try {
-                    $mediaService->delete($copiedMediaPath);
-                } catch (\Throwable) {
-                    // 元の例外を優先するため、後片付けの例外は無視します。
-                }
-            }
-
-            throw $exception;
-        }
+        $this->routineItemDuplicateService->duplicate($routineContentId);
 
         return back()->with(
             'status',
@@ -1234,161 +1178,16 @@ class RoutineManagementController extends Controller
         );
     }
 
-    private function duplicateLearningPageTree(
-        int $sourceRoutineContentId,
-        int $newRoutineContentId,
-        array &$copiedMediaPaths
-    ): void {
-        if (! Schema::hasTable('learning_pages')) {
-            return;
-        }
-
-        $routineForeignKey = Schema::hasColumn(
-            'learning_pages',
-            'routine_content_id'
-        )
-            ? 'routine_content_id'
-            : 'routine_item_id';
-
-        $sourcePages = DB::table('learning_pages')
-            ->where($routineForeignKey, $sourceRoutineContentId)
-            ->orderBy('id')
-            ->get();
-
-        foreach ($sourcePages as $sourcePage) {
-            $pagePayload = $this->makeDuplicatePayload(
-                'learning_pages',
-                $sourcePage
-            );
-
-            $pagePayload[$routineForeignKey] = $newRoutineContentId;
-
-            if (
-                Schema::hasColumn('learning_pages', 'title')
-                && empty($pagePayload['title'])
-            ) {
-                $pagePayload['title'] = '学習ページ';
-            }
-
-            $newLearningPageId = DB::table('learning_pages')
-                ->insertGetId($pagePayload);
-
-            $this->duplicateLearningSessions(
-                (int) $sourcePage->id,
-                $newLearningPageId,
-                $copiedMediaPaths
-            );
-        }
-    }
-
-    private function duplicateLearningSessions(
-        int $sourceLearningPageId,
-        int $newLearningPageId,
-        array &$copiedMediaPaths
-    ): void {
-        if (! Schema::hasTable('learning_sessions')) {
-            return;
-        }
-
-        $sourceSessions = DB::table('learning_sessions')
-            ->where('learning_page_id', $sourceLearningPageId)
-            ->orderBy('session_no')
-            ->orderBy('id')
-            ->get();
-
-        foreach ($sourceSessions as $sourceSession) {
-            $sessionPayload = $this->makeDuplicatePayload(
-                'learning_sessions',
-                $sourceSession
-            );
-
-            $sessionPayload['learning_page_id'] = $newLearningPageId;
-
-            $newLearningSessionId = DB::table('learning_sessions')
-                ->insertGetId($sessionPayload);
-
-            $this->duplicateLearningSteps(
-                (int) $sourceSession->id,
-                $newLearningPageId,
-                $newLearningSessionId,
-                $copiedMediaPaths
-            );
-        }
-    }
-
-    private function duplicateLearningSteps(
-        int $sourceLearningSessionId,
-        int $newLearningPageId,
-        int $newLearningSessionId,
-        array &$copiedMediaPaths
-    ): void {
-        if (! Schema::hasTable('learning_steps')) {
-            return;
-        }
-
-        $sourceSteps = DB::table('learning_steps')
-            ->where('learning_session_id', $sourceLearningSessionId)
-            ->orderBy('sort_order')
-            ->orderBy('id')
-            ->get();
-
-        foreach ($sourceSteps as $sourceStep) {
-            $stepPayload = $this->makeDuplicatePayload(
-                'learning_steps',
-                $sourceStep
-            );
-
-            $stepPayload['learning_session_id'] = $newLearningSessionId;
-
-            $newLearningStepId = DB::table('learning_steps')
-                ->insertGetId($stepPayload);
-
-            $this->duplicateLearningStepContents(
-                (int) $sourceStep->id,
-                $newLearningPageId,
-                $newLearningSessionId,
-                $newLearningStepId,
-                $copiedMediaPaths
-            );
-        }
-    }
-
-    private function duplicateLearningStepContents(
-        int $sourceLearningStepId,
-        int $newLearningPageId,
-        int $newLearningSessionId,
-        int $newLearningStepId,
-        array &$copiedMediaPaths
-    ): void {
-        if (! Schema::hasTable('learning_step_contents')) {
-            return;
-        }
-
-        $sourceContents = DB::table('learning_step_contents')
-            ->where('learning_step_id', $sourceLearningStepId)
-            ->orderBy('id')
-            ->get();
-
-        foreach ($sourceContents as $sourceContent) {
-            $contentPayload = $this->makeDuplicatePayload(
-                'learning_step_contents',
-                $sourceContent
-            );
-
-            $contentPayload['learning_step_id'] = $newLearningStepId;
-
-            $contentPayload = $this->duplicateLearningContentMedia(
-                $contentPayload,
-                $newLearningPageId,
-                $newLearningSessionId,
-                $newLearningStepId,
-                $copiedMediaPaths
-            );
-
-            DB::table('learning_step_contents')->insert($contentPayload);
-        }
-    }
-
+    /**
+     * 学習日複製時に、コンテンツ内の画像を複製先Storage階層へコピーする。
+     *
+     * 画像パス構造の解析はLearningContentMediaPathServiceへ一本化し、
+     * ルーティンアイテム複製と学習日複製で同じ画像対応範囲を使用する。
+     *
+     * @param array<string, mixed> $contentPayload
+     * @param array<int, string> $copiedMediaPaths
+     * @return array<string, mixed>
+     */
     private function duplicateLearningContentMedia(
         array $contentPayload,
         int $newLearningPageId,
@@ -1396,229 +1195,14 @@ class RoutineManagementController extends Controller
         int $newLearningStepId,
         array &$copiedMediaPaths
     ): array {
-        /** @var \App\Services\LearningMediaService $mediaService */
-        $mediaService = app(\App\Services\LearningMediaService::class);
-
-        $copyMedia = function (
-            ?string $sourcePath,
-            string $purpose = 'media'
-        ) use (
-            $mediaService,
+        return $this->learningContentMediaPathService->duplicateContentMedia(
+            $contentPayload,
             $newLearningPageId,
             $newLearningSessionId,
             $newLearningStepId,
-            &$copiedMediaPaths
-        ): ?string {
-            $sourcePath = trim((string) $sourcePath);
-
-            if (
-                $sourcePath === ''
-                || str_starts_with($sourcePath, 'blob:')
-                || str_starts_with($sourcePath, 'data:')
-            ) {
-                return null;
-            }
-
-            $sourceKey = $mediaService->normalizeKey($sourcePath);
-
-            if (
-                ! $sourceKey
-                || ! \Illuminate\Support\Facades\Storage::disk('s3')->exists($sourceKey)
-            ) {
-                return null;
-            }
-
-            $newPath = $mediaService->copy(
-                $sourceKey,
-                $newLearningPageId,
-                $newLearningSessionId,
-                $newLearningStepId,
-                $purpose
-            );
-
-            $copiedMediaPaths[] = $newPath;
-
-            return $newPath;
-        };
-
-        /*
-        * learning_step_contents.media_path
-        */
-        if (! empty($contentPayload['media_path'])) {
-            $purpose = ($contentPayload['media_type'] ?? null) === 'pdf'
-                ? 'pdf'
-                : 'media';
-
-            $contentPayload['media_path'] = $copyMedia(
-                (string) $contentPayload['media_path'],
-                $purpose
-            );
-        }
-
-        $settings = $this->decodeLearningJsonValue(
-            $contentPayload['settings'] ?? null
+            $copiedMediaPaths,
         );
-
-        /*
-        * 学習画面の背景画像
-        */
-        $screenBackgroundPath = data_get(
-            $settings,
-            'screen_background.image'
-        );
-
-        if ($screenBackgroundPath) {
-            data_set(
-                $settings,
-                'screen_background.image',
-                $copyMedia((string) $screenBackgroundPath, 'background')
-            );
-        }
-
-        /*
-        * 問題・回答・解説画像
-        */
-        $specificImagePurposes = [
-            'prompt_image_path' => 'description',
-            'answer_image_path' => 'answer',
-            'explanation_image_path' => 'commentary',
-        ];
-
-        foreach ($specificImagePurposes as $settingKey => $purpose) {
-            $sourcePath = data_get(
-                $settings,
-                "specific.{$settingKey}"
-            );
-
-            if (! $sourcePath) {
-                continue;
-            }
-
-            data_set(
-                $settings,
-                "specific.{$settingKey}",
-                $copyMedia((string) $sourcePath, $purpose)
-            );
-        }
-
-        /*
-        * コンポーネント内画像
-        */
-        $components = data_get($settings, 'components', []);
-
-        if (is_array($components)) {
-            foreach ($components as $componentIndex => $component) {
-                if (! is_array($component)) {
-                    continue;
-                }
-
-                $componentType = $component['type'] ?? null;
-
-                /*
-                * 画像・時間制限表示コンポーネント
-                */
-                if (
-                    in_array($componentType, ['image', 'timed_display'], true)
-                    && ! empty($component['path'])
-                ) {
-                    data_set(
-                        $settings,
-                        "components.{$componentIndex}.path",
-                        $copyMedia((string) $component['path'], 'media')
-                    );
-
-                    data_set(
-                        $settings,
-                        "components.{$componentIndex}.upload_slot",
-                        null
-                    );
-                }
-
-                /*
-                * X択問題セットの問題画像・選択肢画像
-                */
-                if ($componentType !== 'choice_question_set') {
-                    continue;
-                }
-
-                $choiceQuestions = $component['choice_questions'] ?? [];
-
-                if (! is_array($choiceQuestions)) {
-                    continue;
-                }
-
-                foreach (
-                    $choiceQuestions as $questionIndex => $choiceQuestion
-                ) {
-                    if (! is_array($choiceQuestion)) {
-                        continue;
-                    }
-
-                    if (! empty($choiceQuestion['path'])) {
-                        data_set(
-                            $settings,
-                            "components.{$componentIndex}.choice_questions.{$questionIndex}.path",
-                            $copyMedia(
-                                (string) $choiceQuestion['path'],
-                                'media'
-                            )
-                        );
-
-                        data_set(
-                            $settings,
-                            "components.{$componentIndex}.choice_questions.{$questionIndex}.upload_slot",
-                            null
-                        );
-                    }
-
-                    $options = $choiceQuestion['options'] ?? [];
-
-                    if (! is_array($options)) {
-                        continue;
-                    }
-
-                    foreach ($options as $optionIndex => $choiceOption) {
-                        if (
-                            ! is_array($choiceOption)
-                            || empty($choiceOption['path'])
-                        ) {
-                            continue;
-                        }
-
-                        data_set(
-                            $settings,
-                            "components.{$componentIndex}.choice_questions.{$questionIndex}.options.{$optionIndex}.path",
-                            $copyMedia(
-                                (string) $choiceOption['path'],
-                                'media'
-                            )
-                        );
-
-                        data_set(
-                            $settings,
-                            "components.{$componentIndex}.choice_questions.{$questionIndex}.options.{$optionIndex}.upload_slot",
-                            null
-                        );
-                    }
-                }
-            }
-        }
-
-        /*
-        * settingsはjsonカラムへ保存できるJSON文字列に戻します。
-        */
-        if (array_key_exists('settings', $contentPayload)) {
-            $contentPayload['settings'] = json_encode(
-                $settings,
-                JSON_UNESCAPED_UNICODE
-                | JSON_UNESCAPED_SLASHES
-                | JSON_THROW_ON_ERROR
-            );
-        }
-
-        return $contentPayload;
     }
-
 
     private function decodeLearningJsonValue(mixed $value): array
     {
@@ -1641,48 +1225,6 @@ class RoutineManagementController extends Controller
 
 
 
-
-
-
-
-
-    private function makeDuplicatePayload(
-        string $table,
-        object $source
-    ): array {
-        $payload = collect((array) $source)
-            ->reject(fn ($value, $key) => trim((string) $key) === 'id')
-            ->all();
-
-        /*
-        * 現在のDBに実在する列だけを残します。
-        * migrationの適用差によるSQLエラーを防止します。
-        */
-        $existingColumns = Schema::getColumnListing($table);
-
-        $payload = array_intersect_key(
-            $payload,
-            array_flip($existingColumns)
-        );
-
-        if (array_key_exists('created_at', $payload)) {
-            $payload['created_at'] = now();
-        }
-
-        if (array_key_exists('updated_at', $payload)) {
-            $payload['updated_at'] = now();
-        }
-
-        if (array_key_exists('created_by', $payload)) {
-            $payload['created_by'] = Auth::id() ?? 1;
-        }
-
-        if (array_key_exists('updated_by', $payload)) {
-            $payload['updated_by'] = Auth::id() ?? 1;
-        }
-
-        return $payload;
-    }
 
     public function duplicateRoutine(int $routinePackageId)
     {
