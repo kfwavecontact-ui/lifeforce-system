@@ -13,6 +13,11 @@
     <link rel="stylesheet" href="{{ asset('css/admin/master.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/challenge-management.css') }}">
 
+
+    @if(request()->routeIs('admin.operations.communication.boards.*'))
+        <link rel="stylesheet" href="{{ asset('css/admin/boards.css') }}">
+    @endif
+
     @if(request()->routeIs('admin.operations.classroom-accounting.transactions.*'))
         <link rel="stylesheet" href="{{ asset('css/admin/account-transactions.css') }}">
     @endif
@@ -270,7 +275,9 @@ document.addEventListener('DOMContentLoaded', function () {
 @endif
 
 
-
+@if(request()->routeIs('admin.operations.communication.boards.*'))
+    <script src="{{ asset('js/admin/boards.js') }}"></script>
+@endif
 
 </body>
 </html>

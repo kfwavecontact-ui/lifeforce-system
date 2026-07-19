@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\Account\SpotSaleController;
 use App\Http\Controllers\Admin\Account\RefundController;
 use App\Http\Controllers\Admin\Account\PointProductCostController;
 use App\Http\Controllers\Admin\Account\ExpenseController;
+use App\Http\Controllers\Admin\Operations\BoardController;
 use App\Http\Controllers\Learning\ShogiMateResultController;
 
 
@@ -279,6 +280,17 @@ Route::prefix('admin')
 
         Route::post('/system/permissions', [PermissionController::class, 'update'])
             ->name('system.permissions.update');
+
+
+        Route::prefix('operations/communication')
+            ->name('operations.communication.')
+            ->group(function () {
+                Route::get('/boards', [BoardController::class, 'index'])->name('boards.index');
+                Route::post('/boards', [BoardController::class, 'store'])->name('boards.store');
+                Route::put('/boards/{boardPost}', [BoardController::class, 'update'])->name('boards.update');
+                Route::post('/boards/{boardPost}/duplicate', [BoardController::class, 'duplicate'])->name('boards.duplicate');
+                Route::delete('/boards/{boardPost}', [BoardController::class, 'destroy'])->name('boards.destroy');
+            });
 
         Route::prefix('operations/classroom-accounting')
             ->name('admin.operations.classroom-accounting.')

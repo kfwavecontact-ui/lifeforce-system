@@ -389,19 +389,25 @@
         <button class="sidebar-item sidebar-toggle" type="button">
             <span class="sidebar-toggle-label">
                 <i class="fas fa-comment-dots"></i>
-                <span>連絡・メモ</span>
+                <span>連絡</span>
             </span>
             <i class="fas fa-chevron-down sidebar-arrow"></i>
         </button>
 
         <div class="sidebar-submenu">
-            <a href="#" class="sidebar-subitem" data-search-name="運営 ＞ 連絡・メモ ＞ お知らせ" data-info="一斉通知を配信します">
-                <span>お知らせ</span>
+            <a href="#"
+                class="sidebar-subitem"
+                data-search-name="運営 ＞ 連絡 ＞ 掲示板"
+                data-info="教室全体・教室別・学年別・コース別・生徒個別のお知らせを管理します">
+                <span>掲示板</span>
                 <i class="fas fa-circle-info sidebar-info"></i>
             </a>
 
-            <a href="#" class="sidebar-subitem" data-search-name="運営 ＞ 連絡・メモ ＞ メッセージ" data-info="個別メッセージを管理します">
-                <span>メッセージ</span>
+            <a href="#"
+                class="sidebar-subitem"
+                data-search-name="運営 ＞ 連絡 ＞ 一斉通知"
+                data-info="生徒・保護者・講師へ一斉通知を配信します">
+                <span>一斉通知</span>
                 <i class="fas fa-circle-info sidebar-info"></i>
             </a>
         </div>
