@@ -13,6 +13,13 @@ class NotificationMasterSeeder extends Seeder
     {
         DB::transaction(function () {
             $notifications = [
+                // 一斉通知で使用する汎用通知種別
+                ['code' => 'bulk_general', 'name' => '一般連絡', 'category' => '一斉通知', 'description' => '通常のお知らせや連絡事項を一斉配信する際に使用します。', 'sort_order' => 1],
+                ['code' => 'bulk_important', 'name' => '重要連絡', 'category' => '一斉通知', 'description' => '重要度の高い連絡事項を一斉配信する際に使用します。', 'sort_order' => 2],
+                ['code' => 'bulk_emergency', 'name' => '緊急連絡', 'category' => '一斉通知', 'description' => '休講・災害・安全に関する緊急連絡を一斉配信する際に使用します。', 'sort_order' => 3],
+                ['code' => 'bulk_event', 'name' => 'イベント案内', 'category' => '一斉通知', 'description' => 'イベント・講習・説明会などの案内を一斉配信する際に使用します。', 'sort_order' => 4],
+                ['code' => 'bulk_payment', 'name' => '会費・請求案内', 'category' => '一斉通知', 'description' => '会費・請求・支払に関する案内を一斉配信する際に使用します。', 'sort_order' => 5],
+
                 ['code' => 'lesson_before', 'name' => '授業前日通知', 'category' => '授業', 'description' => '授業前日に送信される通知', 'sort_order' => 10],
                 ['code' => 'lesson_today', 'name' => '本日の授業通知', 'category' => '授業', 'description' => '授業当日に送信される通知', 'sort_order' => 20],
                 ['code' => 'lesson_absent', 'name' => '欠席通知', 'category' => '授業', 'description' => '欠席登録時に送信される通知', 'sort_order' => 30],
@@ -74,6 +81,18 @@ class NotificationMasterSeeder extends Seeder
 
     private function defaultRoleSetting(string $code, string $role): array
     {
+        if (str_starts_with($code, 'bulk_')) {
+            $enabled = in_array($role, ['student', 'parent'], true);
+
+            return [
+                'portal_enabled' => $enabled,
+                'email_enabled' => false,
+                'line_enabled' => false,
+                'push_enabled' => false,
+                'is_active' => true,
+            ];
+        }
+
         $settings = [
             'student' => [
                 'lesson_before',

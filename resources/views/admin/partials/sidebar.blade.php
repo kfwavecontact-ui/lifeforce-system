@@ -395,21 +395,15 @@
         </button>
 
         <div class="sidebar-submenu">
-            <a href="#"
+            <a href="{{ route('admin.operations.communication.boards.index') }}"
                 class="sidebar-subitem"
-                data-search-name="運営 ＞ 連絡 ＞ 掲示板"
-                data-info="教室全体・教室別・学年別・コース別・生徒個別のお知らせを管理します">
-                <span>掲示板</span>
+                data-search-name="運営 ＞ 連絡 ＞ 教室からのご連絡"
+                data-info="教室からのご連絡や、通知する内容を管理します">
+                <span>教室からのご連絡</span>
                 <i class="fas fa-circle-info sidebar-info"></i>
             </a>
 
-            <a href="#"
-                class="sidebar-subitem"
-                data-search-name="運営 ＞ 連絡 ＞ 一斉通知"
-                data-info="生徒・保護者・講師へ一斉通知を配信します">
-                <span>一斉通知</span>
-                <i class="fas fa-circle-info sidebar-info"></i>
-            </a>
+
         </div>
     </div>
 

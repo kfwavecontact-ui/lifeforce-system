@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\Account\RefundController;
 use App\Http\Controllers\Admin\Account\PointProductCostController;
 use App\Http\Controllers\Admin\Account\ExpenseController;
 use App\Http\Controllers\Admin\Operations\BoardController;
+use App\Http\Controllers\Admin\Operations\BulkNotificationController;
 use App\Http\Controllers\Learning\ShogiMateResultController;
 
 
@@ -89,6 +90,10 @@ Route::delete('/admin/students/{student}/karte/routines/items/{item}', [StudentK
 Route::prefix('admin')
     ->name('admin.')
     ->group(function () {
+        // 一斉通知は掲示板へ統合済み。旧URLは掲示板一覧へ転送します。
+        Route::redirect('/operations/communication/bulk-notifications', '/admin/operations/communication/boards')
+            ->name('operations.communication.bulk-notifications.index');
+
 
         Route::get('/system/master', [MasterController::class, 'index'])
             ->name('system.master');
@@ -286,6 +291,7 @@ Route::prefix('admin')
             ->name('operations.communication.')
             ->group(function () {
                 Route::get('/boards', [BoardController::class, 'index'])->name('boards.index');
+                Route::get('/boards/{boardPost}/audience-status', [BoardController::class, 'audienceStatus'])->name('boards.audience-status');
                 Route::post('/boards', [BoardController::class, 'store'])->name('boards.store');
                 Route::put('/boards/{boardPost}', [BoardController::class, 'update'])->name('boards.update');
                 Route::post('/boards/{boardPost}/duplicate', [BoardController::class, 'duplicate'])->name('boards.duplicate');

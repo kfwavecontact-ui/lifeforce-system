@@ -283,3 +283,264 @@
 .board-current-attachment-item.remove-marked .board-current-attachment-status {
     color: #b42318;
 }
+
+/* 2026-07-20 表示イメージ重要タグ統一 */
+.board-preview-important{display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border-radius:999px;background:#fff1f2;color:#dc2626;font-size:11px;font-weight:700;line-height:1;margin-right:6px}
+
+
+/* 掲示板・通知統合：共有区分と表示方法 */
+.board-share-badge,.board-delivery-badge{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;white-space:nowrap}
+.board-share-all{background:#e8f5e9;color:#28733b;border:1px solid #b9dfc2}
+.board-share-individual{background:#e8f1fb;color:#245f9b;border:1px solid #bdd3eb}
+.board-delivery-listed{background:#f0f7e9;color:#4f762b;border:1px solid #cfe3b8}
+.board-delivery-notified{background:#fff2df;color:#a45a00;border:1px solid #f3cf9d}
+.board-delivery-settings,.board-share-settings{padding:14px;border:1px solid #dfe6eb;border-radius:10px;background:#f9fbfc}
+.board-target-disabled{opacity:.48;pointer-events:none}
+.board-preview-meta .board-share-badge,.board-preview-meta .board-delivery-badge{margin-right:4px}
+
+/* 教室からのご連絡：通知予約・添付件数・確認状況 */
+.board-notify-date {
+    min-width: 132px;
+    white-space: nowrap;
+}
+
+.board-notify-date small,
+.board-confirmation-cell small {
+    display: block;
+    margin-top: 3px;
+    color: #6b7280;
+    font-size: 11px;
+}
+
+.board-attachment-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 42px;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #374151;
+    font-weight: 700;
+}
+
+.board-confirmation-cell {
+    min-width: 92px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.board-confirmation-cell strong {
+    color: #166534;
+}
+
+.board-muted {
+    color: #9ca3af;
+}
+
+.board-form-option-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 14px;
+    border: 1px solid #dbe4e1;
+    border-radius: 8px;
+    background: #f8fbfa;
+}
+
+.board-form-option-card label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+}
+
+.board-field-help {
+    display: block;
+    margin-top: 5px;
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.board-preview-confirmation {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.board-preview-confirmation button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 18px;
+    border: 0;
+    border-radius: 8px;
+    background: #16835f;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.board-preview-confirmation button.confirmed {
+    background: #64748b;
+    cursor: default;
+}
+
+.board-preview-confirmation span {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+/* 「確認しました」設定はチェックボックスと文言を横一列で表示する。 */
+.board-confirm-option-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: auto;
+    white-space: nowrap;
+}
+
+.board-confirm-option-label input[type="checkbox"] {
+    flex: 0 0 auto;
+    width: auto;
+    margin: 0;
+}
+
+/* 既読・確認状況モーダル */
+.board-audience-status-dialog {
+    max-width: 920px;
+}
+
+.board-audience-status-summary {
+    margin-bottom: 16px;
+}
+
+.board-audience-title {
+    margin-bottom: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #24313f;
+}
+
+.board-audience-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.board-audience-metrics span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 7px 10px;
+    border: 1px solid #dce4ea;
+    border-radius: 8px;
+    background: #f8fafb;
+    font-size: 13px;
+}
+
+.board-audience-note {
+    margin-top: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    background: #fff8e6;
+    color: #775b17;
+    font-size: 13px;
+}
+
+.board-audience-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.board-audience-tabs button {
+    min-height: 42px;
+    border: 1px solid #cfd9df;
+    border-radius: 8px;
+    background: #fff;
+    color: #475569;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.board-audience-tabs button.active {
+    border-color: #2f855a;
+    background: #edf8f2;
+    color: #236b49;
+}
+
+.board-audience-tabs button span {
+    display: inline-flex;
+    min-width: 22px;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
+    margin-left: 4px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.08);
+    font-size: 12px;
+}
+
+.board-audience-table-wrap {
+    max-height: 430px;
+    overflow: auto;
+    border: 1px solid #dce4ea;
+    border-radius: 8px;
+}
+
+.board-audience-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.board-audience-table th,
+.board-audience-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid #e7edf1;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.board-audience-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #f4f7f8;
+    color: #425466;
+    font-size: 13px;
+}
+
+.board-audience-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.board-audience-empty,
+.board-audience-loading,
+.board-audience-error {
+    padding: 32px 16px;
+    border: 1px dashed #cfd9df;
+    border-radius: 8px;
+    text-align: center;
+    color: #64748b;
+}
+
+.board-audience-error {
+    border-color: #efb4b4;
+    background: #fff5f5;
+    color: #a33a3a;
+}
+
+@media (max-width: 720px) {
+    .board-audience-tabs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

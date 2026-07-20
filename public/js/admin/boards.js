@@ -1,8 +1,9 @@
-/* 運営 ＞ 連絡 ＞ 掲示板：モーダル、操作メニュー、公開対象切替を管理します。 */
+/* 運営 ＞ 連絡 ＞ 教室からのご連絡：モーダル、操作メニュー、公開対象切替を管理します。 */
 document.addEventListener('DOMContentLoaded', () => {
     const formModal = document.getElementById('boardFormModal');
     const detailModal = document.getElementById('boardDetailModal');
     const previewModal = document.getElementById('boardPreviewModal');
+    const audienceStatusModal = document.getElementById('boardAudienceStatusModal');
     const form = document.getElementById('boardForm');
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[char]));
     const statusLabel = (status) => ({draft:'下書き',published:'公開',closed:'公開終了'}[status] || status);
@@ -157,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.board-table-scroll')?.addEventListener('scroll', closeOperationMenu);
     document.querySelectorAll('.board-operation-menu').forEach((menu) => menu.addEventListener('click', (event) => event.stopPropagation()));
 
+    const shareRadios = [...document.querySelectorAll('input[name="share_type"]')];
     const targetRadios = [...document.querySelectorAll('input[name="target_type"]')];
     const targetSelects = [...document.querySelectorAll('[data-target-select]')];
     function updateTargetSelect(type, selectedIds = []) {
@@ -169,22 +171,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     targetRadios.forEach((radio) => radio.addEventListener('change', () => updateTargetSelect(radio.value)));
 
+    function updateShareType(type) {
+        const individual = type === 'individual';
+        document.getElementById('boardIndividualTargetOptions')?.closest('.board-form-full')?.classList.toggle('board-target-disabled', !individual);
+        targetRadios.forEach((radio) => { radio.disabled = !individual; });
+        if (individual) {
+            const selected = targetRadios.find((radio) => radio.checked) || targetRadios[0];
+            if (selected) { selected.checked = true; updateTargetSelect(selected.value); }
+        } else {
+            targetSelects.forEach((select) => { select.disabled = true; select.classList.remove('active'); });
+        }
+    }
+    shareRadios.forEach((radio) => radio.addEventListener('change', () => updateShareType(radio.value)));
+
     function resetForm() {
         form.reset();
         form.action = window.boardRoutes.store;
         document.getElementById('boardFormMethod').value = 'POST';
-        document.getElementById('boardFormTitle').textContent = '新規掲示板登録';
+        document.getElementById('boardFormTitle').textContent = '新規ご連絡登録';
         document.getElementById('boardCurrentAttachments').innerHTML = '';
         resetSelectedAttachments();
-        targetRadios.find((radio) => radio.value === 'all').checked = true;
-        updateTargetSelect('all');
+        document.getElementById('boardIsListed').checked = true;
+        document.getElementById('boardIsNotified').checked = false;
+        document.getElementById('boardNotifyAt').value = '';
+        document.getElementById('boardNotifyAt').disabled = true;
+        document.getElementById('boardRequiresConfirmation').checked = false;
+        shareRadios.find((radio) => radio.value === 'all').checked = true;
+        if (targetRadios[0]) targetRadios[0].checked = true;
+        updateShareType('all');
     }
 
     document.querySelector('[data-board-open="create"]')?.addEventListener('click', () => { resetForm(); openModal(formModal); });
 
     function fillEdit(data) {
         resetForm();
-        document.getElementById('boardFormTitle').textContent = `掲示板編集（ID: ${data.id}）`;
+        document.getElementById('boardFormTitle').textContent = `教室からのご連絡編集（ID: ${data.id}）`;
         form.action = window.boardRoutes.update.replace('__ID__', data.id);
         document.getElementById('boardFormMethod').value = 'PUT';
         document.getElementById('boardCategory').value = data.category;
@@ -195,9 +216,17 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('boardPublishTo').value = data.publish_to || '';
         document.getElementById('boardImportant').checked = !!data.is_important;
         document.getElementById('boardPinned').checked = !!data.is_pinned;
+        document.getElementById('boardIsListed').checked = !!data.is_listed;
+        document.getElementById('boardIsNotified').checked = !!data.is_notified;
+        document.getElementById('boardNotifyAt').value = data.notify_at || '';
+        document.getElementById('boardNotifyAt').disabled = !data.is_notified;
+        document.getElementById('boardRequiresConfirmation').checked = !!data.requires_confirmation;
+        const shareRadio = shareRadios.find((item) => item.value === (data.share_type || 'all'));
+        if (shareRadio) shareRadio.checked = true;
         const radio = targetRadios.find((item) => item.value === data.target_type);
         if (radio) radio.checked = true;
-        updateTargetSelect(data.target_type, data.target_ids || []);
+        updateShareType(data.share_type || 'all');
+        if ((data.share_type || 'all') === 'individual') updateTargetSelect(data.target_type, data.target_ids || []);
         const attachmentArea = document.getElementById('boardCurrentAttachments');
         const attachments = Array.isArray(data.attachments) ? data.attachments : [];
         attachmentArea.innerHTML = attachments.length
@@ -216,10 +245,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const period = `${data.publish_from ? data.publish_from.replace('T',' ') : '未設定'} ～ ${data.publish_to ? data.publish_to.replace('T',' ') : '期限なし'}`;
         document.getElementById('boardDetailContent').innerHTML = `<dl class="board-detail-grid">
             <dt>ID</dt><dd>${escapeHtml(data.id)}</dd><dt>タイトル</dt><dd>${escapeHtml(data.title)}</dd>
-            <dt>カテゴリ</dt><dd>${escapeHtml(data.category)}</dd><dt>公開対象</dt><dd>${escapeHtml(data.target_label)}（${escapeHtml(data.target_count)}名）</dd>
-            <dt>公開期間</dt><dd>${escapeHtml(period)}</dd><dt>状態</dt><dd>${escapeHtml(statusLabel(data.status))}</dd>
-            <dt>重要／ピン</dt><dd>${data.is_important ? '重要' : '-'} ／ ${data.is_pinned ? 'ピン留め' : '-'}</dd>
+            <dt>カテゴリ</dt><dd>${escapeHtml(data.category)}</dd><dt>共有区分</dt><dd>${data.share_type === 'individual' ? '個別共有' : '全体共有'}</dd>
+            <dt>表示方法</dt><dd>${data.is_listed ? '掲示板に掲載' : ''}${data.is_listed && data.is_notified ? ' ／ ' : ''}${data.is_notified ? '通知する' : ''}</dd><dt>共有対象</dt><dd>${escapeHtml(data.target_label)}（${escapeHtml(data.target_count)}名）</dd>
+            <dt>公開期間</dt><dd>${escapeHtml(period)}</dd><dt>通知日時</dt><dd>${data.is_notified ? escapeHtml(data.notify_at ? data.notify_at.replace('T',' ') : '即時') : '通知なし'}${data.notified_at ? '（通知済）' : ''}</dd>
+            <dt>状態</dt><dd>${escapeHtml(statusLabel(data.status))}</dd><dt>重要／ピン</dt><dd>${data.is_important ? '重要' : '-'} ／ ${data.is_pinned ? 'ピン留め' : '-'}</dd>
             <dt>閲覧</dt><dd>${escapeHtml(data.reads_count)}件（既読率 ${escapeHtml(data.read_rate)}%）</dd>
+            <dt>確認状況</dt><dd>${data.requires_confirmation ? `${escapeHtml(data.confirmations_count)}/${escapeHtml(data.target_count)}名（${escapeHtml(data.confirmation_rate)}%）` : '確認不要'}</dd>
             <dt>本文</dt><dd class="board-detail-body">${escapeHtml(data.body)}</dd>
             <dt>添付</dt><dd>${renderAttachments(data.attachments)}</dd>
             <dt>作成日時</dt><dd>${escapeHtml(data.created_at)}</dd><dt>更新日時</dt><dd>${escapeHtml(data.updated_at)}</dd></dl>`;
@@ -230,17 +261,106 @@ document.addEventListener('DOMContentLoaded', () => {
         const publishDate = data.publish_from ? data.publish_from.slice(0,10).replaceAll('-','/') : '';
         const body = escapeHtml(data.body).replace(/\n/g, '<br>');
         const attachmentItems = Array.isArray(data.attachments) ? data.attachments : [];
-        const attachment = attachmentItems.length ? `<div class="board-preview-attachment"><div class="board-preview-attachment-title"><i class="fas fa-paperclip"></i> 添付ファイル</div>${attachmentItems.map((item) => `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">${escapeHtml(item.name)}</a>`).join('')}</div>` : '';
+        const attachment = attachmentItems.length ? `<div class="board-preview-attachment"><div class="board-preview-attachment-title"><i class="fas fa-paperclip"></i> 添付ファイル（${attachmentItems.length}件）</div>${attachmentItems.map((item) => `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">${escapeHtml(item.name)}</a>`).join('')}</div>` : '';
+        const confirmation = data.requires_confirmation ? `<div class="board-preview-confirmation"><button type="button" data-board-preview-confirm><i class="fas fa-check"></i> 確認しました</button><span>確認が必要なご連絡です。</span></div>` : '';
         document.getElementById('boardPreviewContent').innerHTML = `<div class="board-preview-section-title">${escapeHtml(data.preview_heading)}</div><article class="board-preview-card">
-            <div class="board-preview-meta">${data.is_pinned ? '<i class="fas fa-thumbtack board-preview-pinned"></i>' : ''}${data.is_important ? '<span class="board-preview-important">重要</span>' : ''}<span>${escapeHtml(data.category)}</span><span>${escapeHtml(publishDate)}</span></div>
-            <h3 class="board-preview-title">${escapeHtml(data.title)}</h3><div class="board-preview-body">${body}</div>${attachment}
-            <div class="board-preview-period">公開期間：${escapeHtml(data.publish_from ? data.publish_from.replace('T',' ') : '未設定')} ～ ${escapeHtml(data.publish_to ? data.publish_to.replace('T',' ') : '期限なし')}</div></article>`;
+            <div class="board-preview-meta"><span class="board-share-badge board-share-${escapeHtml(data.share_type || 'all')}">${data.share_type === 'individual' ? '個別共有' : '全体共有'}</span>${data.is_notified ? '<span class="board-delivery-badge board-delivery-notified">通知</span>' : ''}${data.is_pinned ? '<i class="fas fa-thumbtack board-preview-pinned"></i>' : ''}${data.is_important ? '<span class="board-preview-important">重要</span>' : ''}<span>${escapeHtml(data.category)}</span><span>${escapeHtml(publishDate)}</span></div>
+            <h3 class="board-preview-title">${escapeHtml(data.title)}</h3><div class="board-preview-body">${body}</div>${attachment}${confirmation}
+            <div class="board-preview-period">公開期間：${escapeHtml(data.publish_from ? data.publish_from.replace('T',' ') : '未設定')} ～ ${escapeHtml(data.publish_to ? data.publish_to.replace('T',' ') : '期限なし')}${data.is_notified ? `<br>通知日時：${escapeHtml(data.notify_at ? data.notify_at.replace('T',' ') : '即時')}` : ''}</div></article>`;
+        document.querySelector('[data-board-preview-confirm]')?.addEventListener('click', (event) => {
+            event.currentTarget.classList.add('confirmed');
+            event.currentTarget.innerHTML = '<i class="fas fa-check-circle"></i> 確認済み';
+            event.currentTarget.disabled = true;
+        });
         openModal(previewModal);
     }
 
+
+    let audienceStatusData = null;
+    let activeAudienceTab = 'read';
+
+    function renderAudienceStatusList(type) {
+        const content = document.getElementById('boardAudienceStatusContent');
+        if (!content || !audienceStatusData) return;
+
+        activeAudienceTab = type;
+        document.querySelectorAll('[data-audience-tab]').forEach((button) => {
+            button.classList.toggle('active', button.dataset.audienceTab === type);
+        });
+
+        const items = Array.isArray(audienceStatusData[type]) ? audienceStatusData[type] : [];
+        const dateKey = type === 'confirmed' ? 'confirmed_at' : (type === 'read' ? 'read_at' : null);
+        const dateLabel = type === 'confirmed' ? '確認日時' : '既読日時';
+
+        if (!items.length) {
+            content.innerHTML = '<div class="board-audience-empty">該当する生徒はいません。</div>';
+            return;
+        }
+
+        content.innerHTML = `<div class="board-audience-table-wrap"><table class="board-audience-table"><thead><tr><th>生徒コード</th><th>生徒名</th>${dateKey ? `<th>${dateLabel}</th>` : ''}</tr></thead><tbody>${items.map((item) => `<tr><td>${escapeHtml(item.student_code)}</td><td>${escapeHtml(item.name)}</td>${dateKey ? `<td>${escapeHtml(item[dateKey] || '-')}</td>` : ''}</tr>`).join('')}</tbody></table></div>`;
+    }
+
+    async function showAudienceStatus(boardId) {
+        const summary = document.getElementById('boardAudienceStatusSummary');
+        const content = document.getElementById('boardAudienceStatusContent');
+        if (!summary || !content) return;
+
+        summary.innerHTML = '<div class="board-audience-loading"><i class="fas fa-spinner fa-spin"></i> 読み込み中...</div>';
+        content.innerHTML = '';
+        openModal(audienceStatusModal);
+
+        try {
+            const url = window.boardRoutes.audienceStatus.replace('__ID__', boardId);
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+            if (!response.ok) throw new Error('状況を取得できませんでした。');
+
+            audienceStatusData = await response.json();
+            const counts = audienceStatusData.counts || {};
+            summary.innerHTML = `<div class="board-audience-title">${escapeHtml(audienceStatusData.post?.title || '')}</div><div class="board-audience-metrics"><span>対象 <strong>${escapeHtml(counts.total || 0)}</strong>名</span><span>既読 <strong>${escapeHtml(counts.read || 0)}</strong>名</span><span>未読 <strong>${escapeHtml(counts.unread || 0)}</strong>名</span><span>確認 <strong>${escapeHtml(counts.confirmed || 0)}</strong>名</span><span>未確認 <strong>${escapeHtml(counts.unconfirmed || 0)}</strong>名</span></div>${audienceStatusData.post?.requires_confirmation ? '' : '<div class="board-audience-note">このご連絡は「確認しました」ボタンを表示しない設定です。</div>'}`;
+
+            ['read', 'unread', 'confirmed', 'unconfirmed'].forEach((key) => {
+                const countNode = document.querySelector(`[data-audience-count="${key}"]`);
+                if (countNode) countNode.textContent = counts[key] ?? 0;
+            });
+            renderAudienceStatusList('read');
+        } catch (error) {
+            summary.innerHTML = `<div class="board-audience-error">${escapeHtml(error.message)}</div>`;
+        }
+    }
+
+    document.querySelectorAll('[data-audience-tab]').forEach((button) => {
+        button.addEventListener('click', () => renderAudienceStatusList(button.dataset.audienceTab));
+    });
+
+    const notifyCheckbox = document.getElementById('boardIsNotified');
+    const notifyAtInput = document.getElementById('boardNotifyAt');
+    function syncNotificationFields() {
+        if (!notifyAtInput || !notifyCheckbox) return;
+        notifyAtInput.disabled = !notifyCheckbox.checked;
+        if (!notifyCheckbox.checked) notifyAtInput.value = '';
+    }
+    notifyCheckbox?.addEventListener('change', syncNotificationFields);
+    syncNotificationFields();
+
+    form?.addEventListener('submit', (event) => {
+        if (!document.getElementById('boardIsListed').checked && !document.getElementById('boardIsNotified').checked) {
+            event.preventDefault();
+            window.alert('「掲示板に掲載」または「通知する」のどちらか1つ以上を選択してください。');
+        }
+    });
+
     document.querySelectorAll('[data-board-action]').forEach((button) => button.addEventListener('click', () => {
-        const data = JSON.parse(button.dataset.board);
         button.closest('.board-operation-wrap')?.classList.remove('open');
+
+        if (button.dataset.boardAction === 'audience-status') {
+            showAudienceStatus(button.dataset.boardId);
+            return;
+        }
+
+        const data = JSON.parse(button.dataset.board);
         if(button.dataset.boardAction === 'edit') fillEdit(data);
         if(button.dataset.boardAction === 'detail') showDetail(data);
         if(button.dataset.boardAction === 'preview') showPreview(data);
