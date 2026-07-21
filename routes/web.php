@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\System\NotificationMasterController;
 use App\Http\Controllers\Admin\System\CourseManagementController;
 use App\Http\Controllers\Admin\System\ChallengeManagementController;
 use App\Http\Controllers\Admin\System\BadgeManagementController;
+use App\Http\Controllers\Admin\Wakuwaku\BadgeController;
+use App\Http\Controllers\Admin\Wakuwaku\BadgeHistoryController;
 use App\Http\Controllers\Admin\System\TitleManagementController;
 use App\Http\Controllers\Admin\System\PermissionController;
 use App\Http\Controllers\Admin\System\RoutineManagementController;
@@ -157,6 +159,29 @@ Route::prefix('admin')
 
         Route::post('/system/courses/reorder', [CourseManagementController::class, 'reorder'])
             ->name('system.courses.reorder');
+
+
+        Route::prefix('wakuwaku/badges')->name('wakuwaku.badges.')->group(function () {
+            Route::get('/', [BadgeController::class, 'index'])->name('index');
+            Route::get('/list', [BadgeController::class, 'list'])->name('list');
+            Route::get('/history', [BadgeHistoryController::class, 'index'])->name('history.index');
+            Route::get('/history/list', [BadgeHistoryController::class, 'list'])->name('history.list');
+            Route::post('/history/grant', [BadgeHistoryController::class, 'grant'])->name('history.grant');
+            Route::get('/history/lookup/students', [BadgeHistoryController::class, 'studentLookup'])->name('history.lookup.students');
+            Route::get('/history/lookup/badges', [BadgeHistoryController::class, 'badgeLookup'])->name('history.lookup.badges');
+            Route::post('/history/{studentBadge}/remove', [BadgeHistoryController::class, 'remove'])->name('history.remove');
+            Route::post('/history/{studentBadge}/regrant', [BadgeHistoryController::class, 'regrant'])->name('history.regrant');
+            Route::get('/history/{studentBadge}', [BadgeHistoryController::class, 'show'])->name('history.show');
+            Route::post('/', [BadgeController::class, 'store'])->name('store');
+            Route::put('/{badge}', [BadgeController::class, 'update'])->name('update');
+            Route::post('/reorder', [BadgeController::class, 'reorder'])->name('reorder');
+            Route::post('/{badge}/duplicate', [BadgeController::class, 'duplicate'])->name('duplicate');
+            Route::post('/{badge}/toggle-active', [BadgeController::class, 'toggleActive'])->name('toggle-active');
+            Route::delete('/{badge}', [BadgeController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-activate', [BadgeController::class, 'bulkActivate'])->name('bulk-activate');
+            Route::post('/bulk-deactivate', [BadgeController::class, 'bulkDeactivate'])->name('bulk-deactivate');
+            Route::post('/bulk-destroy', [BadgeController::class, 'bulkDestroy'])->name('bulk-destroy');
+        });
 
         Route::get('/system/badges/list', [BadgeManagementController::class, 'list'])
             ->name('system.badges.list');

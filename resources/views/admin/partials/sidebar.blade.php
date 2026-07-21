@@ -234,11 +234,11 @@
         </button>
 
         <div class="sidebar-submenu">
-            <a href="#" class="sidebar-subitem" data-search-name="わくわく ＞ バッジ ＞ バッジ一覧" data-info="バッジ一覧を確認します">
+            <a href="{{ route('admin.wakuwaku.badges.index') }}" class="sidebar-subitem" data-search-name="わくわく ＞ バッジ ＞ バッジ一覧" data-info="バッジ一覧を確認します">
                 <span>バッジ一覧</span><i class="fas fa-circle-info sidebar-info"></i>
             </a>
-            <a href="#" class="sidebar-subitem" data-search-name="わくわく ＞ バッジ ＞ バッジ履歴" data-info="獲得履歴を確認します">
-                <span>バッジ履歴</span><i class="fas fa-circle-info sidebar-info"></i>
+            <a href="{{ route('admin.wakuwaku.badges.history.index') }}" class="sidebar-subitem" data-search-name="わくわく ＞ バッジ ＞ 獲得履歴" data-info="獲得履歴を確認します">
+                <span>獲得履歴</span><i class="fas fa-circle-info sidebar-info"></i>
             </a>
         </div>
 
@@ -433,7 +433,6 @@
                 <span>ルーティン管理</span>
                 <i class="fas fa-circle-info sidebar-info"></i>
             </a>
-            <a href="{{ route('admin.system.badges') }}" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ バッジ管理" data-info="バッジ情報を管理します"><span>バッジ管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
 
 
             <a href="{{ route('admin.system.titles') }}" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ 称号管理" data-info="称号情報を管理します"><span>称号管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
