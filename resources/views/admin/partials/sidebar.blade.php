@@ -217,13 +217,13 @@
         </button>
 
         <div class="sidebar-submenu">
-            <a href="#" class="sidebar-subitem" data-search-name="わくわく ＞ ポイント ＞ ポイント残高" data-info="現在のポイントを確認します">
+            <a href="{{ route('admin.wakuwaku.points.index') }}" class="sidebar-subitem" data-search-name="わくわく ＞ ポイント ＞ ポイント残高" data-info="現在のポイントを確認します">
                 <span>ポイント残高</span><i class="fas fa-circle-info sidebar-info"></i>
             </a>
-            <a href="#" class="sidebar-subitem" data-search-name="わくわく ＞ ポイント ＞ ポイント履歴" data-info="獲得・利用履歴を確認します">
+            <a href="{{ route('admin.wakuwaku.points.history') }}" class="sidebar-subitem" data-search-name="わくわく ＞ ポイント ＞ ポイント履歴" data-info="獲得・利用履歴を確認します">
                 <span>ポイント履歴</span><i class="fas fa-circle-info sidebar-info"></i>
             </a>
-            <a href="#" class="sidebar-subitem" data-search-name="わくわく ＞ ポイント ＞ ポイント調整" data-info="ポイントを追加・減算します">
+            <a href="{{ route('admin.wakuwaku.points.adjustment') }}" class="sidebar-subitem" data-search-name="わくわく ＞ ポイント ＞ ポイント調整" data-info="ポイントを追加・減算します">
                 <span>ポイント調整</span><i class="fas fa-circle-info sidebar-info"></i>
             </a>
         </div>

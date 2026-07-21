@@ -20,6 +20,9 @@ use App\Http\Controllers\Admin\Account\PointProductCostController;
 use App\Http\Controllers\Admin\Account\ExpenseController;
 use App\Http\Controllers\Admin\Operations\BoardController;
 use App\Http\Controllers\Admin\Operations\BulkNotificationController;
+use App\Http\Controllers\Admin\Wakuwaku\PointBalanceController;
+use App\Http\Controllers\Admin\Wakuwaku\PointHistoryController;
+use App\Http\Controllers\Admin\Wakuwaku\PointAdjustmentController;
 use App\Http\Controllers\Learning\ShogiMateResultController;
 
 
@@ -90,6 +93,21 @@ Route::delete('/admin/students/{student}/karte/routines/items/{item}', [StudentK
 Route::prefix('admin')
     ->name('admin.')
     ->group(function () {
+
+        // わくわく ＞ ポイント ＞ ポイント残高
+        Route::get('/wakuwaku/points', [PointBalanceController::class, 'index'])
+            ->name('wakuwaku.points.index');
+
+        // わくわく ＞ ポイント ＞ ポイント履歴
+        Route::get('/wakuwaku/points/history', [PointHistoryController::class, 'index'])
+            ->name('wakuwaku.points.history');
+
+        // わくわく ＞ ポイント ＞ ポイント調整
+        Route::get('/wakuwaku/points/adjustment', [PointAdjustmentController::class, 'index'])
+            ->name('wakuwaku.points.adjustment');
+        Route::post('/wakuwaku/points/adjustment', [PointAdjustmentController::class, 'store'])
+            ->name('wakuwaku.points.adjustment.store');
+
         // 一斉通知は掲示板へ統合済み。旧URLは掲示板一覧へ転送します。
         Route::redirect('/operations/communication/bulk-notifications', '/admin/operations/communication/boards')
             ->name('operations.communication.bulk-notifications.index');
