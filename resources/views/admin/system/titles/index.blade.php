@@ -19,7 +19,7 @@
     <div class="master-page-header">
         <div>
             <h1>称号管理</h1>
-            <p>称号・レア度・表示順を管理します。</p>
+            <p>称号・称号ランク・表示順を管理します。</p>
         </div>
 
         <button type="button" class="master-primary-button" id="titleAddButton">
@@ -33,7 +33,7 @@
             <div>
                 <div class="master-current-label">称号管理</div>
                 <h2>称号一覧</h2>
-                <p>生徒が獲得・装備できる称号を管理します。</p>
+                <p>生徒が獲得できる称号を管理します。</p>
             </div>
 
             <div class="master-summary-stats">
@@ -68,7 +68,7 @@
                 </div>
 
                 <select id="titleRarityFilter">
-                    <option value="all">すべてのレア度</option>
+                    <option value="all">すべての称号ランク</option>
                     @foreach($rarities as $key => $label)
                         <option value="{{ $key }}">{{ $label }}</option>
                     @endforeach
@@ -101,7 +101,7 @@
                         <th>ID</th>
                         <th>称号名</th>
                         <th>画像</th>
-                        <th>レア度</th>
+                        <th>称号ランク</th>
                         <th>説明</th>
                         <th>対象イベント</th>
                         <th>タグ</th>
@@ -135,7 +135,7 @@
             <label>説明<textarea id="titleDescriptionInput" rows="3"></textarea></label>
 
             <label>
-                レア度
+                称号ランク
                 <select id="titleRarityInput">
                     @foreach($rarities as $key => $label)
                         <option value="{{ $key }}">{{ $label }}</option>

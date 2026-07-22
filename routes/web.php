@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\System\ChallengeManagementController;
 use App\Http\Controllers\Admin\System\BadgeManagementController;
 use App\Http\Controllers\Admin\Wakuwaku\BadgeController;
 use App\Http\Controllers\Admin\Wakuwaku\BadgeHistoryController;
+use App\Http\Controllers\Admin\Wakuwaku\TitleController;
+use App\Http\Controllers\Admin\Wakuwaku\TitleHistoryController;
 use App\Http\Controllers\Admin\System\TitleManagementController;
 use App\Http\Controllers\Admin\System\PermissionController;
 use App\Http\Controllers\Admin\System\RoutineManagementController;
@@ -181,6 +183,29 @@ Route::prefix('admin')
             Route::post('/bulk-activate', [BadgeController::class, 'bulkActivate'])->name('bulk-activate');
             Route::post('/bulk-deactivate', [BadgeController::class, 'bulkDeactivate'])->name('bulk-deactivate');
             Route::post('/bulk-destroy', [BadgeController::class, 'bulkDestroy'])->name('bulk-destroy');
+        });
+
+
+        Route::prefix('wakuwaku/titles')->name('wakuwaku.titles.')->group(function () {
+            Route::get('/', [TitleController::class, 'index'])->name('index');
+            Route::get('/list', [TitleController::class, 'list'])->name('list');
+            Route::get('/history', [TitleHistoryController::class, 'index'])->name('history.index');
+            Route::get('/history/list', [TitleHistoryController::class, 'list'])->name('history.list');
+            Route::post('/history/grant', [TitleHistoryController::class, 'grant'])->name('history.grant');
+            Route::get('/history/lookup/students', [TitleHistoryController::class, 'studentLookup'])->name('history.lookup.students');
+            Route::get('/history/lookup/titles', [TitleHistoryController::class, 'titleLookup'])->name('history.lookup.titles');
+            Route::post('/history/{studentTitle}/remove', [TitleHistoryController::class, 'remove'])->name('history.remove');
+            Route::post('/history/{studentTitle}/regrant', [TitleHistoryController::class, 'regrant'])->name('history.regrant');
+            Route::get('/history/{studentTitle}', [TitleHistoryController::class, 'show'])->name('history.show');
+            Route::post('/', [TitleController::class, 'store'])->name('store');
+            Route::put('/{title}', [TitleController::class, 'update'])->name('update');
+            Route::post('/reorder', [TitleController::class, 'reorder'])->name('reorder');
+            Route::post('/{title}/duplicate', [TitleController::class, 'duplicate'])->name('duplicate');
+            Route::post('/{title}/toggle-active', [TitleController::class, 'toggleActive'])->name('toggle-active');
+            Route::delete('/{title}', [TitleController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-activate', [TitleController::class, 'bulkActivate'])->name('bulk-activate');
+            Route::post('/bulk-deactivate', [TitleController::class, 'bulkDeactivate'])->name('bulk-deactivate');
+            Route::post('/bulk-destroy', [TitleController::class, 'bulkDestroy'])->name('bulk-destroy');
         });
 
         Route::get('/system/badges/list', [BadgeManagementController::class, 'list'])

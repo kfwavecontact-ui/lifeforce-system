@@ -15,11 +15,11 @@ use Illuminate\Validation\Rule;
 class TitleManagementController extends Controller
 {
     private array $rarities = [
-        'normal' => '通常',
-        'rare' => 'レア',
-        'epic' => 'エピック',
-        'legend' => 'レジェンド',
-        'limited' => '限定',
+        1 => '★1',
+        2 => '★2',
+        3 => '★3',
+        4 => '★4',
+        5 => '★5',
     ];
 
     public function index()
@@ -66,7 +66,7 @@ class TitleManagementController extends Controller
         }
 
         if ($rarity !== 'all') {
-            $query->where('rarity', $rarity);
+            $query->where('level', (int) $rarity);
         }
 
         if ($status === 'active') {
@@ -86,8 +86,8 @@ class TitleManagementController extends Controller
                     'name' => $title->name,
                     'description' => $title->description,
                     'image_path' => $this->resolveTitleImageUrl($title->image_path),
-                    'rarity' => $title->rarity,
-                    'rarity_name' => $this->rarities[$title->rarity] ?? $title->rarity,
+                    'rarity' => min(5, max(1, (int) $title->level)),
+                    'rarity_name' => '★' . min(5, max(1, (int) $title->level)),
                     'point_reward' => $title->point_reward ?? 0,
                     'acquired_count' => $title->student_titles_count ?? 0,
                     'tags' => $title->tags->map(function (TitleTag $tag) {
@@ -127,24 +127,30 @@ class TitleManagementController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'image_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'rarity' => ['required', Rule::in(array_keys($this->rarities))],
+            'rarity' => ['required', 'integer', 'min:1', 'max:5'],
             'point_reward' => ['nullable', 'integer', 'min:0'],
             'tag_ids' => ['array'],
-            'tag_ids.*' => ['integer'],
+            'tag_ids.*' => ['integer', 'distinct', 'exists:title_tags,id'],
             'event_ids' => ['array'],
-            'event_ids.*' => ['integer'],
+            'event_ids.*' => ['integer', 'distinct', 'exists:events,id'],
             'is_active' => ['boolean'],
         ]);
 
         DB::transaction(function () use ($validated) {
             $title = Title::create([
+                'code' => $this->generateTitleCode(),
+                'grant_method' => 'both',
                 'name' => $validated['name'],
+                'level' => (int) $validated['rarity'],
                 'description' => $validated['description'] ?? null,
                 'image_path' => null,
-                'rarity' => $validated['rarity'],
+                'rarity' => $this->rarityFromLevel((int) $validated['rarity']),
+                'level' => (int) $validated['rarity'],
                 'point_reward' => $validated['point_reward'] ?? 0,
                 'display_order' => (Title::count() === 0 ? 1 : (Title::max('display_order') + 1)),
                 'is_active' => (bool) ($validated['is_active'] ?? true),
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
             ]);
 
             if (!empty($validated['image_file'])) {
@@ -158,12 +164,13 @@ class TitleManagementController extends Controller
                     'image_path' => $path,
                 ]);
 
-                $title->events()->sync(
-                    collect($validated['event_ids'] ?? [])
-                        ->values()
-                        ->all()
-                );
             }
+
+            $title->events()->sync(
+                collect($validated['event_ids'] ?? [])
+                    ->values()
+                    ->all()
+            );
 
             $title->tags()->sync(
                 collect($validated['tag_ids'] ?? [])
@@ -182,22 +189,26 @@ class TitleManagementController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'image_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'rarity' => ['required', Rule::in(array_keys($this->rarities))],
+            'rarity' => ['required', 'integer', 'min:1', 'max:5'],
             'point_reward' => ['nullable', 'integer', 'min:0'],
             'tag_ids' => ['array'],
-            'tag_ids.*' => ['integer'],
+            'tag_ids.*' => ['integer', 'distinct', 'exists:title_tags,id'],
             'is_active' => ['boolean'],
             'event_ids' => ['array'],
-            'event_ids.*' => ['integer'],
+            'event_ids.*' => ['integer', 'distinct', 'exists:events,id'],
         ]);
 
         DB::transaction(function () use ($validated, $title) {
             $title->update([
+                'grant_method' => 'both',
                 'name' => $validated['name'],
+                'level' => (int) $validated['rarity'],
                 'description' => $validated['description'] ?? null,
-                'rarity' => $validated['rarity'],
+                'rarity' => $this->rarityFromLevel((int) $validated['rarity']),
+                'level' => (int) $validated['rarity'],
                 'point_reward' => $validated['point_reward'] ?? 0,
                 'is_active' => (bool) ($validated['is_active'] ?? false),
+                'updated_by' => auth()->id(),
             ]);
 
             if (!empty($validated['image_file'])) {
@@ -214,6 +225,13 @@ class TitleManagementController extends Controller
 
             $title->events()->sync(
                 collect($validated['event_ids'] ?? [])
+                    ->values()
+                    ->all()
+            );
+
+            $title->tags()->sync(
+                collect($validated['tag_ids'] ?? [])
+                    ->take(4)
                     ->values()
                     ->all()
             );
@@ -243,11 +261,16 @@ class TitleManagementController extends Controller
 
     public function duplicate(Title $title)
     {
+        $title->loadMissing(['tags:id', 'events:id', 'requirements']);
+
         DB::transaction(function () use ($title) {
             $newTitle = $title->replicate();
+            $newTitle->code = $this->generateTitleCode();
             $newTitle->name = $title->name . '（コピー）';
             $newTitle->display_order = (Title::max('display_order') ?? 0) + 1;
             $newTitle->image_path = null;
+            $newTitle->created_by = auth()->id();
+            $newTitle->updated_by = auth()->id();
             $newTitle->save();
 
             if ($title->image_path) {
@@ -261,6 +284,15 @@ class TitleManagementController extends Controller
                     ]);
                 }
             }
+
+            $newTitle->tags()->sync($title->tags->pluck('id')->all());
+            $newTitle->events()->sync($title->events->pluck('id')->all());
+
+            foreach ($title->requirements as $requirement) {
+                $copy = $requirement->replicate();
+                $copy->title_id = $newTitle->id;
+                $copy->save();
+            }
         });
 
         return response()->json(['message' => '複製しました。']);
@@ -270,6 +302,7 @@ class TitleManagementController extends Controller
     {
         $title->update([
             'is_active' => false,
+            'updated_by' => auth()->id(),
         ]);
 
         return response()->json(['message' => '無効化しました。']);
@@ -287,7 +320,12 @@ class TitleManagementController extends Controller
             'titles/' . $title->id
         );
 
-        $title->delete();
+        DB::transaction(function () use ($title) {
+            $title->tags()->detach();
+            $title->events()->detach();
+            $title->requirements()->delete();
+            $title->delete();
+        });
 
         return response()->json(['message' => '削除しました。']);
     }
@@ -357,6 +395,9 @@ class TitleManagementController extends Controller
                     'titles/' . $title->id
                 );
 
+                $title->tags()->detach();
+                $title->events()->detach();
+                $title->requirements()->delete();
                 $title->delete();
             }
         });
@@ -382,6 +423,41 @@ class TitleManagementController extends Controller
             ->take(2)
             ->pluck('title')
             ->implode('、') . ' ほか' . ($events->count() - 2) . '件';
+    }
+
+    private function generateTitleCode(): string
+    {
+        $numbers = Title::query()
+            ->lockForUpdate()
+            ->where('code', 'like', 'LF-TTL-%')
+            ->pluck('code')
+            ->map(function (?string $code): int {
+                return preg_match('/^LF-TTL-(\d+)$/', (string) $code, $matches)
+                    ? (int) $matches[1]
+                    : 0;
+            });
+
+        $nextNumber = ($numbers->max() ?? 0) + 1;
+
+        do {
+            $code = 'LF-TTL-' . str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+            $nextNumber++;
+        } while (Title::query()->where('code', $code)->exists());
+
+        return $code;
+    }
+
+    /**
+     * 称号ランク（1〜5）を既存DB互換のrarityへ変換する。
+     */
+    private function rarityFromLevel(int $level): string
+    {
+        return match (min(5, max(1, $level))) {
+            5 => 'legend',
+            4 => 'epic',
+            3 => 'rare',
+            default => 'normal',
+        };
     }
 
     private function resolveTitleImageUrl(?string $path): ?string

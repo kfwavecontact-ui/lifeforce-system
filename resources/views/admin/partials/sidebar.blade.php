@@ -248,10 +248,10 @@
         </button>
 
         <div class="sidebar-submenu">
-            <a href="#" class="sidebar-subitem" data-search-name="わくわく ＞ 称号 ＞ 称号一覧" data-info="称号一覧を確認します">
+            <a href="{{ route('admin.wakuwaku.titles.index') }}" class="sidebar-subitem" data-search-name="わくわく ＞ 称号 ＞ 称号一覧" data-info="称号一覧を確認します">
                 <span>称号一覧</span><i class="fas fa-circle-info sidebar-info"></i>
             </a>
-            <a href="#" class="sidebar-subitem" data-search-name="わくわく ＞ 称号 ＞ 称号履歴" data-info="獲得履歴を確認します">
+            <a href="{{ route('admin.wakuwaku.titles.history.index') }}" class="sidebar-subitem" data-search-name="わくわく ＞ 称号 ＞ 称号履歴" data-info="獲得履歴を確認します">
                 <span>称号履歴</span><i class="fas fa-circle-info sidebar-info"></i>
             </a>
         </div>
