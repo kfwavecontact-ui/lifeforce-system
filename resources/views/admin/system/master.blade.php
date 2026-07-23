@@ -181,7 +181,7 @@
                         </button>
 
                         <button class="master-menu" data-master="reward_categories">
-                            <span class="master-menu-name">景品カテゴリ</span>
+                            <span class="master-menu-name">ポイント商品カテゴリ</span>
                             <span class="master-menu-table">reward_categories</span>
                         </button>
 

@@ -40,7 +40,7 @@ class MasterController extends Controller
         'badge_requirement_types' => ['title' => 'バッジ獲得条件', 'description' => 'バッジ獲得条件の種類を管理します。'],
         'title_tags' => ['title' => '称号タグ', 'description' => '称号に付けるタグを管理します。'],
         'badge_series' => ['title' => 'バッジシリーズ', 'description' => 'バッジのシリーズを管理します。'],
-        'reward_categories' => ['title' => '景品カテゴリ', 'description' => 'ポイント交換景品のカテゴリを管理します。'],
+        'reward_categories' => ['title' => 'ポイント商品カテゴリ', 'description' => 'ポイント交換商品のカテゴリを管理します。'],
         'shop_categories' => ['title' => '商品カテゴリ', 'description' => 'ショップ商品のカテゴリを管理します。'],
     ];
 
@@ -83,6 +83,19 @@ class MasterController extends Controller
                 if ($table === 'title_tags') {
                     $item['used_title_count'] = DB::table('title_tag_relations')
                         ->where('title_tag_id', $row->id)
+                        ->count();
+                }
+
+                // ポイント商品カテゴリ・ショップ商品カテゴリは、利用件数を一覧で確認できるようにする。
+                if ($table === 'reward_categories') {
+                    $item['used_item_count'] = DB::table('reward_items')
+                        ->where('reward_category_id', $row->id)
+                        ->count();
+                }
+
+                if ($table === 'shop_categories') {
+                    $item['used_item_count'] = DB::table('shop_products')
+                        ->where('category_id', $row->id)
                         ->count();
                 }
 

@@ -44,6 +44,10 @@
 
 </head>
 
+@if(request()->routeIs('admin.system.point-products*'))
+    <script src="{{ asset('js/admin/point-product-management.js') }}"></script>
+@endif
+
 @if(request()->routeIs('admin.system.badges*'))
     <link rel="stylesheet" href="{{ asset('css/admin/badge-management.css') }}">
 @endif

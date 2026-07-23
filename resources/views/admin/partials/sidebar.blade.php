@@ -279,13 +279,13 @@
         </button>
 
         <div class="sidebar-submenu">
-            <a href="#" class="sidebar-subitem" data-search-name="わくわく ＞ 商品交換所 ＞ 商品一覧" data-info="交換商品を確認します">
+            <a href="{{ route('admin.wakuwaku.reward-exchange.products') }}" class="sidebar-subitem" data-search-name="わくわく ＞ 商品交換所 ＞ 商品一覧" data-info="交換商品を確認します">
                 <span>商品一覧</span><i class="fas fa-circle-info sidebar-info"></i>
             </a>
-            <a href="#" class="sidebar-subitem" data-search-name="わくわく ＞ 商品交換所 ＞ 申請情報" data-info="交換申請を管理します">
+            <a href="{{ route('admin.wakuwaku.reward-exchange.applications') }}" class="sidebar-subitem" data-search-name="わくわく ＞ 商品交換所 ＞ 申請情報" data-info="交換申請を管理します">
                 <span>申請情報</span><i class="fas fa-circle-info sidebar-info"></i>
             </a>
-            <a href="#" class="sidebar-subitem" data-search-name="わくわく ＞ 商品交換所 ＞ 交換履歴" data-info="交換履歴を確認します">
+            <a href="{{ route('admin.wakuwaku.reward-exchange.history') }}" class="sidebar-subitem" data-search-name="わくわく ＞ 商品交換所 ＞ 交換履歴" data-info="交換履歴を確認します">
                 <span>交換履歴</span><i class="fas fa-circle-info sidebar-info"></i>
             </a>
         </div>
@@ -426,6 +426,7 @@
             </a>
 
             <a href="{{ route('admin.system.challenges') }}" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ チャレンジ管理" data-info="チャレンジ試験を管理します"><span>チャレンジ管理</span><i class="fas fa-circle-info sidebar-info"></i></a>
+            <a href="{{ route('admin.system.point-products.index') }}" class="sidebar-subitem" data-search-name="システム ＞ 設定 ＞ ポイント商品" data-info="ポイント交換商品を管理します"><span>ポイント商品</span></a>
             <a href="{{ url('/admin/system/routine-management') }}"
                 class="sidebar-subitem"
                 data-search-name="システム ＞ 設定 ＞ ルーティン管理"

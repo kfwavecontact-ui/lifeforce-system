@@ -1,0 +1,1 @@
+<aside id="rex-detail-drawer" class="rex-drawer" hidden><div class="rex-drawer-head"><h2>交換詳細</h2><button type="button" class="rex-drawer-close">×</button></div><div id="rex-detail-content"><p>読み込み中...</p></div></aside><div id="rex-drawer-backdrop" class="rex-backdrop" hidden></div>

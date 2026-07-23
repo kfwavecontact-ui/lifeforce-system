@@ -1,0 +1,1 @@
+@if(session('success'))<div class="rex-alert success">{{ session('success') }}</div>@endif @if($errors->any())<div class="rex-alert error"><strong>処理できませんでした。</strong><ul>@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>@endif

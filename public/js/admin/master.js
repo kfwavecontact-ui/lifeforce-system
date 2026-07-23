@@ -234,6 +234,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${value ? '有効' : '無効'}
                         </span>
                     `;
+                } else if (column.name === 'color_code' && value) {
+                    td.innerHTML = `<span class="master-color-preview" style="background:${escapeHtml(value)}"></span><code>${escapeHtml(value)}</code>`;
+                } else if (column.name === 'icon' && value) {
+                    td.innerHTML = `<span class="master-icon-preview"><i class="fa-solid ${escapeHtml(value)}"></i></span><code>${escapeHtml(value)}</code>`;
+                } else if (column.name === 'name' && ['reward_categories','shop_categories'].includes(currentMasterKey)) {
+                    const count = Number(row.used_item_count || 0);
+                    td.innerHTML = `<strong>${escapeHtml(value)}</strong><small class="master-usage-count">利用商品 ${count.toLocaleString()}件</small>`;
                 } else {
                     td.textContent = value ?? '';
                 }

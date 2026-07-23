@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\Wakuwaku\TitleHistoryController;
 use App\Http\Controllers\Admin\System\TitleManagementController;
 use App\Http\Controllers\Admin\System\PermissionController;
 use App\Http\Controllers\Admin\System\RoutineManagementController;
+use App\Http\Controllers\Admin\System\PointProductManagementController;
 use App\Http\Controllers\Admin\Account\AccountTransactionController;
 use App\Http\Controllers\Admin\Account\TuitionEnrollmentSaleController;
 use App\Http\Controllers\Admin\Account\ShopSaleController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\Admin\Operations\BulkNotificationController;
 use App\Http\Controllers\Admin\Wakuwaku\PointBalanceController;
 use App\Http\Controllers\Admin\Wakuwaku\PointHistoryController;
 use App\Http\Controllers\Admin\Wakuwaku\PointAdjustmentController;
+use App\Http\Controllers\Admin\Wakuwaku\RewardExchangeController;
 use App\Http\Controllers\Learning\ShogiMateResultController;
 
 
@@ -112,10 +114,32 @@ Route::prefix('admin')
         Route::post('/wakuwaku/points/adjustment', [PointAdjustmentController::class, 'store'])
             ->name('wakuwaku.points.adjustment.store');
 
+
+        Route::prefix('wakuwaku/reward-exchange')->name('wakuwaku.reward-exchange.')->group(function () {
+            Route::get('/products', [RewardExchangeController::class, 'products'])->name('products');
+            Route::get('/students', [RewardExchangeController::class, 'studentLookup'])->name('students');
+            Route::post('/requests', [RewardExchangeController::class, 'store'])->name('store');
+            Route::get('/applications', [RewardExchangeController::class, 'applications'])->name('applications');
+            Route::get('/history', [RewardExchangeController::class, 'history'])->name('history');
+            Route::get('/requests/{exchange}', [RewardExchangeController::class, 'show'])->name('show');
+            Route::patch('/requests/{exchange}/transition', [RewardExchangeController::class, 'transition'])->name('transition');
+        });
+
         // 一斉通知は掲示板へ統合済み。旧URLは掲示板一覧へ転送します。
         Route::redirect('/operations/communication/bulk-notifications', '/admin/operations/communication/boards')
             ->name('operations.communication.bulk-notifications.index');
 
+
+        Route::prefix('system/point-products')->name('system.point-products.')->group(function () {
+            Route::get('/', [PointProductManagementController::class, 'index'])->name('index');
+            Route::get('/list', [PointProductManagementController::class, 'list'])->name('list');
+            Route::post('/', [PointProductManagementController::class, 'store'])->name('store');
+            Route::put('/{rewardItem}', [PointProductManagementController::class, 'update'])->name('update');
+            Route::post('/{rewardItem}/duplicate', [PointProductManagementController::class, 'duplicate'])->name('duplicate');
+            Route::patch('/{rewardItem}/publication', [PointProductManagementController::class, 'togglePublication'])->name('publication.toggle');
+            Route::delete('/{rewardItem}', [PointProductManagementController::class, 'destroy'])->name('destroy');
+            Route::post('/reorder', [PointProductManagementController::class, 'reorder'])->name('reorder');
+        });
 
         Route::get('/system/master', [MasterController::class, 'index'])
             ->name('system.master');
