@@ -18,6 +18,9 @@ use App\Http\Controllers\Admin\System\PointProductManagementController;
 use App\Http\Controllers\Admin\Account\AccountTransactionController;
 use App\Http\Controllers\Admin\Account\TuitionEnrollmentSaleController;
 use App\Http\Controllers\Admin\Account\ShopSaleController;
+use App\Http\Controllers\Admin\Account\ShopProductController;
+use App\Http\Controllers\Admin\Account\ShopOrderController;
+use App\Http\Controllers\Admin\Account\ShopPurchaseController;
 use App\Http\Controllers\Admin\Account\EventSaleController;
 use App\Http\Controllers\Admin\Account\SpotSaleController;
 use App\Http\Controllers\Admin\Account\RefundController;
@@ -419,6 +422,27 @@ Route::prefix('admin')
             Route::put('/tuition-enrollment-sales/{invoiceItemId}', [TuitionEnrollmentSaleController::class, 'update'])
                 ->name('tuition-enrollment-sales.update');
             
+            // ショップ商品
+            Route::get('/shop-products', [ShopProductController::class, 'index'])
+                ->name('shop-products.index');
+
+            Route::post('/shop-products', [ShopProductController::class, 'store'])
+                ->name('shop-products.store');
+
+            Route::put('/shop-products/{shopProduct}', [ShopProductController::class, 'update'])
+                ->name('shop-products.update');
+
+            // 注文情報（注文単位）
+            Route::get('/shop-orders/export', [ShopOrderController::class, 'export'])->name('shop-orders.export');
+            Route::get('/shop-orders', [ShopOrderController::class, 'index'])->name('shop-orders.index');
+            Route::get('/shop-orders/{order}', [ShopOrderController::class, 'show'])->name('shop-orders.show');
+            Route::put('/shop-orders/{order}', [ShopOrderController::class, 'update'])->name('shop-orders.update');
+            Route::post('/shop-orders/{order}/cancel', [ShopOrderController::class, 'cancel'])->name('shop-orders.cancel');
+
+            // 購入情報（注文明細単位）
+            Route::get('/shop-purchases/export', [ShopPurchaseController::class, 'export'])->name('shop-purchases.export');
+            Route::get('/shop-purchases', [ShopPurchaseController::class, 'index'])->name('shop-purchases.index');
+
             // ショップ売上
             Route::get('/shop-sales', [ShopSaleController::class, 'index'])
                 ->name('shop-sales.index');

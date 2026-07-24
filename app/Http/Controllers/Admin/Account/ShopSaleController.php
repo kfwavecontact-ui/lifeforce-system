@@ -69,6 +69,12 @@ class ShopSaleController extends Controller
             'shopProducts' => DB::table('shop_products')
                 ->select('id', 'name', 'product_code', 'price', 'tax_rate', 'stock_quantity')
                 ->where('is_active', true)
+                ->where(function ($query) {
+                    $query->whereNull('published_at')->orWhere('published_at', '<=', now());
+                })
+                ->where(function ($query) {
+                    $query->whereNull('sales_end_at')->orWhere('sales_end_at', '>=', now());
+                })
                 ->orderBy('display_order')
                 ->orderBy('id')
                 ->get(),
@@ -448,6 +454,12 @@ class ShopSaleController extends Controller
 
         $products = DB::table('shop_products')
             ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('published_at')->orWhere('published_at', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('sales_end_at')->orWhere('sales_end_at', '>=', now());
+            })
             ->where(function ($query) use ($keyword) {
                 $query->where('name', 'ILIKE', '%' . $keyword . '%')
                     ->orWhere('product_code', 'ILIKE', '%' . $keyword . '%');

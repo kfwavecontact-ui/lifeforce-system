@@ -296,13 +296,13 @@
         </button>
 
         <div class="sidebar-submenu">
-            <a href="#" class="sidebar-subitem" data-search-name="わくわく ＞ ショップ ＞ 商品一覧" data-info="販売商品を確認します">
+            <a href="{{ route('admin.operations.classroom-accounting.shop-products.index') }}" class="sidebar-subitem" data-search-name="わくわく ＞ ショップ ＞ 商品一覧" data-info="販売商品を確認します">
                 <span>商品一覧</span><i class="fas fa-circle-info sidebar-info"></i>
             </a>
-            <a href="#" class="sidebar-subitem" data-search-name="わくわく ＞ ショップ ＞ 注文情報" data-info="注文状況を管理します">
+            <a href="{{ route('admin.operations.classroom-accounting.shop-orders.index') }}" class="sidebar-subitem" data-search-name="わくわく ＞ ショップ ＞ 注文情報" data-info="注文状況を管理します">
                 <span>注文情報</span><i class="fas fa-circle-info sidebar-info"></i>
             </a>
-            <a href="#" class="sidebar-subitem" data-search-name="わくわく ＞ ショップ ＞ 購入情報" data-info="購入履歴を確認します">
+            <a href="{{ route('admin.operations.classroom-accounting.shop-purchases.index') }}" class="sidebar-subitem" data-search-name="わくわく ＞ ショップ ＞ 購入情報" data-info="購入履歴を確認します">
                 <span>購入情報</span><i class="fas fa-circle-info sidebar-info"></i>
             </a>
         </div>
@@ -334,6 +334,30 @@
                 data-search-name="運営 ＞ 教室会計 ＞ ショップ売上"
                 data-info="ショップ商品の売上を管理します">
                 <span>ショップ売上</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+
+            <a href="{{ route('admin.operations.classroom-accounting.shop-products.index') }}"
+                class="sidebar-subitem sidebar-income-item"
+                data-search-name="運営 ＞ 教室会計 ＞ ショップ商品"
+                data-info="ショップ商品の基本情報・価格・在庫・公開状態を管理します">
+                <span>ショップ商品</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+
+            <a href="{{ route('admin.operations.classroom-accounting.shop-orders.index') }}"
+                class="sidebar-subitem sidebar-income-item"
+                data-search-name="運営 ＞ 教室会計 ＞ 注文情報"
+                data-info="ショップ注文を注文単位で管理します">
+                <span>注文情報</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+
+            <a href="{{ route('admin.operations.classroom-accounting.shop-purchases.index') }}"
+                class="sidebar-subitem sidebar-income-item"
+                data-search-name="運営 ＞ 教室会計 ＞ 購入情報"
+                data-info="商品ごとの購入実績を確認します">
+                <span>購入情報</span>
                 <i class="fas fa-circle-info sidebar-info"></i>
             </a>
 
