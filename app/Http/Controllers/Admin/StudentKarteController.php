@@ -10,13 +10,14 @@ use App\Models\StudentRoutine;
 use App\Models\StudentRoutineDailyStatus;
 use App\Models\StudentRoutineItem;
 use App\Services\Routine\PackageApplyService;
+use App\Services\Routine\StudentRoutineReadService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class StudentKarteController extends Controller
 {
-    public function show(Student $student)
+    public function show(Student $student, StudentRoutineReadService $studentRoutineReadService)
     {
         $student->load([
             'user',
@@ -48,23 +49,8 @@ class StudentKarteController extends Controller
 
         $today = now()->toDateString();
 
-        $activeRoutines = StudentRoutine::query()
-            ->where('student_id', $student->id)
-            ->where('is_active', true)
-            ->where(function ($query) use ($today) {
-                $query->whereNull('start_date')
-                    ->orWhereDate('start_date', '<=', $today);
-            })
-            ->where(function ($query) use ($today) {
-                $query->whereNull('end_date')
-                    ->orWhereDate('end_date', '>=', $today);
-            })
-            ->with([
-                'items.routineContent',
-                'items.completionType',
-            ])
-            ->orderBy('start_date')
-            ->get();
+        // 生徒カルテと教育＞ルーティン一覧で同じ実施中条件を共通利用する。
+        $activeRoutines = $studentRoutineReadService->activeForStudent($student->id, $today);
 
         $endedRoutines = StudentRoutine::query()
             ->where('student_id', $student->id)
@@ -130,22 +116,34 @@ class StudentKarteController extends Controller
             ->groupBy('student_routine_item_id');
 
         $packageQuery = RoutinePackage::query()
+            ->with(['items.routineContent'])
             ->where('is_active', true);
 
         if ($packageId = trim((string) request('routine_package_id', ''))) {
-            $packageQuery->whereRaw("CAST(id AS TEXT) LIKE ?", ['%' . preg_replace('/[^0-9]/', '', $packageId) . '%']);
+            $numericId = preg_replace('/[^0-9]/', '', $packageId);
+            $packageQuery->where(function ($query) use ($packageId, $numericId) {
+                $query->where('package_code', 'like', "%{$packageId}%");
+                if ($numericId !== '') {
+                    $query->orWhereRaw("CAST(id AS TEXT) LIKE ?", ['%' . $numericId . '%']);
+                }
+            });
         }
 
         if ($keyword = trim((string) request('routine_package_keyword', ''))) {
             $packageQuery->where(function ($query) use ($keyword) {
                 $query->where('name', 'like', "%{$keyword}%")
                     ->orWhere('description', 'like', "%{$keyword}%")
+                    ->orWhere('search_tags', 'like', "%{$keyword}%")
                     ->orWhere('tag', 'like', "%{$keyword}%");
             });
         }
 
         if (($grade = request('routine_package_grade')) && $grade !== 'all') {
-            if ($grade === 'ALL') {
+            if ($grade === '未設定') {
+                $packageQuery->where(function ($query) {
+                    $query->whereNull('target_grade')->orWhere('target_grade', '');
+                });
+            } elseif ($grade === 'ALL') {
                 $packageQuery->where('target_grade', 'ALL');
             } else {
                 $packageQuery->where('target_grade', 'like', '%' . $grade . '%');
@@ -153,12 +151,15 @@ class StudentKarteController extends Controller
         }
 
         if (($level = request('routine_package_level')) && $level !== 'all') {
-            $packageQuery->where('target_level', $level);
+            if ($level === '未設定') {
+                $packageQuery->where(function ($query) {
+                    $query->whereNull('target_level')->orWhere('target_level', '');
+                });
+            } else {
+                $packageQuery->where('target_level', $level);
+            }
         }
 
-        if (($category = request('routine_package_category')) && $category !== 'all') {
-            $packageQuery->where('category', $category);
-        }
 
         $routinePackages = $packageQuery
             ->orderBy('sort_order')
@@ -178,11 +179,6 @@ class StudentKarteController extends Controller
             ->orderBy('target_level')
             ->pluck('target_level');
 
-        $packageCategories = RoutinePackage::query()
-            ->whereNotNull('category')
-            ->distinct()
-            ->orderBy('category')
-            ->pluck('category');
 
         $packageTags = RoutinePackage::query()
             ->whereNotNull('tag')
@@ -190,129 +186,88 @@ class StudentKarteController extends Controller
             ->orderBy('tag')
             ->pluck('tag');
 
-        $itemQuery = RoutinePackageItem::query()
-            ->with([
-                'routineContent',
-                'completionType',
-                'package',
-            ]);
+        // 単体追加候補は、同じ共通アイテムがルーティンごとに重複しないよう、
+        // routine_content_idごとに代表となるroutine_package_itemsを1件だけ取得する。
+        // 表示・検索に使う共通属性はroutine_contentsの実カラムを参照する。
+        $representativePackageItemIds = RoutinePackageItem::query()
+            ->selectRaw('MIN(id)')
+            ->groupBy('routine_content_id');
 
-        $addedRoutinePackageItemIds = StudentRoutineItem::query()
-            ->whereHas('routine', function ($query) use ($student) {
-                $query->where('student_id', $student->id);
-            })
-            ->whereNotNull('routine_package_item_id')
-            ->pluck('routine_package_item_id')
-            ->unique()
-            ->values();
+        $itemQuery = RoutinePackageItem::query()
+            ->with(['routineContent'])
+            ->whereIn('id', $representativePackageItemIds);
 
         if ($contentId = trim((string) request('routine_item_content_id', ''))) {
-            $id = preg_replace('/[^0-9]/', '', $contentId);
-
-            if ($id !== '') {
-                $itemQuery->whereRaw("CAST(routine_content_id AS TEXT) LIKE ?", ['%' . $id . '%']);
-            }
+            $numericId = preg_replace('/[^0-9]/', '', $contentId);
+            $itemQuery->whereHas('routineContent', function ($query) use ($contentId, $numericId) {
+                $query->where('content_code', 'like', "%{$contentId}%");
+                if ($numericId !== '') {
+                    $query->orWhereRaw("CAST(id AS TEXT) LIKE ?", ['%' . $numericId . '%']);
+                }
+            });
         }
 
         if ($keyword = trim((string) request('routine_item_keyword', ''))) {
-            $itemQuery->where(function ($query) use ($keyword) {
-                $query->where('item_name', 'like', "%{$keyword}%")
-                    ->orWhere('memo', 'like', "%{$keyword}%")
-                    ->orWhere('tag', 'like', "%{$keyword}%");
+            $itemQuery->whereHas('routineContent', function ($query) use ($keyword) {
+                $query->where('name', 'like', "%{$keyword}%")
+                    ->orWhere('description', 'like', "%{$keyword}%")
+                    ->orWhere('search_tags', 'like', "%{$keyword}%");
             });
         }
 
         if (($grade = request('routine_item_grade')) && $grade !== 'all') {
-            if ($grade === '未設定') {
-                $itemQuery->where(function ($query) {
-                    $query->whereNull('target_grade')->orWhere('target_grade', '');
-                });
-            } elseif ($grade === 'ALL') {
-                $itemQuery->where('target_grade', 'ALL');
-            } else {
-                $itemQuery->where('target_grade', 'like', '%' . $grade . '%');
-            }
+            $itemQuery->whereHas('routineContent', function ($query) use ($grade) {
+                if ($grade === '未設定') {
+                    $query->where(function ($inner) {
+                        $inner->whereNull('target_grade')->orWhere('target_grade', '');
+                    });
+                } elseif ($grade === 'ALL') {
+                    $query->where('target_grade', 'ALL');
+                } else {
+                    $query->where('target_grade', 'like', '%' . $grade . '%');
+                }
+            });
         }
 
-        if (($level = request('routine_item_level')) && $level !== 'all') {
-            if ($level === '未設定') {
-                $itemQuery->where(function ($query) {
-                    $query->whereNull('target_level')->orWhere('target_level', '');
-                });
-            } else {
-                $itemQuery->where('target_level', $level);
-            }
-        }
-
-        if (($completionType = request('routine_item_completion_type')) && $completionType !== 'all') {
-            if ($completionType === '未設定') {
-                $itemQuery->whereNull('completion_type_id');
-            } else {
-                $itemQuery->where('completion_type_id', (int) $completionType);
-            }
-        }
-
-        if (($addStatus = request('routine_item_add_status')) && $addStatus !== 'all') {
-            if ($addStatus === 'not_added') {
-                $itemQuery->whereNotIn('id', $addedRoutinePackageItemIds);
-            } elseif ($addStatus === 'added') {
-                $itemQuery->whereIn('id', $addedRoutinePackageItemIds);
-            }
+        if (($difficulty = request('routine_item_difficulty')) && $difficulty !== 'all') {
+            $itemQuery->whereHas('routineContent', function ($query) use ($difficulty) {
+                if ($difficulty === '未設定') {
+                    $query->whereNull('difficulty');
+                } else {
+                    $query->where('difficulty', (int) $difficulty);
+                }
+            });
         }
 
         $routinePackageItems = $itemQuery
-            ->orderBy('routine_package_id')
-            ->orderBy('order_no')
-            ->limit(5)
+            ->orderBy('routine_content_id')
+            ->limit(20)
             ->get();
 
-        $gradeOrder = ['ALL', 'PRE', 'K1', 'K2', 'K3', 'E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'J1', 'J2', 'J3', 'H1', 'H2', 'H3', '未設定'];
-        $itemGradeValues = RoutinePackageItem::query()
+        // 対象学年フィルターは固定コードだけに限定せず、
+        // routine_contents.target_grade に実際に保存されている値を候補化する。
+        // 「年中〜小2」のような範囲表記も欠落させない。
+        $itemGrades = \App\Models\RoutineContent::query()
             ->pluck('target_grade')
-            ->flatMap(function ($grade) {
-                if ($grade === null || $grade === '') {
-                    return ['未設定'];
-                }
-
+            ->map(fn($grade) => ($grade === null || trim((string) $grade) === '') ? '未設定' : trim((string) $grade))
+            ->unique()
+            ->sortBy(function ($grade) {
                 if ($grade === 'ALL') {
-                    return ['ALL'];
+                    return '0000';
                 }
-
-                return collect(explode(',', $grade))->map(fn($value) => trim($value))->filter();
+                if ($grade === '未設定') {
+                    return '9999';
+                }
+                return '5000-' . $grade;
             })
+            ->values();
+
+        $itemDifficulties = \App\Models\RoutineContent::query()
+            ->pluck('difficulty')
+            ->map(fn($difficulty) => $difficulty === null ? '未設定' : (string) $difficulty)
             ->unique()
+            ->sortBy(fn($difficulty) => $difficulty === '未設定' ? 999 : (int) $difficulty)
             ->values();
-
-        $itemGrades = collect($gradeOrder)
-            ->filter(fn($grade) => $itemGradeValues->contains($grade))
-            ->values();
-
-        $levelOrder = ['Lv1', 'Lv2', 'Lv3', 'Lv4', 'Lv5', 'Lv6', 'Lv7', 'Lv8', 'Lv9', 'Lv10', '初級', '中級', '上級', '標準', '未設定'];
-        $itemLevelValues = RoutinePackageItem::query()
-            ->pluck('target_level')
-            ->map(fn($level) => ($level === null || $level === '') ? '未設定' : $level)
-            ->unique()
-            ->values();
-
-        $itemLevels = collect($levelOrder)
-            ->filter(fn($level) => $itemLevelValues->contains($level))
-            ->values();
-
-        $itemCompletionTypes = \App\Models\RoutineCompletionType::query()
-            ->where('is_active', true)
-            ->whereIn('id', RoutinePackageItem::query()
-                ->whereNotNull('completion_type_id')
-                ->distinct()
-                ->pluck('completion_type_id')
-                ->filter()
-                ->values()
-            )
-            ->orderBy('sort_order')
-            ->get();
-
-        $hasUnsetItemCompletionType = RoutinePackageItem::query()
-            ->whereNull('completion_type_id')
-            ->exists();
 
         return view('admin.students.karte.index', [
             'student' => $student,
@@ -331,12 +286,9 @@ class StudentKarteController extends Controller
             'routinePackageItems' => $routinePackageItems,
             'packageGrades' => $packageGrades,
             'packageLevels' => $packageLevels,
-            'packageCategories' => $packageCategories,
             'packageTags' => $packageTags,
             'itemGrades' => $itemGrades,
-            'itemLevels' => $itemLevels,
-            'itemCompletionTypes' => $itemCompletionTypes,
-            'hasUnsetItemCompletionType' => $hasUnsetItemCompletionType,
+            'itemDifficulties' => $itemDifficulties,
             'today' => Carbon::parse($today),
             'schools' => \App\Models\School::where('is_active', true)->orderBy('sort_order')->get(),
             'grades' => \App\Models\Grade::orderBy('id')->get(),
@@ -431,6 +383,31 @@ class StudentKarteController extends Controller
 
         $source = \App\Models\RoutinePackageItem::findOrFail($validated['routine_package_item_id']);
 
+        // 達成必要日数と1日の推奨学習時間は、追加時点のルーティンアイテムマスタ最新値を使用する。
+        // routine_package_itemsは過去に作成されたコピー値を保持する場合があるため、最新マスタを優先し、
+        // マスタ側が未設定の場合だけパッケージアイテムの値へフォールバックする。
+        $masterContent = \Illuminate\Support\Facades\DB::table('routine_contents')
+            ->where('id', $source->routine_content_id)
+            ->first([
+                'name',
+                'target_grade',
+                'difficulty',
+                'search_tags',
+                'description',
+                'estimated_days',
+                'daily_learning_minutes',
+            ]);
+
+        $requiredDays = $masterContent?->estimated_days ?? $source->required_days;
+        $estimatedMinutes = $masterContent?->daily_learning_minutes ?? $source->estimated_minutes;
+        $itemName = $masterContent?->name ?? $source->item_name;
+        $targetGrade = $masterContent?->target_grade ?? $source->target_grade;
+        $targetLevel = $masterContent?->difficulty !== null
+            ? (string) $masterContent->difficulty
+            : $source->target_level;
+        $tag = $masterContent?->search_tags ?? $source->tag;
+        $memo = $masterContent?->description ?? $source->memo;
+
         $nextOrderNo = ((int) \App\Models\StudentRoutineItem::query()
             ->where('student_routine_id', $targetRoutine->id)
             ->max('order_no')) + 1;
@@ -439,22 +416,22 @@ class StudentKarteController extends Controller
             'student_routine_id' => $targetRoutine->id,
             'routine_package_item_id' => $source->id,
             'routine_content_id' => $source->routine_content_id,
-            'item_name' => $source->item_name,
-            'target_grade' => $source->target_grade,
-            'target_level' => $source->target_level,
-            'tag' => $source->tag,
+            'item_name' => $itemName,
+            'target_grade' => $targetGrade,
+            'target_level' => $targetLevel,
+            'tag' => $tag,
             'completion_type_id' => $source->completion_type_id,
             'target_value' => $source->target_value,
-            'estimated_minutes' => $source->estimated_minutes,
+            'estimated_minutes' => $estimatedMinutes,
             'order_no' => $nextOrderNo,
             'is_required' => $source->is_required,
             'is_active' => true,
-            'memo' => $source->memo,
-            'required_days' => $source->required_days,
+            'memo' => $memo,
+            'required_days' => $requiredDays,
             'start_date' => now()->toDateString(),
         ]);
 
-        $requiredDays = max(1, (int)($source->required_days ?? 1));
+        $requiredDays = max(1, (int) ($requiredDays ?? 1));
 
         for ($day = 0; $day < $requiredDays; $day++) {
             \Illuminate\Support\Facades\DB::table('student_routine_daily_statuses')->insert([

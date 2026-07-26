@@ -395,19 +395,6 @@
 
 <style>
 
-    #editModal1 .routine-modal-body,
-    .routine-modal[id^="editModal"] .routine-modal-body {
-        padding-top: 22px;
-    }
-
-    .routine-modal[id^="editModal"] .routine-modal-dialog {
-        margin-top: 64px;
-    }
-
-    .routine-modal[id^="editModal"] .routine-modal-content {
-    transform: translateY(0);
-    }
-
     .routine-wrap {
         font-size: 13px;
         color: #0f172a;
@@ -754,6 +741,52 @@
         font-weight: 700;
         line-height: 1.35;
         white-space: nowrap;
+    }
+
+    .routine-package-items-inline {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .routine-package-item-inline-name {
+        display: inline-block;
+        min-width: 0;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 2px 6px;
+        border-radius: 999px;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        color: #0f172a;
+        font-size: 11px;
+        font-weight: 700;
+        vertical-align: middle;
+    }
+
+    .routine-package-item-more {
+        flex: 0 0 auto;
+        color: #475569;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .routine-tag-ellipsis {
+        display: block;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #2563eb;
+        font-size: 12px;
+        cursor: help;
     }
 
     .routine-package-items-preview {
@@ -3421,12 +3454,12 @@
         white-space: nowrap !important;
     }
 
-    /* Lower table: add destination stays wide */
+    /* Lower table: add destination is compact enough to leave room for tags */
     .routine-item-package-table th:nth-child(3),
     .routine-item-package-table td:nth-child(3) {
-        width: 22% !important;
-        min-width: 300px !important;
-        max-width: 420px !important;
+        width: 16.5% !important;
+        min-width: 220px !important;
+        max-width: 315px !important;
     }
 
     .routine-item-package-table td:nth-child(3) .routine-select {
@@ -3462,23 +3495,17 @@
 
     .routine-item-package-table th:nth-child(8),
     .routine-item-package-table td:nth-child(8) {
-        width: 7.5% !important;
-        min-width: 100px !important;
+        width: 3.75% !important;
+        min-width: 52px !important;
+        max-width: 70px !important;
         white-space: nowrap !important;
     }
 
     .routine-item-package-table th:nth-child(9),
     .routine-item-package-table td:nth-child(9) {
-        width: 6.2% !important;
-        min-width: 82px !important;
-        white-space: nowrap !important;
-    }
-
-    .routine-item-package-table th:nth-child(10),
-    .routine-item-package-table td:nth-child(10) {
-        width: auto !important;
-        min-width: 110px !important;
-        white-space: nowrap !important;
+        width: 26% !important;
+        min-width: 260px !important;
+        white-space: normal !important;
     }
 
 
@@ -3517,12 +3544,10 @@
     .routine-item-search-row {
         display: grid !important;
         grid-template-columns:
-            minmax(190px, 1.05fr)
-            minmax(230px, 1.25fr)
-            minmax(90px, 0.55fr)
-            minmax(90px, 0.55fr)
-            minmax(90px, 0.55fr)
-            minmax(130px, 0.75fr)
+            minmax(190px, 0.9fr)
+            minmax(280px, 1.4fr)
+            minmax(110px, 0.55fr)
+            minmax(100px, 0.5fr)
             70px
             70px !important;
         gap: 8px !important;
@@ -3539,14 +3564,261 @@
         white-space: nowrap !important;
     }
 
-    .routine-item-search-row select[name="routine_item_add_status"] {
-        min-width: 130px !important;
+    .routine-item-search-row select[name="routine_item_grade"],
+    .routine-item-search-row select[name="routine_item_difficulty"] {
+        min-width: 100px !important;
     }
 
-    .routine-item-search-row select[name="routine_item_grade"],
-    .routine-item-search-row select[name="routine_item_level"],
-    .routine-item-search-row select[name="routine_item_completion_type"] {
-        min-width: 90px !important;
+
+    /* 生徒カルテ：表示専用の1日推奨学習時間列 */
+    .routine-card-table .routine-daily-minutes-column {
+        width: 116px;
+        min-width: 116px;
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    /* 編集廃止後のアクション配置：移動・完了・削除のみ */
+    .routine-card-table .routine-action-grid {
+        grid-template-areas:
+            "move move"
+            "finish delete" !important;
+        grid-template-columns: 44px 44px !important;
+        width: 94px !important;
+    }
+
+    .routine-card-table .routine-action-grid .routine-action-move {
+        grid-area: move !important;
+        width: 94px !important;
+        min-width: 94px !important;
+    }
+
+
+    /* ==========================================================
+     * 生徒カルテ：追加セクション UI 最終調整
+     * 役割：検索・一覧の視認性と大量件数時の操作性を整える
+     * ========================================================== */
+    .routine-add-section-header {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 16px !important;
+        min-height: 46px !important;
+        padding: 8px 12px !important;
+    }
+
+    .routine-add-section-header > div {
+        min-width: 0 !important;
+        font-weight: 800 !important;
+    }
+
+    .routine-add-section-header .routine-clear-btn {
+        margin-left: auto !important;
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+    }
+
+    .routine-add-package-card .routine-search-row,
+    .routine-add-item-card .routine-search-row-small {
+        align-items: end !important;
+        gap: 8px !important;
+    }
+
+    .routine-add-package-card .routine-input,
+    .routine-add-package-card .routine-select,
+    .routine-add-package-card .routine-primary-btn,
+    .routine-add-package-card .routine-clear-btn,
+    .routine-add-item-card .routine-input,
+    .routine-add-item-card .routine-select,
+    .routine-add-item-card .routine-primary-btn,
+    .routine-add-item-card .routine-clear-btn {
+        min-height: 36px !important;
+        box-sizing: border-box !important;
+    }
+
+    .routine-add-package-card .routine-table-wrap,
+    .routine-add-item-card .routine-table-wrap {
+        margin-bottom: 0 !important;
+    }
+
+    .routine-package-add-table thead th,
+    .routine-item-package-table thead th {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 3 !important;
+        background: #f8fafc !important;
+    }
+
+    .routine-package-add-table tbody tr:hover td,
+    .routine-item-package-table tbody tr:hover td {
+        background: #f4f8ff !important;
+    }
+
+    .routine-package-items-inline {
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+    }
+
+    .routine-package-item-inline-name {
+        display: inline-block !important;
+        flex: 0 1 auto !important;
+        min-width: 0 !important;
+        max-width: 150px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        padding: 2px 6px !important;
+        border: 1px solid #dbe5f2 !important;
+        border-radius: 999px !important;
+        background: #f8fafc !important;
+        color: #334155 !important;
+        font-size: 11px !important;
+    }
+
+    .routine-package-item-more {
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+        color: #2563eb !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+    }
+
+    .routine-tag-ellipsis {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        color: #2563eb !important;
+        cursor: help !important;
+    }
+
+    .routine-grade-chip {
+        padding: 1px 5px !important;
+        margin: 1px !important;
+        line-height: 1.3 !important;
+    }
+
+    /* 分類列削除後：上段はタグへ幅を再配分 */
+    .routine-package-add-table th:nth-child(1),
+    .routine-package-add-table td:nth-child(1) { width: 10% !important; min-width: 120px !important; }
+    .routine-package-add-table th:nth-child(2),
+    .routine-package-add-table td:nth-child(2) { width: 20% !important; min-width: 240px !important; }
+    .routine-package-add-table th:nth-child(3),
+    .routine-package-add-table td:nth-child(3) { width: 8% !important; min-width: 90px !important; text-align: center !important; }
+    .routine-package-add-table th:nth-child(4),
+    .routine-package-add-table td:nth-child(4) { width: 32% !important; min-width: 360px !important; }
+    .routine-package-add-table th:nth-child(5),
+    .routine-package-add-table td:nth-child(5) { width: 10% !important; min-width: 110px !important; }
+    .routine-package-add-table th:nth-child(6),
+    .routine-package-add-table td:nth-child(6) {
+        width: 2.8% !important;
+        min-width: 44px !important;
+        max-width: 52px !important;
+        text-align: center !important;
+    }
+    .routine-package-add-table th:nth-child(7),
+    .routine-package-add-table td:nth-child(7) {
+        width: 17.2% !important;
+        min-width: 210px !important;
+        text-align: left !important;
+    }
+
+    /* 下段：追加先・難易度を縮小し、検索タグへ配分 */
+    .routine-item-package-table th:nth-child(3),
+    .routine-item-package-table td:nth-child(3) {
+        width: 12.5% !important;
+        min-width: 170px !important;
+        max-width: 235px !important;
+    }
+
+    .routine-item-package-table th:nth-child(8),
+    .routine-item-package-table td:nth-child(8) {
+        width: 2.8% !important;
+        min-width: 44px !important;
+        max-width: 52px !important;
+        text-align: center !important;
+    }
+
+    .routine-item-package-table th:nth-child(9),
+    .routine-item-package-table td:nth-child(9) {
+        width: 30.7% !important;
+        min-width: 320px !important;
+    }
+
+    .routine-item-package-table th:nth-child(4),
+    .routine-item-package-table td:nth-child(4),
+    .routine-item-package-table th:nth-child(5),
+    .routine-item-package-table td:nth-child(5),
+    .routine-item-package-table th:nth-child(6),
+    .routine-item-package-table td:nth-child(6),
+    .routine-item-package-table th:nth-child(8),
+    .routine-item-package-table td:nth-child(8) {
+        text-align: center !important;
+    }
+
+    /* 今回指定：検索ボタン・一覧リンク・列幅・タグ位置を統一 */
+    .routine-add-package-card .routine-primary-btn,
+    .routine-add-item-card .routine-primary-btn {
+        width: 70px !important;
+        min-width: 70px !important;
+        max-width: 70px !important;
+        justify-self: end !important;
+    }
+
+    .routine-add-section-header .routine-clear-btn {
+        padding: 0 16px !important;
+        min-width: 150px !important;
+    }
+
+    .routine-add-item-card .routine-add-section-header .routine-clear-btn {
+        min-width: 190px !important;
+    }
+
+    .routine-item-package-table th:nth-child(4),
+    .routine-item-package-table td:nth-child(4) {
+        width: 8.5% !important;
+        min-width: 122px !important;
+        max-width: 150px !important;
+        white-space: nowrap !important;
+    }
+
+    .routine-package-add-table th:nth-child(7),
+    .routine-package-add-table td:nth-child(7),
+    .routine-item-package-table th:nth-child(9),
+    .routine-item-package-table td:nth-child(9) {
+        text-align: left !important;
+    }
+
+    /* 終了済み一覧は空状態でも高さを維持し、増加時は内部スクロール */
+    .routine-ended-card .routine-table-wrap {
+        min-height: 150px !important;
+        max-height: 280px !important;
+        overflow: auto !important;
+    }
+
+    .routine-ended-card .routine-ended-table thead th {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 2 !important;
+        background: #f8fafc !important;
+    }
+
+    @media (max-width: 1366px) {
+        .routine-add-package-card .routine-search-row,
+        .routine-add-item-card .routine-search-row-small {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+
+        .routine-add-section-header {
+            flex-wrap: wrap !important;
+        }
     }
 
 </style>
@@ -3632,6 +3904,7 @@
                                     <th>今日のステータス</th>
                                     <th>状態 <span class="routine-help">?</span></th>
                                     <th>達成必要日数 <span class="routine-help">?</span></th>
+                                    <th class="routine-daily-minutes-column">1日の推奨学習時間</th>
                                     <th>進捗率 <span class="routine-help">?</span></th>
                                     <th>学習ペース <span class="routine-help">?</span></th>
                                     <th>学習履歴 <span class="routine-help">?</span></th>
@@ -3643,7 +3916,7 @@
                             <tbody>
                                 @if($items->isEmpty())
                                     <tr>
-                                        <td colspan="11" class="text-center py-4">
+                                        <td colspan="12" class="text-center py-4">
                                             <div>このルーティンに表示できるアイテムはありません。</div>
                                             <form method="POST"
                                                   action="{{ route('admin.students.routine.cancel', $student) }}"
@@ -3748,6 +4021,12 @@
                                     </span>
                                 </td>
 
+                                <td class="text-center routine-daily-minutes-column">
+                                    {{ isset($item->estimated_minutes) && $item->estimated_minutes !== null
+                                        ? (int) $item->estimated_minutes . '分'
+                                        : '未設定' }}
+                                </td>
+
                                 <td class="text-center">
                                     <span class="routine-hover">
                                         @if($minimumDays)
@@ -3835,12 +4114,6 @@
                                 <td class="text-center">
                                     <div class="routine-action-grid">
                                         <button type="button"
-                                                class="routine-btn routine-btn-gray routine-action-edit"
-                                                data-routine-modal-target="#editModal{{ $item->id }}">
-                                            編集
-                                        </button>
-
-                                        <button type="button"
                                                 class="routine-btn routine-btn-gray routine-action-move"
                                                 data-routine-modal-target="#moveItemModal{{ $item->id }}">
                                             移動
@@ -3853,7 +4126,7 @@
                                         </button>
 
                                         <form method="POST"
-                                              action="{{ route('admin.students.karte.routines.items.delete', [$student, $item]) }}"
+                                              action="{{ route('admin.students.karte.compat.routines.items.delete', [$student, $item]) }}"
                                               class="routine-action-delete">
                                             @csrf
                                             @method('DELETE')
@@ -3940,7 +4213,7 @@
                                 <div class="routine-modal-dialog routine-modal-dialog-sm">
                                     <div class="routine-modal-content">
                                         <form method="POST"
-                                            action="{{ route('admin.students.karte.routines.items.daily-status', [$student, $item]) }}">
+                                            action="{{ route('admin.students.karte.compat.routines.items.daily-status', [$student, $item]) }}">
                                             @csrf
 
                                             <div class="routine-modal-header">
@@ -3994,7 +4267,7 @@
                                 <div class="routine-modal-dialog routine-modal-dialog-sm">
                                     <div class="routine-modal-content">
                                         <form method="POST"
-                                              action="{{ route('admin.students.karte.routines.items.update', [$student, $item]) }}">
+                                              action="{{ route('admin.students.karte.compat.routines.items.update', [$student, $item]) }}">
                                             @csrf
                                             @method('PUT')
 
@@ -4038,76 +4311,11 @@
                                 </div>
                             </div>
 
-                            <div class="routine-modal" id="editModal{{ $item->id }}">
-                                <div class="routine-modal-dialog routine-modal-dialog-sm">
-                                    <div class="routine-modal-content">
-                                        <form method="POST"
-                                            action="{{ route('admin.students.karte.routines.items.update', [$student, $item]) }}">
-                                            @csrf
-                                            @method('PUT')
-
-                                            <div class="routine-modal-header">
-                                                <h5 class="routine-modal-title">ルーティンアイテム編集：{{ $item->item_name }}</h5>
-                                                <button type="button" class="routine-modal-close" data-routine-modal-close>×</button>
-                                            </div>
-
-                                            <div class="routine-modal-body">
-                                                <div class="routine-form-group">
-                                                    <label class="routine-form-label">達成条件</label>
-                                                    <select name="completion_type_id" class="routine-form-select">
-                                                        @foreach($completionTypes as $type)
-                                                            <option value="{{ $type->id }}" @selected($item->completion_type_id == $type->id)>
-                                                                {{ $type->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-
-                                                <div class="routine-form-group">
-                                                    <label class="routine-form-label">目標値</label>
-                                                    <input type="number"
-                                                        step="0.01"
-                                                        name="target_value"
-                                                        value="{{ $item->target_value }}"
-                                                        class="routine-form-control">
-                                                </div>
-
-                                                <div class="routine-form-group">
-                                                    <label class="routine-form-label">目安時間（分）</label>
-                                                    <input type="number"
-                                                        name="estimated_minutes"
-                                                        value="{{ $item->estimated_minutes }}"
-                                                        class="routine-form-control">
-                                                </div>
-
-                                                <div class="routine-form-group">
-                                                    <label class="routine-form-label">メモ</label>
-                                                    <textarea name="memo"
-                                                            class="routine-form-control">{{ $item->memo }}</textarea>
-                                                </div>
-                                            </div>
-
-                                            <div class="routine-modal-footer">
-                                                <button type="button"
-                                                        class="routine-modal-button routine-modal-button-light"
-                                                        data-routine-modal-close>
-                                                    閉じる
-                                                </button>
-                                                <button type="submit"
-                                                        class="routine-modal-button routine-modal-button-primary">
-                                                    保存
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-
                             <div class="routine-modal" id="finishItemModal{{ $item->id }}">
                                 <div class="routine-modal-dialog routine-modal-dialog-sm">
                                     <div class="routine-modal-content">
                                         <form method="POST"
-                                            action="{{ route('admin.students.routine.finish', $student) }}">
+                                            action="{{ route('admin.students.karte.compat.routine.finish', $student) }}">
                                             @csrf
 
                                             <input type="hidden"
@@ -4243,7 +4451,7 @@
     </div>
 
 
-    <div class="routine-card">
+    <div class="routine-card routine-ended-card">
         <div class="routine-card-header">
             <div>📅 終了したルーティンアイテム（直近20件）</div>
         </div>
@@ -4400,7 +4608,7 @@
                         <div class="routine-modal" id="teacherCommentModal{{ $item->id }}">
                             <div class="routine-modal-dialog routine-modal-dialog-sm">
                                 <div class="routine-modal-content">
-                                    <form method="POST" action="{{ route('admin.students.karte.routines.items.update', [$student, $item]) }}">
+                                    <form method="POST" action="{{ route('admin.students.karte.compat.routines.items.update', [$student, $item]) }}">
                                         @csrf
                                         @method('PUT')
                                         <input type="hidden" name="teacher_comment_mode" value="1">
@@ -4444,47 +4652,40 @@
     </div>
 
     <div class="routine-grid">
-        <div class="routine-card">
-            <div class="routine-card-header">
+        <div class="routine-card routine-add-package-card">
+            <div class="routine-card-header routine-add-section-header">
                 <div>➕ ルーティンの追加</div>
+                <a class="routine-clear-btn"
+                   href="http://lifeforce-system.test/admin/system/routine-management?tab=routines"
+                   target="_blank"
+                   rel="noopener noreferrer">ルーティン一覧を表示</a>
             </div>
 
             <form method="GET" action="">
                 <input type="hidden" name="tab" value="routine">
 
                 @php
-                    $gradeOrder = ['ALL','PRE','K1','K2','K3','E1','E2','E3','E4','E5','E6','J1','J2','J3','H1','H2','H3','未設定'];
-                    $packageGradeValues = collect($packageGrades ?? [])
-                        ->flatMap(function ($grade) {
-                            if ($grade === null || $grade === '') {
-                                return ['未設定'];
-                            }
-                            if ($grade === 'ALL') {
-                                return ['ALL'];
-                            }
-                            return array_values(array_filter(array_map('trim', explode(',', $grade))));
+                    // routine_packagesに実際に保存されている値を、そのまま選択肢へ使用する。
+                    // 固定候補との突合せを行わないことで、数値レベルや「年中〜小2」などの
+                    // 実データも欠落せず表示する。
+                    $packageGradeOptions = collect($packageGrades ?? [])
+                        ->map(fn($grade) => ($grade === null || $grade === '') ? '未設定' : (string) $grade)
+                        ->unique()
+                        ->sort()
+                        ->values();
+
+                    $packageLevelOptions = collect($packageLevels ?? [])
+                        ->map(fn($level) => ($level === null || $level === '') ? '未設定' : (string) $level)
+                        ->unique()
+                        ->sortBy(function ($level) {
+                            return is_numeric($level) ? sprintf('%08d', (int) $level) : 'Z' . $level;
                         })
-                        ->unique()
-                        ->values();
-
-                    $packageGradeOptions = collect($gradeOrder)
-                        ->filter(fn($grade) => $packageGradeValues->contains($grade))
-                        ->values();
-
-                    $levelOrder = ['初級','中級','上級','未設定'];
-                    $packageLevelValues = collect($packageLevels ?? [])
-                        ->map(fn($level) => ($level === null || $level === '') ? '未設定' : $level)
-                        ->unique()
-                        ->values();
-
-                    $packageLevelOptions = collect($levelOrder)
-                        ->filter(fn($level) => $packageLevelValues->contains($level))
                         ->values();
                 @endphp
 
                 <div class="routine-search-row">
-                    <input class="routine-input" name="routine_package_id" value="{{ request('routine_package_id') }}" placeholder="例）PKG-0001">
-                    <input class="routine-input" name="routine_package_keyword" value="{{ request('routine_package_keyword') }}" placeholder="ルーティン・説明・タグ">
+                    <input class="routine-input" name="routine_package_id" value="{{ request('routine_package_id') }}" placeholder="ルーティンコード・ID">
+                    <input class="routine-input" name="routine_package_keyword" value="{{ request('routine_package_keyword') }}" placeholder="名称・説明・検索タグ">
 
                     <select class="routine-select" name="routine_package_grade">
                         <option value="all">対象学年</option>
@@ -4494,18 +4695,12 @@
                     </select>
 
                     <select class="routine-select" name="routine_package_level">
-                        <option value="all">対象レベル</option>
+                        <option value="all">難易度</option>
                         @foreach($packageLevelOptions as $level)
-                            <option value="{{ $level }}" @selected(request('routine_package_level') === $level)>{{ $level }}</option>
+                            <option value="{{ $level }}" @selected(request('routine_package_level') === $level)>{{ $level === '未設定' ? '未設定' : (is_numeric($level) ? '★' . $level : $level) }}</option>
                         @endforeach
                     </select>
 
-                    <select class="routine-select" name="routine_package_category">
-                        <option value="all">分類</option>
-                        @foreach(($packageCategories ?? collect()) as $category)
-                            <option value="{{ $category }}" @selected(request('routine_package_category') === $category)>{{ $category }}</option>
-                        @endforeach
-                    </select>
 
                     <button class="routine-primary-btn" type="submit">検索</button>
                     <a class="routine-clear-btn" href="?tab=routine">クリア</a>
@@ -4521,9 +4716,8 @@
                             <th style="width:90px;">目安時間</th>
                             <th style="min-width:390px;">一緒に追加するルーティンアイテム</th>
                             <th>対象学年</th>
-                            <th style="width:58px;">対象レベル</th>
-                            <th style="width:72px;">分類</th>
-                            <th style="width:92px;">タグ</th>
+                            <th>難易度</th>
+                            <th>検索タグ</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -4555,8 +4749,9 @@
                                 $gradeTooltip = $rawGrade === 'ALL'
                                     ? '全学年対象'
                                     : collect($gradeCodes)->map(fn($code) => $code . '：' . ($gradeLabels[$code] ?? $code))->implode('<br>');
-                                $packageTags = $package->tag
-                                    ? array_values(array_filter(preg_split('/[、,\s]+/u', $package->tag)))
+                                $packageTagSource = $package->search_tags ?: $package->tag;
+                                $packageTags = $packageTagSource
+                                    ? array_values(array_filter(preg_split('/[、,\s]+/u', $packageTagSource)))
                                     : [];
                                 $descriptionText = $package->description ?? '';
                             @endphp
@@ -4566,7 +4761,7 @@
                                         @csrf
                                         <input type="hidden" name="routine_package_id" value="{{ $package->id }}">
                                         <button type="submit" class="routine-plus-add-btn" title="このルーティンを追加">＋</button>
-                                        <span class="routine-package-id-text">PKG-{{ str_pad($package->id, 4, '0', STR_PAD_LEFT) }}</span>
+                                        <span class="routine-package-id-text">{{ $package->package_code ?: ('PKG-' . str_pad($package->id, 4, '0', STR_PAD_LEFT)) }}</span>
                                     </form>
                                 </td>
                                 <td class="text-left" style="white-space:normal; line-height:1.45; max-width:260px; text-align:left;">
@@ -4591,16 +4786,22 @@
                                     </div>
                                 </td>
                                 @php
-                                    $packageItemRows = ($routinePackageItems ?? collect())
-                                        ->where('routine_package_id', $package->id)
-                                        ->values();
-                                    $visiblePackageItems = $packageItemRows->take(2);
-                                    $hiddenPackageItemCount = max(0, $packageItemRows->count() - $visiblePackageItems->count());
+                                    // 各ルーティン自身の構成アイテムを表示する。
+                                    // 単体追加候補の検索結果を流用しないことで、別ルーティンのアイテム混入を防ぐ。
+                                    $packageItemRows = collect($package->items ?? collect())->values();
 
-                                    $dailyMinutes = $packageItemRows->sum(fn($packageItem) => (int)($packageItem->estimated_minutes ?? 0));
+                                    $dailyMinutes = $packageItemRows->sum(function ($packageItem) {
+                                        return (int)($packageItem->routineContent?->daily_learning_minutes
+                                            ?? $packageItem->estimated_minutes
+                                            ?? 0);
+                                    });
                                     $totalMinutes = $packageItemRows->sum(function ($packageItem) {
-                                        $itemMinutes = (int)($packageItem->estimated_minutes ?? 0);
-                                        $itemDays = max(1, (int)($packageItem->required_days ?? 1));
+                                        $itemMinutes = (int)($packageItem->routineContent?->daily_learning_minutes
+                                            ?? $packageItem->estimated_minutes
+                                            ?? 0);
+                                        $itemDays = max(1, (int)($packageItem->routineContent?->estimated_days
+                                            ?? $packageItem->required_days
+                                            ?? 1));
                                         return $itemMinutes * $itemDays;
                                     });
                                     $totalHours = round($totalMinutes / 60, 1);
@@ -4617,27 +4818,43 @@
                                             ーーーーーー<br>
                                             @foreach($packageItemRows as $packageItem)
                                                 @php
-                                                    $itemMinutes = (int)($packageItem->estimated_minutes ?? 0);
-                                                    $itemDays = max(1, (int)($packageItem->required_days ?? 1));
+                                                    $itemMinutes = (int)($packageItem->routineContent?->daily_learning_minutes
+                                                        ?? $packageItem->estimated_minutes
+                                                        ?? 0);
+                                                    $itemDays = max(1, (int)($packageItem->routineContent?->estimated_days
+                                                        ?? $packageItem->required_days
+                                                        ?? 1));
+                                                    $packageItemName = $packageItem->routineContent?->name ?? $packageItem->item_name;
                                                     $itemTotalMinutes = $itemMinutes * $itemDays;
                                                 @endphp
                                                 @php
                                                     $itemTotalHours = intval($itemTotalMinutes / 60);
                                                 @endphp
-                                                ・{{ $packageItem->item_name }}<br>
+                                                ・{{ $packageItemName }}<br>
                                                 {{ $itemMinutes }}分/日 × {{ $itemDays }}日 ＝ {{ $itemTotalMinutes }}分（{{ $itemTotalHours }}時間）<br><br>
                                             @endforeach
                                         </span>
                                     </span>
                                 </td>
-<td class="text-left" style="white-space:normal; line-height:1.45; max-width:430px; text-align:left;">
+<td class="text-left" style="text-align:left;">
                                     @if($packageItemRows->isEmpty())
                                         <span class="muted-text">-</span>
                                     @else
-                                        <div class="routine-package-items-tags">
-                                            @foreach($packageItemRows as $packageItem)
-                                                <span class="routine-package-item-tag">{{ $packageItem->item_name }}</span>
+                                        @php
+                                            $visiblePackageItems = $packageItemRows->take(5);
+                                            $remainingPackageItemCount = max(0, $packageItemRows->count() - 5);
+                                            $allPackageItemNames = $packageItemRows
+                                                ->map(fn($packageItem) => $packageItem->routineContent?->name ?? $packageItem->item_name)
+                                                ->filter()
+                                                ->implode('、');
+                                        @endphp
+                                        <div class="routine-package-items-inline" title="{{ $allPackageItemNames }}">
+                                            @foreach($visiblePackageItems as $packageItem)
+                                                <span class="routine-package-item-inline-name">{{ $packageItem->routineContent?->name ?? $packageItem->item_name }}</span>
                                             @endforeach
+                                            @if($remainingPackageItemCount > 0)
+                                                <span class="routine-package-item-more">その他{{ $remainingPackageItemCount }}件</span>
+                                            @endif
                                         </div>
                                     @endif
                                 </td>
@@ -4658,19 +4875,21 @@
                                         </span>
                                     </span>
                                 </td>
-                                <td class="text-center">{{ $package->target_level ?? '-' }}</td>
-                                <td class="text-center">{{ $package->category ?? '-' }}</td>
-                                <td class="text-center" style="white-space:nowrap;">
-                                    @forelse($packageTags as $tag)
-                                        <span class="routine-tag" style="display:inline-block; margin-right:6px;">#{{ $tag }}</span>
-                                    @empty
+                                <td class="text-center">{{ $package->target_level !== null && $package->target_level !== '' ? (is_numeric($package->target_level) ? '★' . $package->target_level : $package->target_level) : '-' }}</td>
+                                <td class="text-left" style="text-align:left;">
+                                    @if($packageTags)
+                                        @php
+                                            $packageTagText = collect($packageTags)->map(function ($tag) { return '#' . $tag; })->implode(' ');
+                                        @endphp
+                                        <span class="routine-tag-ellipsis" title="{{ $packageTagText }}">{{ $packageTagText }}</span>
+                                    @else
                                         -
-                                    @endforelse
+                                    @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center py-4">条件に一致するルーティンパッケージはありません。</td>
+                                <td colspan="7" class="text-center py-4">条件に一致するルーティンパッケージはありません。</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -4678,17 +4897,21 @@
             </div>
         </div>
 
-        <div class="routine-card">
-            <div class="routine-card-header">
-                <div>➕ ルーティンアイテムを追加</div>
+        <div class="routine-card routine-add-item-card">
+            <div class="routine-card-header routine-add-section-header">
+                <div>➕ ルーティンアイテムの追加</div>
+                <a class="routine-clear-btn"
+                   href="http://lifeforce-system.test/admin/system/routine-management?tab=items"
+                   target="_blank"
+                   rel="noopener noreferrer">ルーティンアイテム一覧を表示</a>
             </div>
 
             <form method="GET" action="">
                 <input type="hidden" name="tab" value="routine">
 
                 <div class="routine-search-row-small routine-item-search-row">
-                    <input class="routine-input" name="routine_item_content_id" value="{{ request('routine_item_content_id') }}" placeholder="例）CONT-0001">
-                    <input class="routine-input" name="routine_item_keyword" value="{{ request('routine_item_keyword') }}" placeholder="ルーティンアイテム・説明・タグ">
+                    <input class="routine-input" name="routine_item_content_id" value="{{ request('routine_item_content_id') }}" placeholder="アイテムコード・ID">
+                    <input class="routine-input" name="routine_item_keyword" value="{{ request('routine_item_keyword') }}" placeholder="名称・説明・検索タグ">
 
                     <select class="routine-select" name="routine_item_grade">
                         <option value="all">対象学年</option>
@@ -4697,27 +4920,13 @@
                         @endforeach
                     </select>
 
-                    <select class="routine-select" name="routine_item_level">
-                        <option value="all">対象レベル</option>
-                        @foreach(($itemLevels ?? collect()) as $level)
-                            <option value="{{ $level }}" @selected(request('routine_item_level') === $level)>{{ $level }}</option>
+                    <select class="routine-select" name="routine_item_difficulty">
+                        <option value="all">難易度</option>
+                        @foreach(($itemDifficulties ?? collect()) as $difficulty)
+                            <option value="{{ $difficulty }}" @selected((string) request('routine_item_difficulty') === (string) $difficulty)>
+                                {{ $difficulty === '未設定' ? '未設定' : '★' . $difficulty }}
+                            </option>
                         @endforeach
-                    </select>
-
-                    <select class="routine-select" name="routine_item_completion_type">
-                        <option value="all">達成条件</option>
-                        @foreach(($itemCompletionTypes ?? collect()) as $completionType)
-                            <option value="{{ $completionType->id }}" @selected((string) request('routine_item_completion_type') === (string) $completionType->id)>{{ $completionType->name }}</option>
-                        @endforeach
-                        @if($hasUnsetItemCompletionType ?? false)
-                            <option value="未設定" @selected(request('routine_item_completion_type') === '未設定')>未設定</option>
-                        @endif
-                    </select>
-
-                    <select class="routine-select" name="routine_item_add_status">
-                        <option value="all" @selected(request('routine_item_add_status', 'all') === 'all')>追加状態</option>
-                        <option value="not_added" @selected(request('routine_item_add_status') === 'not_added')>未追加のみ</option>
-                        <option value="added" @selected(request('routine_item_add_status') === 'added')>追加済のみ</option>
                     </select>
 
                     <button class="routine-primary-btn" type="submit">検索</button>
@@ -4732,13 +4941,12 @@
                             <th>ルーティンアイテムID</th>
                             <th>ルーティンアイテム</th>
                             <th>追加先ルーティン</th>
-                            <th>1日</th>
-                            <th>日数</th>
-                            <th>総時間</th>
-                            <th>達成条件</th>
+                            <th>1日の推奨学習時間</th>
+                            <th>学習想定日数</th>
+                            <th>総学習目安時間</th>
                             <th>対象学年</th>
-                            <th>対象レベル</th>
-                            <th>タグ</th>
+                            <th>難易度</th>
+                            <th>検索タグ</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -4763,7 +4971,8 @@
                                     'H3' => '高3',
                                 ];
 
-                                $rawItemGrade = $item->target_grade ?? '';
+                                $masterContent = $item->routineContent;
+                                $rawItemGrade = $masterContent?->target_grade ?? '';
                                 $itemGradeCodes = $rawItemGrade && $rawItemGrade !== 'ALL'
                                     ? array_values(array_filter(array_map('trim', explode(',', $rawItemGrade))))
                                     : [];
@@ -4771,26 +4980,23 @@
                                     ? '全学年対象'
                                     : collect($itemGradeCodes)->map(fn($code) => $code . '：' . ($gradeLabels[$code] ?? $code))->implode('<br>');
 
-                                $itemTags = $item->tag
-                                    ? array_values(array_filter(preg_split('/[、,\s]+/u', $item->tag)))
+                                $masterTags = $masterContent?->search_tags;
+                                $itemTags = $masterTags
+                                    ? array_values(array_filter(preg_split('/[、,\s]+/u', $masterTags)))
                                     : [];
 
-                                $itemMinutes = (int)($item->estimated_minutes ?? 0);
-                                $itemDays = max(1, (int)($item->required_days ?? 1));
+                                // 所属ルーティンはroutine_package_itemsから維持し、
+                                // 共通アイテム属性はroutine_contentsの最新値を優先する。
+                                $itemMinutes = (int)($masterContent?->daily_learning_minutes ?? $item->estimated_minutes ?? 0);
+                                $itemDays = max(1, (int)($masterContent?->estimated_days ?? $item->required_days ?? 1));
                                 $itemTotalMinutes = $itemMinutes * $itemDays;
                                 $itemTotalHours = intval($itemTotalMinutes / 60);
+                                $displayItemName = $masterContent?->name ?? $item->item_name;
+                                $displayDifficulty = $masterContent?->difficulty !== null
+                                    ? '★' . $masterContent->difficulty
+                                    : '-';
 
-                                $targetValue = $item->target_value !== null
-                                    ? rtrim(rtrim(number_format((float)$item->target_value, 2), '0'), '.')
-                                    : null;
-                                $completionName = $item->completionType?->name ?? '-';
-                                $completionUnit = $item->completionType?->unit ?? '';
-                                $conditionText = $completionName === '先生承認'
-                                    ? '先生承認'
-                                    : ($targetValue !== null ? $completionName . ' ' . $targetValue . $completionUnit : $completionName);
-
-                                $itemDescription = $item->memo
-                                    ?: ($item->routineContent?->description ?? '');
+                                $itemDescription = $masterContent?->description ?? '';
                             @endphp
 
                             <tr>
@@ -4803,7 +5009,7 @@
                                         <input type="hidden" name="routine_package_item_id" value="{{ $item->id }}">
                                         <input type="hidden" id="routine-item-target-{{ $item->id }}" name="student_routine_id" value="">
                                         <button type="submit" class="routine-plus-add-btn" title="このルーティンアイテムを追加">＋</button>
-                                        <span class="routine-package-id-text">CONT-{{ str_pad($item->routine_content_id, 4, '0', STR_PAD_LEFT) }}</span>
+                                        <span class="routine-package-id-text">{{ $masterContent?->content_code ?: ('CONT-' . str_pad($item->routine_content_id, 4, '0', STR_PAD_LEFT)) }}</span>
                                     </form>
                                 </td>
 
@@ -4817,7 +5023,7 @@
                                             </span>
                                         </span>
                                     @endif
-                                    <span class="routine-title routine-package-name-text">{{ $item->item_name }}</span>
+                                    <span class="routine-title routine-package-name-text">{{ $displayItemName }}</span>
                                 </td>
 
                                 <td class="text-center">
@@ -4843,8 +5049,6 @@
                                     </span>
                                 </td>
 
-                                <td class="text-center">{{ $conditionText }}</td>
-
                                 <td class="text-center">
                                     <span class="routine-hover">
                                         @if($rawItemGrade === 'ALL')
@@ -4863,19 +5067,22 @@
                                     </span>
                                 </td>
 
-                                <td class="text-center">{{ $item->target_level ?? '-' }}</td>
+                                <td class="text-center">{{ $displayDifficulty }}</td>
 
-                                <td class="text-center" style="white-space:nowrap;">
-                                    @forelse($itemTags as $tag)
-                                        <span class="routine-tag" style="display:inline-block; margin-right:6px;">#{{ $tag }}</span>
-                                    @empty
+                                <td class="text-left" style="text-align:left;">
+                                    @if($itemTags)
+                                        @php
+                                            $itemTagText = collect($itemTags)->map(function ($tag) { return '#' . $tag; })->implode(' ');
+                                        @endphp
+                                        <span class="routine-tag-ellipsis" title="{{ $itemTagText }}">{{ $itemTagText }}</span>
+                                    @else
                                         -
-                                    @endforelse
+                                    @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center py-4">条件に一致するルーティンアイテムはありません。</td>
+                                <td colspan="9" class="text-center py-4">条件に一致するルーティンアイテムはありません。</td>
                             </tr>
                         @endforelse
                     </tbody>

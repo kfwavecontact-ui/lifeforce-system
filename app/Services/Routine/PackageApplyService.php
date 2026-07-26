@@ -31,9 +31,13 @@ class PackageApplyService
                 'updated_at' => now(),
             ]);
 
-            $items = DB::table('routine_package_items')
-                ->where('routine_package_id', $package->id)
-                ->orderBy('order_no')
+            $items = DB::table('routine_package_items as rpi')
+                ->leftJoin('routine_contents as rc', 'rc.id', '=', 'rpi.routine_content_id')
+                ->where('rpi.routine_package_id', $package->id)
+                ->orderBy('rpi.order_no')
+                ->select('rpi.*')
+                ->selectRaw('COALESCE(rc.estimated_days, rpi.required_days) as assignment_required_days')
+                ->selectRaw('COALESCE(rc.daily_learning_minutes, rpi.estimated_minutes) as assignment_estimated_minutes')
                 ->get();
 
             foreach ($items as $item) {
@@ -47,8 +51,8 @@ class PackageApplyService
                     'tag' => $item->tag,
                     'completion_type_id' => $item->completion_type_id,
                     'target_value' => $item->target_value,
-                    'required_days' => $item->required_days,
-                    'estimated_minutes' => $item->estimated_minutes,
+                    'required_days' => $item->assignment_required_days,
+                    'estimated_minutes' => $item->assignment_estimated_minutes,
                     'order_no' => $item->order_no,
                     'is_required' => $item->is_required,
                     'is_active' => true,

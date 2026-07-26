@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\Wakuwaku\TitleHistoryController;
 use App\Http\Controllers\Admin\System\TitleManagementController;
 use App\Http\Controllers\Admin\System\PermissionController;
 use App\Http\Controllers\Admin\System\RoutineManagementController;
+use App\Http\Controllers\Admin\Education\RoutineController;
 use App\Http\Controllers\Admin\System\PointProductManagementController;
 use App\Http\Controllers\Admin\Account\AccountTransactionController;
 use App\Http\Controllers\Admin\Account\TuitionEnrollmentSaleController;
@@ -96,12 +97,36 @@ Route::post('/students/{student}/routine/finish',[StudentKarteController::class,
 
 Route::get('/admin/students/{student}/karte', [StudentKarteController::class, 'show']);
 Route::post('/admin/students/{student}/karte/routines/apply-package', [StudentKarteController::class, 'applyRoutinePackage']);
-Route::put('/admin/students/{student}/karte/routines/items/{item}', [StudentKarteController::class, 'updateRoutineItem']);
-Route::delete('/admin/students/{student}/karte/routines/items/{item}', [StudentKarteController::class, 'deleteRoutineItem']);
+
+// 生徒カルテを /admin 配下で表示した際も、セッションCookieとCSRFトークンを
+// 同一パス内で維持して安全に更新できるようにする互換ルート。
+Route::post('/admin/students/{student}/karte/routines/items/{item}/daily-status', [StudentKarteController::class, 'updateRoutineDailyStatus'])
+    ->name('admin.students.karte.compat.routines.items.daily-status');
+Route::put('/admin/students/{student}/karte/routines/items/{item}', [StudentKarteController::class, 'updateRoutineItem'])
+    ->name('admin.students.karte.compat.routines.items.update');
+Route::delete('/admin/students/{student}/karte/routines/items/{item}', [StudentKarteController::class, 'deleteRoutineItem'])
+    ->name('admin.students.karte.compat.routines.items.delete');
+Route::post('/admin/students/{student}/routine/finish', [StudentKarteController::class, 'finishRoutine'])
+    ->name('admin.students.karte.compat.routine.finish');
 
 Route::prefix('admin')
     ->name('admin.')
     ->group(function () {
+
+
+        // 教育 ＞ ルーティン（ルーティン割当・割当済ルーティン状況）
+        Route::prefix('education/routines')->name('education.routines.')->group(function () {
+            Route::get('/', [RoutineController::class, 'index'])->name('index');
+            // 旧『現在の取組』URLは、実施中で絞り込んだ割当済ルーティン状況へ互換転送する。
+            Route::get('/status', [RoutineController::class, 'status'])->name('status');
+            Route::get('/history', [RoutineController::class, 'history'])->name('history');
+            Route::get('/history/items/{studentRoutineItem}', [RoutineController::class, 'historyItem'])->name('history.item');
+            Route::get('/history/export', [RoutineController::class, 'export'])->name('history.export');
+            Route::post('/assign', [RoutineController::class, 'assign'])->name('assign');
+            Route::delete('/{studentRoutine}/assignment', [RoutineController::class, 'cancel'])->name('cancel');
+            Route::patch('/{studentRoutine}/state', [RoutineController::class, 'updateState'])->name('state');
+        });
+
 
         // わくわく ＞ ポイント ＞ ポイント残高
         Route::get('/wakuwaku/points', [PointBalanceController::class, 'index'])

@@ -133,24 +133,17 @@
         </button>
 
         <div class="sidebar-submenu">
-            <a href="#" class="sidebar-subitem"
-                data-search-name="教育 ＞ ルーティン ＞ 教室の取組状況"
-                data-info="教室全体の実施状況を確認します">
-                <span>教室の取組状況</span>
-                <i class="fas fa-circle-info sidebar-info"></i>
-            </a>
-
-            <a href="#" class="sidebar-subitem"
-                data-search-name="教育 ＞ ルーティン ＞ ルーティン履歴"
-                data-info="過去の取組履歴を確認します">
-                <span>ルーティン履歴</span>
-                <i class="fas fa-circle-info sidebar-info"></i>
-            </a>
-
-            <a href="#" class="sidebar-subitem"
+            <a href="{{ route('admin.education.routines.index') }}" class="sidebar-subitem"
                 data-search-name="教育 ＞ ルーティン ＞ ルーティン割当"
-                data-info="生徒へルーティンを割り当てます">
+                data-info="生徒またはルーティンを起点に、ルーティンを割り当てます">
                 <span>ルーティン割当</span>
+                <i class="fas fa-circle-info sidebar-info"></i>
+            </a>
+
+            <a href="{{ route('admin.education.routines.history') }}" class="sidebar-subitem"
+                data-search-name="教育 ＞ ルーティン ＞ 割当済ルーティン状況"
+                data-info="割当済みルーティンアイテムの実施中・完了・停止状況を確認します">
+                <span>割当済ルーティン状況</span>
                 <i class="fas fa-circle-info sidebar-info"></i>
             </a>
         </div>
